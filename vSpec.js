@@ -1,21 +1,20 @@
-/*jslint sloppy:true, nomen:true */
-/*global describe,it,expect,_,g */
-
+/*jslint sloppy:true,nomen:true */
+/*global describe,it,expect,_,v */
 
 describe("Path", function () {
 
     it("can render itself to SVG.", function () {
         var p;
-        p = new g.Path();
-        p.moveTo(10, 20);
-        p.lineTo(30, 40);
+        p = new v.Path();
+        p.moveTo(10, 20)
+        p.lineTo(30, 40)
         p.close();
         expect(p.toSVG()).toBe('<path d="M10 20L30 40Z"/>');
     });
 
     it("can clone itself.", function () {
         var p, newP;
-        p = new g.Path();
+        p = new v.Path();
         p.fill = 'red';
         p.stroke = 'green';
         p.strokeWidth = 5;
@@ -36,9 +35,9 @@ describe("Group", function () {
 
     it("can render itself to SVG.", function () {
         var group, p;
-        group = new g.Group();
+        group = new v.Group();
         expect(group.toSVG()).toBe('<g></g>');
-        p = new g.Path();
+        p = new v.Path();
         p.moveTo(10, 20);
         p.lineTo(30, 40);
         p.close();
@@ -48,8 +47,8 @@ describe("Group", function () {
 
     it("can clone itself.", function () {
         var group, newGroup;
-        group = new g.Group();
-        group.paths.push(g.DEMO_RECT.clone());
+        group = new v.Group();
+        group.paths.push(v.DEMO_RECT.clone());
         group.tag('foo', function () {
             return true;
         });
@@ -61,9 +60,9 @@ describe("Group", function () {
 
     it("can be tagged.", function () {
         var group, p1, p2;
-        group = new g.Group();
-        p1 = new g.Path();
-        p2 = new g.Path();
+        group = new v.Group();
+        p1 = new v.Path();
+        p2 = new v.Path();
         group.paths = [p1, p2];
 
         expect(group.findByTag('foo')).toEqual([]);
@@ -79,16 +78,16 @@ describe("Group", function () {
 
     it("has bounds", function () {
         var group, p1, p2;
-        group = new g.Group();
-        expect(group.bounds()).toEqual(new g.Rect(0, 0, 0, 0));
-        p1 = new g.Path();
+        group = new v.Group();
+        expect(group.bounds()).toEqual(new v.Rect(0, 0, 0, 0));
+        p1 = new v.Path();
         p1.addRect(10, 20, 30, 40);
         group.paths.push(p1);
-        expect(group.bounds()).toEqual(new g.Rect(10, 20, 30, 40));
-        p2 = new g.Path();
+        expect(group.bounds()).toEqual(new v.Rect(10, 20, 30, 40));
+        p2 = new v.Path();
         p2.addRect(100, 200, 10, 10);
         group.paths.push(p2);
-        expect(group.bounds()).toEqual(new g.Rect(10, 20, 100, 190));
+        expect(group.bounds()).toEqual(new v.Rect(10, 20, 100, 190));
     });
 
 });
@@ -96,7 +95,7 @@ describe("Group", function () {
 describe("Tagging", function () {
 
     it("can tag shapes", function () {
-        var shape = g.DEMO_GROUP.clone();
+        var shape = v.DEMO_GROUP.clone();
         shape.tag("foo", function () {
             return true;
         });
