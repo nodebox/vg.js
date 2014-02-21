@@ -1,6 +1,7 @@
 /*jslint sloppy:true, nomen:true */
 /*global describe,it,expect,_,g */
 
+var g = require('./g.js');
 
 describe("Path", function () {
 
