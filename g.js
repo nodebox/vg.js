@@ -77,10 +77,12 @@ if (typeof require !== 'undefined') {
         return degrees / 180 * Math.PI;
     };
 
-    g.math.clamp = function (value, min, max) {
-        return (max > min) ?
-                Math.max(min, Math.min(value, max)) :
-                Math.max(max, Math.min(value, min));
+    g.math.clamp = function (v, min, max) {
+        if (min < max) {
+            return v < min ? min : v > max ? max : v;
+        } else {
+            return v < max ? max : v > min ? min : v;
+        }
     };
 
     g.math.dot = function (a, b) {
