@@ -35,6 +35,8 @@ if (typeof require !== 'undefined') {
 
     var g = {};
 
+    // RANDOM ///////////////////////////////////////////////////////////////
+
     // Generate a random function that is seeded with the given value.
     g.randomGenerator = function (seed) {
         // Based on random number generator from
@@ -530,7 +532,7 @@ if (typeof require !== 'undefined') {
     };
 
 
-    // GRAPHICS /////////////////////////////////////////////////////////////
+    // POINT ////////////////////////////////////////////////////////////////
 
     g.Point = g.Vec2 = function (x, y) {
         this.x = x !== undefined ? x : 0;
@@ -610,1055 +612,7 @@ if (typeof require !== 'undefined') {
         return new g.Point(x, y);
     };
 
-    g.MOVETO  = 'M';
-    g.LINETO  = 'L';
-    g.CURVETO = 'C';
-    g.CLOSE   = 'z';
-
-    g.CLOSE_ELEMENT = Object.freeze({ cmd: g.CLOSE });
-
-    g.moveTo = g.moveto = function (x, y) {
-        return { cmd:   g.MOVETO,
-               point: g.makePoint(x, y) };
-    };
-
-    g.lineTo = g.lineto = function (x, y) {
-        return { cmd:   g.LINETO,
-               point: g.makePoint(x, y) };
-    };
-
-    g.curveTo = g.curveto = function (c1x, c1y, c2x, c2y, x, y) {
-        return { cmd:   g.CURVETO,
-               point: g.makePoint(x, y),
-               ctrl1: g.makePoint(c1x, c1y),
-               ctrl2: g.makePoint(c2x, c2y) };
-    };
-
-    g.closePath = g.closepath = g.close = function () {
-        return g.CLOSE_ELEMENT;
-    };
-
-    g._rect = function (x, y, width, height) {
-        var elements = [
-            g.moveto(x, y),
-            g.lineto(x + width, y),
-            g.lineto(x + width, y + height),
-            g.lineto(x, y + height),
-            g.close()
-        ];
-        return new g.Path(elements);
-    };
-
-    g.roundedRect = function (cx, cy, width, height, rx, ry) {
-        var ONE_MINUS_QUARTER = 1.0 - 0.552,
-
-            elements = [],
-
-            dx = rx,
-            dy = ry,
-
-            left = cx,
-            right = cx + width,
-            top = cy,
-            bottom = cy + height;
-
-        // rx/ry cannot be greater than half of the width of the rectangle
-        // (required by SVG spec)
-        dx = Math.min(dx, width * 0.5);
-        dy = Math.min(dy, height * 0.5);
-        elements.push(g.moveto(left + dx, top));
-        if (dx < width * 0.5) {
-            elements.push(g.lineto(right - rx, top));
-        }
-        elements.push(g.curveto(right - dx * ONE_MINUS_QUARTER, top, right, top + dy * ONE_MINUS_QUARTER, right, top + dy));
-        if (dy < height * 0.5) {
-            elements.push(g.lineto(right, bottom - dy));
-        }
-        elements.push(g.curveto(right, bottom - dy * ONE_MINUS_QUARTER, right - dx * ONE_MINUS_QUARTER, bottom, right - dx, bottom));
-        if (dx < width * 0.5) {
-            elements.push(g.lineto(left + dx, bottom));
-        }
-        elements.push(g.curveto(left + dx * ONE_MINUS_QUARTER, bottom, left, bottom - dy * ONE_MINUS_QUARTER, left, bottom - dy));
-        if (dy < height * 0.5) {
-            elements.push(g.lineto(left, top + dy));
-        }
-        elements.push(g.curveto(left, top + dy * ONE_MINUS_QUARTER, left + dx * ONE_MINUS_QUARTER, top, left + dx, top));
-        elements.push(g.close());
-        return new g.Path(elements);
-    };
-
-    g._ellipse = function (x, y, width, height) {
-        var k = 0.55, // kappa = (-1 + sqrt(2)) / 3 * 4
-            dx = k * 0.5 * width,
-            dy = k * 0.5 * height,
-            x0 = x + 0.5 * width,
-            y0 = y + 0.5 * height,
-            x1 = x + width,
-            y1 = y + height,
-            elements = [
-                g.moveto(x, y0),
-                g.curveto(x, y0 - dy, x0 - dx, y, x0, y),
-                g.curveto(x0 + dx, y, x1, y0 - dy, x1, y0),
-                g.curveto(x1, y0 + dy, x0 + dx, y1, x0, y1),
-                g.curveto(x0 - dx, y1, x, y0 + dy, x, y0),
-                g.close()
-            ];
-        return new g.Path(elements);
-    };
-
-    g._line = function (x1, y1, x2, y2) {
-        var elements = [
-            g.moveto(x1, y1),
-            g.lineto(x2, y2)
-        ];
-        return new g.Path(elements);
-    };
-
-    g.quad = function (x1, y1, x2, y2, x3, y3, x4, y4) {
-        var elements = [
-            g.moveto(x1, y1),
-            g.lineto(x2, y2),
-            g.lineto(x3, y3),
-            g.lineto(x4, y4),
-            g.close()
-        ];
-        return new g.Path(elements);
-    };
-
-    g._arc = function (x, y, width, height, startAngle, degrees, arcType) {
-        var w, h, angStRad, ext, arcSegs, increment, cv, lineSegs,
-            index, elements, angle, relx, rely, coords;
-        w = width / 2;
-        h = height / 2;
-        angStRad = g.math.radians(startAngle);
-        ext = degrees;
-
-        if (ext >= 360.0 || ext <= -360) {
-            arcSegs = 4;
-            increment = Math.PI / 2;
-            cv = 0.5522847498307933;
-            if (ext < 0) {
-                increment = -increment;
-                cv = -cv;
-            }
-        } else {
-            arcSegs = Math.ceil(Math.abs(ext) / 90.0);
-            increment = g.math.radians(ext / arcSegs);
-            cv = 4.0 / 3.0 * Math.sin(increment / 2.0) / (1.0 + Math.cos(increment / 2.0));
-            if (cv === 0) {
-                arcSegs = 0;
-            }
-        }
-
-        if (arcType === 'open') {
-            lineSegs = 0;
-        } else if (arcType === 'chord') {
-            lineSegs = 1;
-        } else if (arcType === 'pie') {
-            lineSegs = 2;
-        }
-
-        if (w < 0 || h < 0) {
-            arcSegs = lineSegs = -1;
-        }
-
-        index = 0;
-        elements = [];
-        while (index <= arcSegs + lineSegs) {
-            angle = angStRad;
-            if (index === 0) {
-                elements.push(
-                    g.moveto(x + Math.cos(angle) * w,
-                             y + Math.sin(angle) * h)
-                );
-            } else if (index > arcSegs) {
-                if (index === arcSegs + lineSegs) {
-                    elements.push(g.close());
-                } else {
-                    elements.push(g.lineto(x, y));
-                }
-            } else {
-                angle += increment * (index - 1);
-                relx = Math.cos(angle);
-                rely = Math.sin(angle);
-                coords = [];
-                coords.push(x + (relx - cv * rely) * w);
-                coords.push(y + (rely + cv * relx) * h);
-                angle += increment;
-                relx = Math.cos(angle);
-                rely = Math.sin(angle);
-                coords.push(x + (relx + cv * rely) * w);
-                coords.push(y + (rely - cv * relx) * h);
-                coords.push(x + relx * w);
-                coords.push(y + rely * h);
-                elements.push(g.curveto.apply(null, coords));
-            }
-            index += 1;
-        }
-
-        return new g.Path(elements);
-    };
-
-    g.Path = function (p, attrs) {
-        if (p === undefined) {
-            this.elements = [];
-        } else {
-            this.elements = p.elements || p;
-        }
-        var key;
-        if (attrs) {
-            for (key in attrs) {
-                if (attrs[key] !== undefined) {
-                    this[key] = attrs[key];
-                }
-            }
-        }
-    };
-
-    g.Path.prototype.extend = function (p) {
-        var addElements = p.elements || p,
-            elements = this.elements.concat(addElements),
-            attrs = {
-                fill: this.fill,
-                stroke: this.stroke,
-                strokeWidth: this.strokeWidth,
-                _bounds: this._bounds,
-                _length: this._length
-            };
-        return new g.Path(elements, attrs);
-    };
-
-    g.Path.prototype.moveTo = function (x, y) {
-        return this.extend(g.moveto(x, y));
-    };
-
-    g.Path.prototype.lineTo = function (x, y) {
-        return this.extend(g.lineto(x, y));
-    };
-
-    g.Path.prototype.curveTo = function (c1x, c1y, c2x, c2y, x, y) {
-        return this.extend(g.curveto(c1x, c1y, c2x, c2y, x, y));
-    };
-
-    g.Path.prototype.closePath = g.Path.prototype.close = function () {
-        return this.extend(g.closePath());
-    };
-
-    g.Path.prototype.isClosed = function () {
-        if (_.isEmpty(this.elements)) { return false; }
-        return this.elements[this.elements.length - 1].cmd === g.CLOSE;
-    };
-
-    g.Path.prototype.rect = function (x, y, width, height) {
-        return this.extend(g._rect(x, y, width, height));
-    };
-
-    g.Path.prototype.roundedRect = function (cx, cy, width, height, rx, ry) {
-        return this.extend(g.roundedRect(cx, cy, width, height, rx, ry));
-    };
-
-    g.Path.prototype.ellipse = function (x, y, width, height) {
-        return this.extend(g._ellipse(x, y, width, height));
-    };
-
-    g.Path.prototype.line = function (x1, y1, x2, y2) {
-        return this.extend(g._line(x1, y1, x2, y2));
-    };
-
-    g.Path.prototype.colorize = function (fill, stroke, strokeWidth) {
-        var attrs = {
-            fill: fill,
-            stroke: stroke,
-            strokeWidth: strokeWidth,
-            _bounds: this._bounds,
-            _length: this._length
-        };
-        return new g.Path(this.elements, attrs);
-    };
-
-    g.Path.prototype.contours = function () {
-        var contours = [],
-            currentContour = [];
-        _.each(this.elements, function (el) {
-            if (el.cmd === g.MOVETO) {
-                if (!_.isEmpty(currentContour)) {
-                    contours.push(currentContour);
-                }
-                currentContour = [el];
-            } else {
-                currentContour.push(el);
-            }
-        });
-
-        if (!_.isEmpty(currentContour)) {
-            contours.push(currentContour);
-        }
-
-        return contours;
-    };
-
-    g.Path.prototype.bounds = function () {
-        if (this._bounds) { return this._bounds; }
-        if (_.isEmpty(this.elements)) { return g.makeRect(0, 0, 0, 0); }
-
-        var px, py, prev, right, bottom,
-            minX = Number.MAX_VALUE,
-            minY = Number.MAX_VALUE,
-            maxX = -(Number.MAX_VALUE),
-            maxY = -(Number.MAX_VALUE);
-
-        _.each(this.elements, function (el) {
-            if (el.cmd === g.MOVETO || el.cmd === g.LINETO) {
-                px = el.point.x;
-                py = el.point.y;
-                if (px < minX) { minX = px; }
-                if (py < minY) { minY = py; }
-                if (px > maxX) { maxX = px; }
-                if (py > maxY) { maxY = py; }
-                prev = el;
-            } else if (el.cmd === g.CURVETO) {
-                var r = g.bezier.extrema(prev.point, el.ctrl1, el.ctrl2, el.point);
-                right = r.x + r.width;
-                bottom = r.y + r.height;
-                if (r.x < minX) { minX = r.x; }
-                if (right > maxX) { maxX = right; }
-                if (r.y < minY) { minY = r.y; }
-                if (bottom > maxY) { maxY = bottom; }
-                prev = el;
-            }
-        });
-
-        return g.makeRect(minX, minY, maxX - minX, maxY - minY);
-    };
-
-    g.Path.prototype.point = function (t, segments) {
-        /* Returns the DynamicPathElement at time t (0.0-1.0) on the path.
-         */
-        if (segments === undefined) {
-            // Cache the segment lengths for performace.
-            segments = g.bezier.length(this, true, 10);
-        }
-        return g.bezier.point(this, t, segments);
-    };
-
-    g.Path.prototype.points = function (amount, options) {
-        /* Returns an array of DynamicPathElements along the path.
-         * To omit the last point on closed paths: {end: 1-1.0/amount}
-         */
-        var d, a, i, segments,
-            start = (options && options.start !== undefined) ? options.start : 0.0,
-            end = (options && options.end !== undefined) ? options.end : 1.0;
-        if (this.elements.length === 0) {
-            // Otherwise g.bezier.point() will raise an error for empty paths.
-            return [];
-        }
-        amount = Math.round(amount);
-        // The delta value is divided by amount-1, because we also want the last point (t=1.0)
-        // If we don't use amount-1, we fall one point short of the end.
-        // If amount=4, we want the point at t 0.0, 0.33, 0.66 and 1.0.
-        // If amount=2, we want the point at t 0.0 and 1.0.
-        d = (amount > 1) ? (end - start) / (amount - 1) : (end - start);
-        a = [];
-        segments = g.bezier.length(this, true, 10);
-
-        for (i = 0; i < amount; i += 1) {
-            a.push(this.point(start + d * i, segments));
-        }
-        return a;
-    };
-
-    g.Path.prototype.length = function (precision) {
-        /* Returns an approximation of the total length of the path.
-         */
-        if (precision === undefined) { precision = 10; }
-        return g.bezier.length(this, false, precision);
-    };
-
-    g.Path.prototype.contains = function (x, y, precision) {
-        /* Returns true when point (x,y) falls within the contours of the path.
-         */
-        if (precision === undefined) { precision = 100; }
-        var i, polygon = this.points(precision),
-            points = [];
-        for (i = 0; i < polygon.length; i += 1) {
-            if (polygon[i].cmd !== g.CLOSE) {
-                points.push(polygon[i].point);
-            }
-        }
-    //    if (this._polygon == null ||
-    //        this._polygon[1] != precision) {
-    //        this._polygon = [this.points(precision), precision];
-    //    }
-        return g.geometry.pointInPolygon(points, x, y);
-    };
-
-    g.Path.prototype.resampleByAmount = function (points, perContour) {
-        var i, j, subPath, pts, elem,
-            subPaths = perContour ? this.contours() : [this.elements],
-            elems = [];
-
-        function getPoint(pe) {
-            return pe.point;
-        }
-
-        for (j = 0; j < subPaths.length; j += 1) {
-            subPath = g.makePath(subPaths[j]);
-            pts = _.map(subPath.points(points + 1), getPoint);
-            for (i = 0; i < pts.length - 1; i += 1) {
-                elem = { cmd:   (i === 0) ? g.MOVETO : g.LINETO,
-                       point: pts[i] };
-                elems.push(elem);
-            }
-            elems.push(g.closePath());
-        }
-        return g.makePath(elems, this.fill, this.stroke, this.strokeWidth);
-    };
-
-    g.Path.prototype.resampleByLength = function (segmentLength) {
-        var i, subPath, contourLength, amount,
-            subPaths = this.contours(),
-            elems = [];
-        for (i = 0; i < subPaths.length; i += 1) {
-            subPath = g.makePath(subPaths[i]);
-            contourLength = subPath.length();
-            amount = Math.ceil(contourLength / segmentLength);
-            if (!subPath.isClosed()) { amount += 1; }
-            elems = elems.concat(subPath.resampleByAmount(amount, false).elements);
-        }
-        return g.makePath(elems, this.fill, this.stroke, this.strokeWidth);
-    };
-
-    g.Path.prototype.toPathData = function () {
-        var i, d, pe, x, y, x1, y1, x2, y2;
-        d = '';
-        for (i = 0; i < this.elements.length; i += 1) {
-            pe = this.elements[i];
-            if (pe.point) {
-                x = g.math.clamp(pe.point.x, -9999, 9999);
-                y = g.math.clamp(pe.point.y, -9999, 9999);
-            }
-            if (pe.ctrl1) {
-                x1 = g.math.clamp(pe.ctrl1.x, -9999, 9999);
-                y1 = g.math.clamp(pe.ctrl1.y, -9999, 9999);
-            }
-            if (pe.ctrl2) {
-                x2 = g.math.clamp(pe.ctrl2.x, -9999, 9999);
-                y2 = g.math.clamp(pe.ctrl2.y, -9999, 9999);
-            }
-            if (pe.cmd === g.MOVETO) {
-                if (!isNaN(x) && !isNaN(y)) {
-                    d += 'M' + x + ' ' + y;
-                }
-            } else if (pe.cmd === g.LINETO) {
-                if (!isNaN(x) && !isNaN(y)) {
-                    d += 'L' + x + ' ' + y;
-                }
-            } else if (pe.cmd === g.CURVETO) {
-                if (!isNaN(x) && !isNaN(y) && !isNaN(x1) && !isNaN(y1) && !isNaN(x2) && !isNaN(y2)) {
-                    d += 'C' + x1 + ' ' + y1 + ' ' + x2 + ' ' + y2 + ' ' + x + ' ' + y;
-                }
-            } else if (pe.cmd === g.CLOSE) {
-                d += 'Z';
-            }
-        }
-        return d;
-    };
-
-    // Output the path as an SVG string.
-    g.Path.prototype.toSVG = function () {
-        var svg = '<path d="';
-        svg += this.toPathData();
-        svg += '"';
-    /*    if (this.fill !== 'black') {
-            if (this.fill === null) {
-                svg += ' fill="none"';
-            } else {
-                svg += ' fill="' + this.fill + '"';
-            }
-        }
-        if (this.stroke) {
-            svg += ' stroke="' + this.stroke + '" stroke-width="' + this.strokeWidth + '"';
-        } */
-        svg += '/>';
-        return svg;
-    };
-
-    // Draw the path to a 2D context.
-    g.Path.prototype.draw = function (ctx) {
-        var nElements, i, pe;
-        ctx.beginPath();
-        nElements = this.elements.length;
-        for (i = 0; i < nElements; i += 1) {
-            pe = this.elements[i];
-            if (pe.cmd === g.MOVETO) {
-                ctx.moveTo(pe.point.x, pe.point.y);
-            } else if (pe.cmd === g.LINETO) {
-                ctx.lineTo(pe.point.x, pe.point.y);
-            } else if (pe.cmd === g.CURVETO) {
-                ctx.bezierCurveTo(pe.ctrl1.x, pe.ctrl1.y, pe.ctrl2.x, pe.ctrl2.y, pe.point.x, pe.point.y);
-            } else if (pe.cmd === g.CLOSE) {
-                ctx.closePath();
-            }
-        }
-        if (this.fill !== null) {
-            ctx.fillStyle = g._getColor(this.fill);
-            ctx.fill();
-        }
-        if (this.stroke !== null && this.strokeWidth !== null && this.strokeWidth > 0) {
-            ctx.strokeStyle = g._getColor(this.stroke);
-            ctx.lineWidth = this.strokeWidth;
-            ctx.stroke();
-        }
-    };
-
-    g.makePath = function (pe, fill, stroke, strokeWidth) {
-        var attrs = {
-            fill: fill,
-            stroke: stroke,
-            strokeWidth: strokeWidth
-        };
-        return new g.Path(pe, attrs);
-    };
-
-    g.Group = function (shapes) {
-        if (!shapes) {
-            this.shapes = [];
-        } else if (shapes.shapes || shapes.elements) {
-            this.shapes = [shapes];
-        } else if (shapes) {
-            this.shapes = shapes;
-        }
-    };
-
-    g.Group.prototype.colorize = function (fill, stroke, strokeWidth) {
-        var shapes = _.map(this.shapes, function (shape) {
-            return shape.colorize(fill, stroke, strokeWidth);
-        });
-        return g.makeGroup(shapes);
-    };
-
-    g.Group.prototype.bounds = function () {
-        if (_.isEmpty(this.shapes)) { return g.makeRect(0, 0, 0, 0); }
-        var i, r, shape,
-            shapes = this.shapes;
-        for (i = 0; i < shapes.length; i += 1) {
-            shape = shapes[i];
-            if (r === undefined) {
-                r = shape.bounds();
-            }
-            if ((shape.shapes && !_.isEmpty(shape.shapes)) ||
-                    (shape.elements && !_.isEmpty(shape.elements))) {
-                r = r.unite(shape.bounds());
-            }
-        }
-        return (r !== undefined) ? r : g.makeRect(0, 0, 0, 0);
-    };
-
-    g.Group.prototype.contains = function (x, y, precision) {
-        /* Returns true when point (x,y) falls within the contours of the group.
-         */
-        if (precision === undefined) { precision = 100; }
-        var i, shapes = this.shapes;
-        for (i = 0; i < shapes.length; i += 1) {
-            if (shapes[i].contains(x, y, precision)) {
-                return true;
-            }
-        }
-        return false;
-    };
-
-    g.Group.prototype.resampleByAmount = function (points, perContour) {
-        var path, shapes;
-        if (!perContour) {
-            path = g.makePath(g.combinePaths(this));
-            return path.resampleByAmount(points, perContour);
-        }
-
-        shapes = _.map(this.shapes, function (shape) {
-            return shape.resampleByAmount(points, perContour);
-        });
-        return g.makeGroup(shapes);
-    };
-
-    g.Group.prototype.resampleByLength = function (length) {
-        var shapes = _.map(this.shapes, function (shape) {
-            return shape.resampleByLength(length);
-        });
-        return g.makeGroup(shapes);
-    };
-
-    g.Group.prototype.toSVG = function () {
-        var l;
-        l = _.map(this.shapes, function (shape) {
-            return shape.toSVG();
-        });
-        return '<g>' + l.join('') + '</g>';
-    };
-
-    // Draw the group to a 2D context.
-    g.Group.prototype.draw = function (ctx) {
-        var i, shapes = this.shapes, nShapes = shapes.length;
-        for (i = 0; i < nShapes; i += 1) {
-            shapes[i].draw(ctx);
-        }
-    };
-
-    g.makeGroup = g.group = function (shapes) {
-        return new g.Group(shapes);
-    };
-
-    // Combine all given shape arguments into a new group.
-    // This function works like makeGroup, except that this can take any number
-    // of arguments.
-    g.merge = function () {
-        return g.makeGroup(arguments);
-    };
-
-    g.combinePaths = function (shape) {
-        if (shape.elements) { return shape.elements; }
-        var i, elements = [];
-        for (i = 0; i < shape.shapes.length; i += 1) {
-            elements = elements.concat(g.combinePaths(shape.shapes[i]));
-        }
-        return elements;
-    };
-
-    g.shapePoints = function (shape) {
-        if (shape.elements) {
-            return _.map(_.filter(shape.elements, function (el) { if (el.point) { return true; } return false; }), function (el) { return el.point; });
-        }
-        var i, points = [];
-        for (i = 0; i < shape.shapes.length; i += 1) {
-            points = points.concat(g.shapePoints(shape.shapes[i]));
-        }
-        return points;
-    };
-
-    g.Rect = function (x, y, width, height) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-    };
-
-    g.Rect.prototype.normalize = function () {
-        var x = this.x,
-            y = this.y,
-            width = this.width,
-            height = this.height;
-
-        if (width < 0) {
-            x += width;
-            width = -width;
-        }
-
-        if (height < 0) {
-            y += height;
-            height = -height;
-        }
-        return new g.Rect(x, y, width, height);
-    };
-
-    g.Rect.prototype.containsPoint = function (x, y) {
-        return (x >= this.x && x <= this.x + this.width && y >= this.y && y <= this.y + this.height);
-    };
-
-    g.Rect.prototype.containsRect = function (r) {
-        return r.x >= this.x && r.x + r.width <= this.x + this.width &&
-            r.y >= this.y && r.y + r.height <= this.y + this.height;
-    };
-
-    g.Rect.prototype.grow = function (dx, dy) {
-        var x = this.x - dx,
-            y = this.y - dy,
-            width = this.width + dx * 2,
-            height = this.height + dy * 2;
-        return new g.Rect(x, y, width, height);
-    };
-
-    g.Rect.prototype.unite = function (r) {
-        var x = Math.min(this.x, r.x),
-            y = Math.min(this.y, r.y),
-            width = Math.max(this.x + this.width, r.x + r.width) - x,
-            height = Math.max(this.y + this.height, r.y + r.height) - y;
-        return new g.Rect(x, y, width, height);
-    };
-
-    g.Rect.prototype.addPoint = function (x, y) {
-        var dx, dy,
-            _x = this.x,
-            _y = this.y,
-            width = this.width,
-            height = this.height;
-
-        if (x < this.x) {
-            dx = this.x - x;
-            _x = x;
-            width += dx;
-        } else if (x > this.x + this.width) {
-            dx = x - (this.x + this.width);
-            width += dx;
-        }
-        if (y < this.y) {
-            dy = this.y - y;
-            _y = y;
-            height += dy;
-        } else if (y > this.y + this.height) {
-            dy = y - (this.y + this.height);
-            height += dy;
-        }
-        return new g.Rect(_x, _y, width, height);
-    };
-
-    g.Rect.prototype.centroid = function () {
-        return new g.Point(this.x + this.width / 2, this.y + this.height / 2);
-    };
-
-    g.makeRect = function (x, y, width, height) {
-        return new g.Rect(x, y, width, height);
-    };
-
-    g.makeCenteredRect = function (cx, cy, width, height) {
-        var x = cx - width / 2,
-            y = cy - height / 2;
-        return new g.Rect(x, y, width, height);
-    };
-
-    g.RGB = 'RGB';
-    g.HSB = 'HSB';
-    g.HEX = 'HEX';
-
-    g._namedColors = {
-        'lightpink'            : [1.00, 0.71, 0.76],
-        'pink'                 : [1.00, 0.75, 0.80],
-        'crimson'              : [0.86, 0.08, 0.24],
-        'lavenderblush'        : [1.00, 0.94, 0.96],
-        'palevioletred'        : [0.86, 0.44, 0.58],
-        'hotpink'              : [1.00, 0.41, 0.71],
-        'deeppink'             : [1.00, 0.08, 0.58],
-        'mediumvioletred'      : [0.78, 0.08, 0.52],
-        'orchid'               : [0.85, 0.44, 0.84],
-        'thistle'              : [0.85, 0.75, 0.85],
-        'plum'                 : [0.87, 0.63, 0.87],
-        'violet'               : [0.93, 0.51, 0.93],
-        'fuchsia'              : [1.00, 0.00, 1.00],
-        'darkmagenta'          : [0.55, 0.00, 0.55],
-        'purple'               : [0.50, 0.00, 0.50],
-        'mediumorchid'         : [0.73, 0.33, 0.83],
-        'darkviolet'           : [0.58, 0.00, 0.83],
-        'darkorchid'           : [0.60, 0.20, 0.80],
-        'indigo'               : [0.29, 0.00, 0.51],
-        'blueviolet'           : [0.54, 0.17, 0.89],
-        'mediumpurple'         : [0.58, 0.44, 0.86],
-        'mediumslateblue'      : [0.48, 0.41, 0.93],
-        'slateblue'            : [0.42, 0.35, 0.80],
-        'darkslateblue'        : [0.28, 0.24, 0.55],
-        'ghostwhite'           : [0.97, 0.97, 1.00],
-        'lavender'             : [0.90, 0.90, 0.98],
-        'blue'                 : [0.00, 0.00, 1.00],
-        'mediumblue'           : [0.00, 0.00, 0.80],
-        'darkblue'             : [0.00, 0.00, 0.55],
-        'navy'                 : [0.00, 0.00, 0.50],
-        'midnightblue'         : [0.10, 0.10, 0.44],
-        'royalblue'            : [0.25, 0.41, 0.88],
-        'cornflowerblue'       : [0.39, 0.58, 0.93],
-        'lightsteelblue'       : [0.69, 0.77, 0.87],
-        'lightslategray'       : [0.47, 0.53, 0.60],
-        'slategray'            : [0.44, 0.50, 0.56],
-        'dodgerblue'           : [0.12, 0.56, 1.00],
-        'aliceblue'            : [0.94, 0.97, 1.00],
-        'steelblue'            : [0.27, 0.51, 0.71],
-        'lightskyblue'         : [0.53, 0.81, 0.98],
-        'skyblue'              : [0.53, 0.81, 0.92],
-        'deepskyblue'          : [0.00, 0.75, 1.00],
-        'lightblue'            : [0.68, 0.85, 0.90],
-        'powderblue'           : [0.69, 0.88, 0.90],
-        'cadetblue'            : [0.37, 0.62, 0.63],
-        'darkturquoise'        : [0.00, 0.81, 0.82],
-        'azure'                : [0.94, 1.00, 1.00],
-        'lightcyan'            : [0.88, 1.00, 1.00],
-        'paleturquoise'        : [0.69, 0.93, 0.93],
-        'aqua'                 : [0.00, 1.00, 1.00],
-        'darkcyan'             : [0.00, 0.55, 0.55],
-        'teal'                 : [0.00, 0.50, 0.50],
-        'darkslategray'        : [0.18, 0.31, 0.31],
-        'mediumturquoise'      : [0.28, 0.82, 0.80],
-        'lightseagreen'        : [0.13, 0.70, 0.67],
-        'turquoise'            : [0.25, 0.88, 0.82],
-        'aquamarine'           : [0.50, 1.00, 0.83],
-        'mediumaquamarine'     : [0.40, 0.80, 0.67],
-        'mediumspringgreen'    : [0.00, 0.98, 0.60],
-        'mintcream'            : [0.96, 1.00, 0.98],
-        'springgreen'          : [0.00, 1.00, 0.50],
-        'mediumseagreen'       : [0.24, 0.70, 0.44],
-        'seagreen'             : [0.18, 0.55, 0.34],
-        'honeydew'             : [0.94, 1.00, 0.94],
-        'darkseagreen'         : [0.56, 0.74, 0.56],
-        'palegreen'            : [0.60, 0.98, 0.60],
-        'lightgreen'           : [0.56, 0.93, 0.56],
-        'limegreen'            : [0.20, 0.80, 0.20],
-        'lime'                 : [0.00, 1.00, 0.00],
-        'forestgreen'          : [0.13, 0.55, 0.13],
-        'green'                : [0.00, 0.50, 0.00],
-        'darkgreen'            : [0.00, 0.39, 0.00],
-        'lawngreen'            : [0.49, 0.99, 0.00],
-        'chartreuse'           : [0.50, 1.00, 0.00],
-        'greenyellow'          : [0.68, 1.00, 0.18],
-        'darkolivegreen'       : [0.33, 0.42, 0.18],
-        'yellowgreen'          : [0.60, 0.80, 0.20],
-        'olivedrab'            : [0.42, 0.56, 0.14],
-        'ivory'                : [1.00, 1.00, 0.94],
-        'beige'                : [0.96, 0.96, 0.86],
-        'lightyellow'          : [1.00, 1.00, 0.88],
-        'lightgoldenrodyellow' : [0.98, 0.98, 0.82],
-        'yellow'               : [1.00, 1.00, 0.00],
-        'olive'                : [0.50, 0.50, 0.00],
-        'darkkhaki'            : [0.74, 0.72, 0.42],
-        'palegoldenrod'        : [0.93, 0.91, 0.67],
-        'lemonchiffon'         : [1.00, 0.98, 0.80],
-        'khaki'                : [0.94, 0.90, 0.55],
-        'gold'                 : [1.00, 0.84, 0.00],
-        'cornsilk'             : [1.00, 0.97, 0.86],
-        'goldenrod'            : [0.85, 0.65, 0.13],
-        'darkgoldenrod'        : [0.72, 0.53, 0.04],
-        'floralwhite'          : [1.00, 0.98, 0.94],
-        'oldlace'              : [0.99, 0.96, 0.90],
-        'wheat'                : [0.96, 0.87, 0.07],
-        'orange'               : [1.00, 0.65, 0.00],
-        'moccasin'             : [1.00, 0.89, 0.71],
-        'papayawhip'           : [1.00, 0.94, 0.84],
-        'blanchedalmond'       : [1.00, 0.92, 0.80],
-        'navajowhite'          : [1.00, 0.87, 0.68],
-        'antiquewhite'         : [0.98, 0.92, 0.84],
-        'tan'                  : [0.82, 0.71, 0.55],
-        'burlywood'            : [0.87, 0.72, 0.53],
-        'darkorange'           : [1.00, 0.55, 0.00],
-        'bisque'               : [1.00, 0.89, 0.77],
-        'linen'                : [0.98, 0.94, 0.90],
-        'peru'                 : [0.80, 0.52, 0.25],
-        'peachpuff'            : [1.00, 0.85, 0.73],
-        'sandybrown'           : [0.96, 0.64, 0.38],
-        'chocolate'            : [0.82, 0.41, 0.12],
-        'saddlebrown'          : [0.55, 0.27, 0.07],
-        'seashell'             : [1.00, 0.96, 0.93],
-        'sienna'               : [0.63, 0.32, 0.18],
-        'lightsalmon'          : [1.00, 0.63, 0.48],
-        'coral'                : [1.00, 0.50, 0.31],
-        'orangered'            : [1.00, 0.27, 0.00],
-        'darksalmon'           : [0.91, 0.59, 0.48],
-        'tomato'               : [1.00, 0.39, 0.28],
-        'salmon'               : [0.98, 0.50, 0.45],
-        'mistyrose'            : [1.00, 0.89, 0.88],
-        'lightcoral'           : [0.94, 0.50, 0.50],
-        'snow'                 : [1.00, 0.98, 0.98],
-        'rosybrown'            : [0.74, 0.56, 0.56],
-        'indianred'            : [0.80, 0.36, 0.36],
-        'red'                  : [1.00, 0.00, 0.00],
-        'brown'                : [0.65, 0.16, 0.16],
-        'firebrick'            : [0.70, 0.13, 0.13],
-        'darkred'              : [0.55, 0.00, 0.00],
-        'maroon'               : [0.50, 0.00, 0.00],
-        'white'                : [1.00, 1.00, 1.00],
-        'whitesmoke'           : [0.96, 0.96, 0.96],
-        'gainsboro'            : [0.86, 0.86, 0.86],
-        'lightgrey'            : [0.83, 0.83, 0.83],
-        'silver'               : [0.75, 0.75, 0.75],
-        'darkgray'             : [0.66, 0.66, 0.66],
-        'gray'                 : [0.50, 0.50, 0.50],
-        'grey'                 : [0.50, 0.50, 0.50],
-        'dimgray'              : [0.41, 0.41, 0.41],
-        'dimgrey'              : [0.41, 0.41, 0.41],
-        'black'                : [0.00, 0.00, 0.00],
-        'cyan'                 : [0.00, 0.68, 0.94],
-
-        'transparent'          : [0.00, 0.00, 0.00, 0.00],
-        'bark'                 : [0.25, 0.19, 0.13]
-    };
-
-    Object.freeze(g._namedColors);
-
-    // Converts the given R,G,B values to a hexadecimal color string.
-    g._rgb2hex = function (r, g, b) {
-        var parseHex = function (i) {
-            return ((i === 0) ? '00' : (i.length < 2) ? '0' + i : i).toString(16).toUpperCase();
-        };
-        return '#'
-            + parseHex(Math.round(r * 255))
-            + parseHex(Math.round(g * 255))
-            + parseHex(Math.round(b * 255));
-    };
-
-    // Converts the given hexadecimal color string to R,G,B (between 0.0-1.0).
-    g._hex2rgb = function (hex) {
-        var arr, r, g, b;
-        hex = hex.replace(/^#/, '');
-        if (hex.length < 6) { // hex += hex[-1] * (6-hex.length);
-            arr = [];
-            arr.length = 6 - hex.length;
-            hex += arr.join(hex.substr(hex.length - 1));
-        }
-        r = parseInt(hex.substr(0, 2), 16) / 255;
-        g = parseInt(hex.substr(2, 2), 16) / 255;
-        b = parseInt(hex.substr(4, 2), 16) / 255;
-        return [r, g, b];
-    };
-
-    // Converts the given R,G,B values to H,S,B (between 0.0-1.0).
-    g._rgb2hsb = function (r, g, b) {
-        var h = 0,
-            s = 0,
-            v = Math.max(r, g, b),
-            d = v - Math.min(r, g, b);
-        if (v !== 0) {
-            s = d / v;
-        }
-        if (s !== 0) {
-            if (r === v) {
-                h = (g - b) / d;
-            } else if (g === v) {
-                h = 2 + (b - r) / d;
-            } else {
-                h = 4 + (r - g) / d;
-            }
-        }
-        h = h / 6.0 % 1;
-        return [h, s, v];
-    };
-
-    // Converts the given H,S,B color values to R,G,B (between 0.0-1.0).
-    g._hsb2rgb = function (h, s, v) {
-        if (s === 0) {
-            return [v, v, v];
-        }
-        h = h % 1 * 6.0;
-        var i = Math.floor(h),
-            f = h - i,
-            x = v * (1 - s),
-            y = v * (1 - s * f),
-            z = v * (1 - s * (1 - f));
-        if (i > 4) {
-            return [v, x, y];
-        }
-        return [[v, z, x], [y, v, x], [x, v, z], [x, y, v], [z, x, v]][parseInt(i, 10)];
-    };
-
-    g.Color = function (v1, v2, v3, v4, v5) {
-        var _r, _g, _b, _a, rgb, options;
-        if (v1 === undefined) {
-            _r = _g = _b = 0;
-            _a = 1;
-        } else if (Array.isArray(v1)) {
-            options = v2 || {};
-            _r = v1[0] !== undefined ? v1[0] : 0;
-            _g = v1[1] !== undefined ? v1[1] : 0;
-            _b = v1[2] !== undefined ? v1[2] : 0;
-            _a = v1[3] !== undefined ? v1[3] : options.base || 1;
-        } else if (v1.r !== undefined) {
-            options = v2 || {};
-            _r = v1.r;
-            _g = v1.g;
-            _b = v1.b;
-            _a = v1.a !== undefined ? v1.a : options.base || 1;
-        } else if (typeof v1 === 'string') {
-            rgb = g._hex2rgb(v1);
-            _r = rgb[0];
-            _g = rgb[1];
-            _b = rgb[2];
-            _a = 1;
-        } else if (typeof v1 === 'number') {
-            if (arguments.length === 1) { // Grayscale value
-                _r = _g = _b = v1;
-                _a = 1;
-            } else if (arguments.length === 2) { // Gray and alpha or options
-                _r = _g = _b = v1;
-                if (typeof v2 === 'number') {
-                    _a = v2;
-                } else {
-                    options = v2;
-                    _a = options.base || 1;
-                }
-            } else if (arguments.length === 3) { // RGB or gray, alpha and options
-                if (typeof v3 === 'number') {
-                    _r = v1;
-                    _g = v2;
-                    _b = v3;
-                    _a = 1;
-                } else {
-                    _r = _g = _b = v1;
-                    _a = v2;
-                    options = v3;
-                }
-            } else if (arguments.length === 4) { // RGB and alpha or options
-                _r = v1;
-                _g = v2;
-                _b = v3;
-                if (typeof v4 === 'number') {
-                    _a = v4;
-                } else {
-                    options = v4;
-                    _a = options.base || 1;
-                }
-            } else { // RGBA + options
-                _r = v1;
-                _g = v2;
-                _b = v3;
-                _a = v4;
-                options = v5;
-            }
-        }
-        options = options || {};
-
-        // The base option allows you to specify values in a different range.
-        if (options.base !== undefined) {
-            _r /= options.base;
-            _g /= options.base;
-            _b /= options.base;
-            _a /= options.base;
-        }
-        // Convert HSB colors to RGB
-        if (options.colorspace === g.HSB) {
-            rgb = g._hsb2rgb(v1, v2, v3);
-            _r = rgb[0];
-            _g = rgb[1];
-            _b = rgb[2];
-        } else if (options.colorspace === g.HEX) {
-            rgb = g._hex2rgb(v1);
-            _r = rgb[0];
-            _g = rgb[1];
-            _b = rgb[2];
-            _a = 1;
-        }
-
-        this.r = _r;
-        this.g = _g;
-        this.b = _b;
-        this.a = _a;
-    };
-
-    g.Color.BLACK = new g.Color(0);
-    g.Color.WHITE = new g.Color(1);
-
-    g.Color.prototype.rgb = function () {
-        return [this.r, this.g, this.b];
-    };
-
-    g.Color.prototype.rgba = function () {
-        return [this.r, this.g, this.b, this.a];
-    };
-
-    g.Color.prototype._get = function () {
-        var R = Math.round(this.r * 255),
-            G = Math.round(this.g * 255),
-            B = Math.round(this.b * 255);
-        return 'rgba(' + R + ', ' + G + ', ' + B + ', ' + this.a + ')';
-    };
-
-    g.makeColor = function (R, G, B, A, options) {
-        return new g.Color(R, G, B, A, options);
-    };
-
-
-    //// THREE-DIMENSIONAL VECTORS //////////////////////////////////////////
+    //// VECTORS AND MATRICES ///////////////////////////////////////////////
 
     g.Vec3 = function (x, y, z) {
         this.x = x === undefined ? 0 : x;
@@ -2039,6 +993,928 @@ if (typeof require !== 'undefined') {
         return new g.Matrix4(m);
     };
 
+    // RECT /////////////////////////////////////////////////////////////////
+
+    g.Rect = function (x, y, width, height) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    };
+
+    // Returns a new rectangle where width and height are guaranteed to be positive values.
+    g.Rect.prototype.normalize = function () {
+        var x = this.x,
+            y = this.y,
+            width = this.width,
+            height = this.height;
+
+        if (width < 0) {
+            x += width;
+            width = -width;
+        }
+
+        if (height < 0) {
+            y += height;
+            height = -height;
+        }
+        return new g.Rect(x, y, width, height);
+    };
+
+    g.Rect.prototype.containsPoint = function (x, y) {
+        if (arguments.length === 1) {
+            y = x.y;
+            x = x.x;
+        }
+        return (x >= this.x && x <= this.x + this.width && y >= this.y && y <= this.y + this.height);
+    };
+
+    g.Rect.prototype.containsRect = function (r) {
+        return r.x >= this.x && r.x + r.width <= this.x + this.width &&
+            r.y >= this.y && r.y + r.height <= this.y + this.height;
+    };
+
+    g.Rect.prototype.grow = function (dx, dy) {
+        var x = this.x - dx,
+            y = this.y - dy,
+            width = this.width + dx * 2,
+            height = this.height + dy * 2;
+        return new g.Rect(x, y, width, height);
+    };
+
+    g.Rect.prototype.unite = function (r) {
+        var x = Math.min(this.x, r.x),
+            y = Math.min(this.y, r.y),
+            width = Math.max(this.x + this.width, r.x + r.width) - x,
+            height = Math.max(this.y + this.height, r.y + r.height) - y;
+        return new g.Rect(x, y, width, height);
+    };
+
+    g.Rect.prototype.addPoint = function (x, y) {
+        var dx, dy,
+            _x = this.x,
+            _y = this.y,
+            width = this.width,
+            height = this.height;
+
+        if (x < this.x) {
+            dx = this.x - x;
+            _x = x;
+            width += dx;
+        } else if (x > this.x + this.width) {
+            dx = x - (this.x + this.width);
+            width += dx;
+        }
+        if (y < this.y) {
+            dy = this.y - y;
+            _y = y;
+            height += dy;
+        } else if (y > this.y + this.height) {
+            dy = y - (this.y + this.height);
+            height += dy;
+        }
+        return new g.Rect(_x, _y, width, height);
+    };
+
+    g.Rect.prototype.centroid = function () {
+        return new g.Point(this.x + this.width / 2, this.y + this.height / 2);
+    };
+
+    g.makeRect = function (x, y, width, height) {
+        return new g.Rect(x, y, width, height);
+    };
+
+    g.makeCenteredRect = function (cx, cy, width, height) {
+        var x = cx - width / 2,
+            y = cy - height / 2;
+        return new g.Rect(x, y, width, height);
+    };
+
+    // PATH /////////////////////////////////////////////////////////////////
+
+    g.MOVETO  = 'M';
+    g.LINETO  = 'L';
+    g.CURVETO = 'C';
+    g.CLOSE   = 'z';
+
+    g.CLOSE_ELEMENT = Object.freeze({ cmd: g.CLOSE });
+
+    g.moveTo = g.moveto = function (x, y) {
+        return { cmd:   g.MOVETO,
+               point: g.makePoint(x, y) };
+    };
+
+    g.lineTo = g.lineto = function (x, y) {
+        return { cmd:   g.LINETO,
+               point: g.makePoint(x, y) };
+    };
+
+    g.curveTo = g.curveto = function (c1x, c1y, c2x, c2y, x, y) {
+        return { cmd:   g.CURVETO,
+               point: g.makePoint(x, y),
+               ctrl1: g.makePoint(c1x, c1y),
+               ctrl2: g.makePoint(c2x, c2y) };
+    };
+
+    g.closePath = g.closepath = g.close = function () {
+        return g.CLOSE_ELEMENT;
+    };
+
+    g.Path = function (p, attrs) {
+        if (p === undefined) {
+            this.elements = [];
+        } else {
+            this.elements = p.elements || p;
+        }
+        var key;
+        if (attrs) {
+            for (key in attrs) {
+                if (attrs[key] !== undefined) {
+                    this[key] = attrs[key];
+                }
+            }
+        }
+    };
+
+    g.Path.prototype.extend = function (p) {
+        var addElements = p.elements || p,
+            elements = this.elements.concat(addElements),
+            attrs = {
+                fill: this.fill,
+                stroke: this.stroke,
+                strokeWidth: this.strokeWidth,
+                _bounds: this._bounds,
+                _length: this._length
+            };
+        return new g.Path(elements, attrs);
+    };
+
+    g.Path.prototype.moveTo = function (x, y) {
+        return this.extend(g.moveto(x, y));
+    };
+
+    g.Path.prototype.lineTo = function (x, y) {
+        return this.extend(g.lineto(x, y));
+    };
+
+    g.Path.prototype.curveTo = function (c1x, c1y, c2x, c2y, x, y) {
+        return this.extend(g.curveto(c1x, c1y, c2x, c2y, x, y));
+    };
+
+    g.Path.prototype.closePath = g.Path.prototype.close = function () {
+        return this.extend(g.closePath());
+    };
+
+    g.Path.prototype.isClosed = function () {
+        if (_.isEmpty(this.elements)) { return false; }
+        return this.elements[this.elements.length - 1].cmd === g.CLOSE;
+    };
+
+    g.Path.prototype.rect = function (x, y, width, height) {
+        return this.extend(g._rect(x, y, width, height));
+    };
+
+    g.Path.prototype.roundedRect = function (cx, cy, width, height, rx, ry) {
+        return this.extend(g.roundedRect(cx, cy, width, height, rx, ry));
+    };
+
+    g.Path.prototype.ellipse = function (x, y, width, height) {
+        return this.extend(g._ellipse(x, y, width, height));
+    };
+
+    g.Path.prototype.line = function (x1, y1, x2, y2) {
+        return this.extend(g._line(x1, y1, x2, y2));
+    };
+
+    g.Path.prototype.colorize = function (fill, stroke, strokeWidth) {
+        var attrs = {
+            fill: fill,
+            stroke: stroke,
+            strokeWidth: strokeWidth,
+            _bounds: this._bounds,
+            _length: this._length
+        };
+        return new g.Path(this.elements, attrs);
+    };
+
+    g.Path.prototype.contours = function () {
+        var contours = [],
+            currentContour = [];
+        _.each(this.elements, function (el) {
+            if (el.cmd === g.MOVETO) {
+                if (!_.isEmpty(currentContour)) {
+                    contours.push(currentContour);
+                }
+                currentContour = [el];
+            } else {
+                currentContour.push(el);
+            }
+        });
+
+        if (!_.isEmpty(currentContour)) {
+            contours.push(currentContour);
+        }
+
+        return contours;
+    };
+
+    g.Path.prototype.bounds = function () {
+        if (this._bounds) { return this._bounds; }
+        if (_.isEmpty(this.elements)) { return g.makeRect(0, 0, 0, 0); }
+
+        var px, py, prev, right, bottom,
+            minX = Number.MAX_VALUE,
+            minY = Number.MAX_VALUE,
+            maxX = -(Number.MAX_VALUE),
+            maxY = -(Number.MAX_VALUE);
+
+        _.each(this.elements, function (el) {
+            if (el.cmd === g.MOVETO || el.cmd === g.LINETO) {
+                px = el.point.x;
+                py = el.point.y;
+                if (px < minX) { minX = px; }
+                if (py < minY) { minY = py; }
+                if (px > maxX) { maxX = px; }
+                if (py > maxY) { maxY = py; }
+                prev = el;
+            } else if (el.cmd === g.CURVETO) {
+                var r = g.bezier.extrema(prev.point, el.ctrl1, el.ctrl2, el.point);
+                right = r.x + r.width;
+                bottom = r.y + r.height;
+                if (r.x < minX) { minX = r.x; }
+                if (right > maxX) { maxX = right; }
+                if (r.y < minY) { minY = r.y; }
+                if (bottom > maxY) { maxY = bottom; }
+                prev = el;
+            }
+        });
+
+        return g.makeRect(minX, minY, maxX - minX, maxY - minY);
+    };
+
+    g.Path.prototype.point = function (t, segments) {
+        /* Returns the DynamicPathElement at time t (0.0-1.0) on the path.
+         */
+        if (segments === undefined) {
+            // Cache the segment lengths for performace.
+            segments = g.bezier.length(this, true, 10);
+        }
+        return g.bezier.point(this, t, segments);
+    };
+
+    g.Path.prototype.points = function (amount, options) {
+        /* Returns an array of DynamicPathElements along the path.
+         * To omit the last point on closed paths: {end: 1-1.0/amount}
+         */
+        var d, a, i, segments,
+            start = (options && options.start !== undefined) ? options.start : 0.0,
+            end = (options && options.end !== undefined) ? options.end : 1.0;
+        if (this.elements.length === 0) {
+            // Otherwise g.bezier.point() will raise an error for empty paths.
+            return [];
+        }
+        amount = Math.round(amount);
+        // The delta value is divided by amount-1, because we also want the last point (t=1.0)
+        // If we don't use amount-1, we fall one point short of the end.
+        // If amount=4, we want the point at t 0.0, 0.33, 0.66 and 1.0.
+        // If amount=2, we want the point at t 0.0 and 1.0.
+        d = (amount > 1) ? (end - start) / (amount - 1) : (end - start);
+        a = [];
+        segments = g.bezier.length(this, true, 10);
+
+        for (i = 0; i < amount; i += 1) {
+            a.push(this.point(start + d * i, segments));
+        }
+        return a;
+    };
+
+    g.Path.prototype.length = function (precision) {
+        /* Returns an approximation of the total length of the path.
+         */
+        if (precision === undefined) { precision = 10; }
+        return g.bezier.length(this, false, precision);
+    };
+
+    g.Path.prototype.contains = function (x, y, precision) {
+        /* Returns true when point (x,y) falls within the contours of the path.
+         */
+        if (precision === undefined) { precision = 100; }
+        var i, polygon = this.points(precision),
+            points = [];
+        for (i = 0; i < polygon.length; i += 1) {
+            if (polygon[i].cmd !== g.CLOSE) {
+                points.push(polygon[i].point);
+            }
+        }
+    //    if (this._polygon == null ||
+    //        this._polygon[1] != precision) {
+    //        this._polygon = [this.points(precision), precision];
+    //    }
+        return g.geometry.pointInPolygon(points, x, y);
+    };
+
+    g.Path.prototype.resampleByAmount = function (points, perContour) {
+        var i, j, subPath, pts, elem,
+            subPaths = perContour ? this.contours() : [this.elements],
+            elems = [];
+
+        function getPoint(pe) {
+            return pe.point;
+        }
+
+        for (j = 0; j < subPaths.length; j += 1) {
+            subPath = g.makePath(subPaths[j]);
+            pts = _.map(subPath.points(points + 1), getPoint);
+            for (i = 0; i < pts.length - 1; i += 1) {
+                elem = { cmd:   (i === 0) ? g.MOVETO : g.LINETO,
+                       point: pts[i] };
+                elems.push(elem);
+            }
+            elems.push(g.closePath());
+        }
+        return g.makePath(elems, this.fill, this.stroke, this.strokeWidth);
+    };
+
+    g.Path.prototype.resampleByLength = function (segmentLength) {
+        var i, subPath, contourLength, amount,
+            subPaths = this.contours(),
+            elems = [];
+        for (i = 0; i < subPaths.length; i += 1) {
+            subPath = g.makePath(subPaths[i]);
+            contourLength = subPath.length();
+            amount = Math.ceil(contourLength / segmentLength);
+            if (!subPath.isClosed()) { amount += 1; }
+            elems = elems.concat(subPath.resampleByAmount(amount, false).elements);
+        }
+        return g.makePath(elems, this.fill, this.stroke, this.strokeWidth);
+    };
+
+    g.Path.prototype.toPathData = function () {
+        var i, d, pe, x, y, x1, y1, x2, y2;
+        d = '';
+        for (i = 0; i < this.elements.length; i += 1) {
+            pe = this.elements[i];
+            if (pe.point) {
+                x = g.math.clamp(pe.point.x, -9999, 9999);
+                y = g.math.clamp(pe.point.y, -9999, 9999);
+            }
+            if (pe.ctrl1) {
+                x1 = g.math.clamp(pe.ctrl1.x, -9999, 9999);
+                y1 = g.math.clamp(pe.ctrl1.y, -9999, 9999);
+            }
+            if (pe.ctrl2) {
+                x2 = g.math.clamp(pe.ctrl2.x, -9999, 9999);
+                y2 = g.math.clamp(pe.ctrl2.y, -9999, 9999);
+            }
+            if (pe.cmd === g.MOVETO) {
+                if (!isNaN(x) && !isNaN(y)) {
+                    d += 'M' + x + ' ' + y;
+                }
+            } else if (pe.cmd === g.LINETO) {
+                if (!isNaN(x) && !isNaN(y)) {
+                    d += 'L' + x + ' ' + y;
+                }
+            } else if (pe.cmd === g.CURVETO) {
+                if (!isNaN(x) && !isNaN(y) && !isNaN(x1) && !isNaN(y1) && !isNaN(x2) && !isNaN(y2)) {
+                    d += 'C' + x1 + ' ' + y1 + ' ' + x2 + ' ' + y2 + ' ' + x + ' ' + y;
+                }
+            } else if (pe.cmd === g.CLOSE) {
+                d += 'Z';
+            }
+        }
+        return d;
+    };
+
+    // Output the path as an SVG string.
+    g.Path.prototype.toSVG = function () {
+        var svg = '<path d="';
+        svg += this.toPathData();
+        svg += '"';
+    /*    if (this.fill !== 'black') {
+            if (this.fill === null) {
+                svg += ' fill="none"';
+            } else {
+                svg += ' fill="' + this.fill + '"';
+            }
+        }
+        if (this.stroke) {
+            svg += ' stroke="' + this.stroke + '" stroke-width="' + this.strokeWidth + '"';
+        } */
+        svg += '/>';
+        return svg;
+    };
+
+    // Draw the path to a 2D context.
+    g.Path.prototype.draw = function (ctx) {
+        var nElements, i, pe;
+        ctx.beginPath();
+        nElements = this.elements.length;
+        for (i = 0; i < nElements; i += 1) {
+            pe = this.elements[i];
+            if (pe.cmd === g.MOVETO) {
+                ctx.moveTo(pe.point.x, pe.point.y);
+            } else if (pe.cmd === g.LINETO) {
+                ctx.lineTo(pe.point.x, pe.point.y);
+            } else if (pe.cmd === g.CURVETO) {
+                ctx.bezierCurveTo(pe.ctrl1.x, pe.ctrl1.y, pe.ctrl2.x, pe.ctrl2.y, pe.point.x, pe.point.y);
+            } else if (pe.cmd === g.CLOSE) {
+                ctx.closePath();
+            }
+        }
+        if (this.fill !== null) {
+            ctx.fillStyle = g._getColor(this.fill);
+            ctx.fill();
+        }
+        if (this.stroke !== null && this.strokeWidth !== null && this.strokeWidth > 0) {
+            ctx.strokeStyle = g._getColor(this.stroke);
+            ctx.lineWidth = this.strokeWidth;
+            ctx.stroke();
+        }
+    };
+
+    g.makePath = function (pe, fill, stroke, strokeWidth) {
+        var attrs = {
+            fill: fill,
+            stroke: stroke,
+            strokeWidth: strokeWidth
+        };
+        return new g.Path(pe, attrs);
+    };
+
+    // GROUP ////////////////////////////////////////////////////////////////
+
+    g.Group = function (shapes) {
+        if (!shapes) {
+            this.shapes = [];
+        } else if (shapes.shapes || shapes.elements) {
+            this.shapes = [shapes];
+        } else if (shapes) {
+            this.shapes = shapes;
+        }
+    };
+
+    g.Group.prototype.colorize = function (fill, stroke, strokeWidth) {
+        var shapes = _.map(this.shapes, function (shape) {
+            return shape.colorize(fill, stroke, strokeWidth);
+        });
+        return g.makeGroup(shapes);
+    };
+
+    g.Group.prototype.bounds = function () {
+        if (_.isEmpty(this.shapes)) { return g.makeRect(0, 0, 0, 0); }
+        var i, r, shape,
+            shapes = this.shapes;
+        for (i = 0; i < shapes.length; i += 1) {
+            shape = shapes[i];
+            if (r === undefined) {
+                r = shape.bounds();
+            }
+            if ((shape.shapes && !_.isEmpty(shape.shapes)) ||
+                    (shape.elements && !_.isEmpty(shape.elements))) {
+                r = r.unite(shape.bounds());
+            }
+        }
+        return (r !== undefined) ? r : g.makeRect(0, 0, 0, 0);
+    };
+
+    g.Group.prototype.contains = function (x, y, precision) {
+        /* Returns true when point (x,y) falls within the contours of the group.
+         */
+        if (precision === undefined) { precision = 100; }
+        var i, shapes = this.shapes;
+        for (i = 0; i < shapes.length; i += 1) {
+            if (shapes[i].contains(x, y, precision)) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    g.Group.prototype.resampleByAmount = function (points, perContour) {
+        var path, shapes;
+        if (!perContour) {
+            path = g.makePath(g.combinePaths(this));
+            return path.resampleByAmount(points, perContour);
+        }
+
+        shapes = _.map(this.shapes, function (shape) {
+            return shape.resampleByAmount(points, perContour);
+        });
+        return g.makeGroup(shapes);
+    };
+
+    g.Group.prototype.resampleByLength = function (length) {
+        var shapes = _.map(this.shapes, function (shape) {
+            return shape.resampleByLength(length);
+        });
+        return g.makeGroup(shapes);
+    };
+
+    g.Group.prototype.toSVG = function () {
+        var l;
+        l = _.map(this.shapes, function (shape) {
+            return shape.toSVG();
+        });
+        return '<g>' + l.join('') + '</g>';
+    };
+
+    // Draw the group to a 2D context.
+    g.Group.prototype.draw = function (ctx) {
+        var i, shapes = this.shapes, nShapes = shapes.length;
+        for (i = 0; i < nShapes; i += 1) {
+            shapes[i].draw(ctx);
+        }
+    };
+
+    g.makeGroup = g.group = function (shapes) {
+        return new g.Group(shapes);
+    };
+
+    // Combine all given shape arguments into a new group.
+    // This function works like makeGroup, except that this can take any number
+    // of arguments.
+    g.merge = function () {
+        return g.makeGroup(arguments);
+    };
+
+    g.combinePaths = function (shape) {
+        if (shape.elements) { return shape.elements; }
+        var i, elements = [];
+        for (i = 0; i < shape.shapes.length; i += 1) {
+            elements = elements.concat(g.combinePaths(shape.shapes[i]));
+        }
+        return elements;
+    };
+
+    g.shapePoints = function (shape) {
+        if (shape.elements) {
+            return _.map(_.filter(shape.elements, function (el) { if (el.point) { return true; } return false; }), function (el) { return el.point; });
+        }
+        var i, points = [];
+        for (i = 0; i < shape.shapes.length; i += 1) {
+            points = points.concat(g.shapePoints(shape.shapes[i]));
+        }
+        return points;
+    };
+
+    // COLOR ////////////////////////////////////////////////////////////////
+
+    g.RGB = 'RGB';
+    g.HSB = 'HSB';
+    g.HEX = 'HEX';
+
+    g._namedColors = {
+        'lightpink'            : [1.00, 0.71, 0.76],
+        'pink'                 : [1.00, 0.75, 0.80],
+        'crimson'              : [0.86, 0.08, 0.24],
+        'lavenderblush'        : [1.00, 0.94, 0.96],
+        'palevioletred'        : [0.86, 0.44, 0.58],
+        'hotpink'              : [1.00, 0.41, 0.71],
+        'deeppink'             : [1.00, 0.08, 0.58],
+        'mediumvioletred'      : [0.78, 0.08, 0.52],
+        'orchid'               : [0.85, 0.44, 0.84],
+        'thistle'              : [0.85, 0.75, 0.85],
+        'plum'                 : [0.87, 0.63, 0.87],
+        'violet'               : [0.93, 0.51, 0.93],
+        'fuchsia'              : [1.00, 0.00, 1.00],
+        'darkmagenta'          : [0.55, 0.00, 0.55],
+        'purple'               : [0.50, 0.00, 0.50],
+        'mediumorchid'         : [0.73, 0.33, 0.83],
+        'darkviolet'           : [0.58, 0.00, 0.83],
+        'darkorchid'           : [0.60, 0.20, 0.80],
+        'indigo'               : [0.29, 0.00, 0.51],
+        'blueviolet'           : [0.54, 0.17, 0.89],
+        'mediumpurple'         : [0.58, 0.44, 0.86],
+        'mediumslateblue'      : [0.48, 0.41, 0.93],
+        'slateblue'            : [0.42, 0.35, 0.80],
+        'darkslateblue'        : [0.28, 0.24, 0.55],
+        'ghostwhite'           : [0.97, 0.97, 1.00],
+        'lavender'             : [0.90, 0.90, 0.98],
+        'blue'                 : [0.00, 0.00, 1.00],
+        'mediumblue'           : [0.00, 0.00, 0.80],
+        'darkblue'             : [0.00, 0.00, 0.55],
+        'navy'                 : [0.00, 0.00, 0.50],
+        'midnightblue'         : [0.10, 0.10, 0.44],
+        'royalblue'            : [0.25, 0.41, 0.88],
+        'cornflowerblue'       : [0.39, 0.58, 0.93],
+        'lightsteelblue'       : [0.69, 0.77, 0.87],
+        'lightslategray'       : [0.47, 0.53, 0.60],
+        'slategray'            : [0.44, 0.50, 0.56],
+        'dodgerblue'           : [0.12, 0.56, 1.00],
+        'aliceblue'            : [0.94, 0.97, 1.00],
+        'steelblue'            : [0.27, 0.51, 0.71],
+        'lightskyblue'         : [0.53, 0.81, 0.98],
+        'skyblue'              : [0.53, 0.81, 0.92],
+        'deepskyblue'          : [0.00, 0.75, 1.00],
+        'lightblue'            : [0.68, 0.85, 0.90],
+        'powderblue'           : [0.69, 0.88, 0.90],
+        'cadetblue'            : [0.37, 0.62, 0.63],
+        'darkturquoise'        : [0.00, 0.81, 0.82],
+        'azure'                : [0.94, 1.00, 1.00],
+        'lightcyan'            : [0.88, 1.00, 1.00],
+        'paleturquoise'        : [0.69, 0.93, 0.93],
+        'aqua'                 : [0.00, 1.00, 1.00],
+        'darkcyan'             : [0.00, 0.55, 0.55],
+        'teal'                 : [0.00, 0.50, 0.50],
+        'darkslategray'        : [0.18, 0.31, 0.31],
+        'mediumturquoise'      : [0.28, 0.82, 0.80],
+        'lightseagreen'        : [0.13, 0.70, 0.67],
+        'turquoise'            : [0.25, 0.88, 0.82],
+        'aquamarine'           : [0.50, 1.00, 0.83],
+        'mediumaquamarine'     : [0.40, 0.80, 0.67],
+        'mediumspringgreen'    : [0.00, 0.98, 0.60],
+        'mintcream'            : [0.96, 1.00, 0.98],
+        'springgreen'          : [0.00, 1.00, 0.50],
+        'mediumseagreen'       : [0.24, 0.70, 0.44],
+        'seagreen'             : [0.18, 0.55, 0.34],
+        'honeydew'             : [0.94, 1.00, 0.94],
+        'darkseagreen'         : [0.56, 0.74, 0.56],
+        'palegreen'            : [0.60, 0.98, 0.60],
+        'lightgreen'           : [0.56, 0.93, 0.56],
+        'limegreen'            : [0.20, 0.80, 0.20],
+        'lime'                 : [0.00, 1.00, 0.00],
+        'forestgreen'          : [0.13, 0.55, 0.13],
+        'green'                : [0.00, 0.50, 0.00],
+        'darkgreen'            : [0.00, 0.39, 0.00],
+        'lawngreen'            : [0.49, 0.99, 0.00],
+        'chartreuse'           : [0.50, 1.00, 0.00],
+        'greenyellow'          : [0.68, 1.00, 0.18],
+        'darkolivegreen'       : [0.33, 0.42, 0.18],
+        'yellowgreen'          : [0.60, 0.80, 0.20],
+        'olivedrab'            : [0.42, 0.56, 0.14],
+        'ivory'                : [1.00, 1.00, 0.94],
+        'beige'                : [0.96, 0.96, 0.86],
+        'lightyellow'          : [1.00, 1.00, 0.88],
+        'lightgoldenrodyellow' : [0.98, 0.98, 0.82],
+        'yellow'               : [1.00, 1.00, 0.00],
+        'olive'                : [0.50, 0.50, 0.00],
+        'darkkhaki'            : [0.74, 0.72, 0.42],
+        'palegoldenrod'        : [0.93, 0.91, 0.67],
+        'lemonchiffon'         : [1.00, 0.98, 0.80],
+        'khaki'                : [0.94, 0.90, 0.55],
+        'gold'                 : [1.00, 0.84, 0.00],
+        'cornsilk'             : [1.00, 0.97, 0.86],
+        'goldenrod'            : [0.85, 0.65, 0.13],
+        'darkgoldenrod'        : [0.72, 0.53, 0.04],
+        'floralwhite'          : [1.00, 0.98, 0.94],
+        'oldlace'              : [0.99, 0.96, 0.90],
+        'wheat'                : [0.96, 0.87, 0.07],
+        'orange'               : [1.00, 0.65, 0.00],
+        'moccasin'             : [1.00, 0.89, 0.71],
+        'papayawhip'           : [1.00, 0.94, 0.84],
+        'blanchedalmond'       : [1.00, 0.92, 0.80],
+        'navajowhite'          : [1.00, 0.87, 0.68],
+        'antiquewhite'         : [0.98, 0.92, 0.84],
+        'tan'                  : [0.82, 0.71, 0.55],
+        'burlywood'            : [0.87, 0.72, 0.53],
+        'darkorange'           : [1.00, 0.55, 0.00],
+        'bisque'               : [1.00, 0.89, 0.77],
+        'linen'                : [0.98, 0.94, 0.90],
+        'peru'                 : [0.80, 0.52, 0.25],
+        'peachpuff'            : [1.00, 0.85, 0.73],
+        'sandybrown'           : [0.96, 0.64, 0.38],
+        'chocolate'            : [0.82, 0.41, 0.12],
+        'saddlebrown'          : [0.55, 0.27, 0.07],
+        'seashell'             : [1.00, 0.96, 0.93],
+        'sienna'               : [0.63, 0.32, 0.18],
+        'lightsalmon'          : [1.00, 0.63, 0.48],
+        'coral'                : [1.00, 0.50, 0.31],
+        'orangered'            : [1.00, 0.27, 0.00],
+        'darksalmon'           : [0.91, 0.59, 0.48],
+        'tomato'               : [1.00, 0.39, 0.28],
+        'salmon'               : [0.98, 0.50, 0.45],
+        'mistyrose'            : [1.00, 0.89, 0.88],
+        'lightcoral'           : [0.94, 0.50, 0.50],
+        'snow'                 : [1.00, 0.98, 0.98],
+        'rosybrown'            : [0.74, 0.56, 0.56],
+        'indianred'            : [0.80, 0.36, 0.36],
+        'red'                  : [1.00, 0.00, 0.00],
+        'brown'                : [0.65, 0.16, 0.16],
+        'firebrick'            : [0.70, 0.13, 0.13],
+        'darkred'              : [0.55, 0.00, 0.00],
+        'maroon'               : [0.50, 0.00, 0.00],
+        'white'                : [1.00, 1.00, 1.00],
+        'whitesmoke'           : [0.96, 0.96, 0.96],
+        'gainsboro'            : [0.86, 0.86, 0.86],
+        'lightgrey'            : [0.83, 0.83, 0.83],
+        'silver'               : [0.75, 0.75, 0.75],
+        'darkgray'             : [0.66, 0.66, 0.66],
+        'gray'                 : [0.50, 0.50, 0.50],
+        'grey'                 : [0.50, 0.50, 0.50],
+        'dimgray'              : [0.41, 0.41, 0.41],
+        'dimgrey'              : [0.41, 0.41, 0.41],
+        'black'                : [0.00, 0.00, 0.00],
+        'cyan'                 : [0.00, 0.68, 0.94],
+
+        'transparent'          : [0.00, 0.00, 0.00, 0.00],
+        'bark'                 : [0.25, 0.19, 0.13]
+    };
+
+    Object.freeze(g._namedColors);
+
+    // Converts the given R,G,B values to a hexadecimal color string.
+    g._rgb2hex = function (r, g, b) {
+        var parseHex = function (i) {
+            return ((i === 0) ? '00' : (i.length < 2) ? '0' + i : i).toString(16).toUpperCase();
+        };
+        return '#'
+            + parseHex(Math.round(r * 255))
+            + parseHex(Math.round(g * 255))
+            + parseHex(Math.round(b * 255));
+    };
+
+    // Converts the given hexadecimal color string to R,G,B (between 0.0-1.0).
+    g._hex2rgb = function (hex) {
+        var arr, r, g, b;
+        hex = hex.replace(/^#/, '');
+        if (hex.length < 6) { // hex += hex[-1] * (6-hex.length);
+            arr = [];
+            arr.length = 6 - hex.length;
+            hex += arr.join(hex.substr(hex.length - 1));
+        }
+        r = parseInt(hex.substr(0, 2), 16) / 255;
+        g = parseInt(hex.substr(2, 2), 16) / 255;
+        b = parseInt(hex.substr(4, 2), 16) / 255;
+        return [r, g, b];
+    };
+
+    // Converts the given R,G,B values to H,S,B (between 0.0-1.0).
+    g._rgb2hsb = function (r, g, b) {
+        var h = 0,
+            s = 0,
+            v = Math.max(r, g, b),
+            d = v - Math.min(r, g, b);
+        if (v !== 0) {
+            s = d / v;
+        }
+        if (s !== 0) {
+            if (r === v) {
+                h = (g - b) / d;
+            } else if (g === v) {
+                h = 2 + (b - r) / d;
+            } else {
+                h = 4 + (r - g) / d;
+            }
+        }
+        h = h / 6.0 % 1;
+        return [h, s, v];
+    };
+
+    // Converts the given H,S,B color values to R,G,B (between 0.0-1.0).
+    g._hsb2rgb = function (h, s, v) {
+        if (s === 0) {
+            return [v, v, v];
+        }
+        h = h % 1 * 6.0;
+        var i = Math.floor(h),
+            f = h - i,
+            x = v * (1 - s),
+            y = v * (1 - s * f),
+            z = v * (1 - s * (1 - f));
+        if (i > 4) {
+            return [v, x, y];
+        }
+        return [[v, z, x], [y, v, x], [x, v, z], [x, y, v], [z, x, v]][parseInt(i, 10)];
+    };
+
+    g.Color = function (v1, v2, v3, v4, v5) {
+        var _r, _g, _b, _a, rgb, options;
+        if (v1 === undefined) {
+            _r = _g = _b = 0;
+            _a = 1;
+        } else if (Array.isArray(v1)) {
+            options = v2 || {};
+            _r = v1[0] !== undefined ? v1[0] : 0;
+            _g = v1[1] !== undefined ? v1[1] : 0;
+            _b = v1[2] !== undefined ? v1[2] : 0;
+            _a = v1[3] !== undefined ? v1[3] : options.base || 1;
+        } else if (v1.r !== undefined) {
+            options = v2 || {};
+            _r = v1.r;
+            _g = v1.g;
+            _b = v1.b;
+            _a = v1.a !== undefined ? v1.a : options.base || 1;
+        } else if (typeof v1 === 'string') {
+            rgb = g._hex2rgb(v1);
+            _r = rgb[0];
+            _g = rgb[1];
+            _b = rgb[2];
+            _a = 1;
+        } else if (typeof v1 === 'number') {
+            if (arguments.length === 1) { // Grayscale value
+                _r = _g = _b = v1;
+                _a = 1;
+            } else if (arguments.length === 2) { // Gray and alpha or options
+                _r = _g = _b = v1;
+                if (typeof v2 === 'number') {
+                    _a = v2;
+                } else {
+                    options = v2;
+                    _a = options.base || 1;
+                }
+            } else if (arguments.length === 3) { // RGB or gray, alpha and options
+                if (typeof v3 === 'number') {
+                    _r = v1;
+                    _g = v2;
+                    _b = v3;
+                    _a = 1;
+                } else {
+                    _r = _g = _b = v1;
+                    _a = v2;
+                    options = v3;
+                }
+            } else if (arguments.length === 4) { // RGB and alpha or options
+                _r = v1;
+                _g = v2;
+                _b = v3;
+                if (typeof v4 === 'number') {
+                    _a = v4;
+                } else {
+                    options = v4;
+                    _a = options.base || 1;
+                }
+            } else { // RGBA + options
+                _r = v1;
+                _g = v2;
+                _b = v3;
+                _a = v4;
+                options = v5;
+            }
+        }
+        options = options || {};
+
+        // The base option allows you to specify values in a different range.
+        if (options.base !== undefined) {
+            _r /= options.base;
+            _g /= options.base;
+            _b /= options.base;
+            _a /= options.base;
+        }
+        // Convert HSB colors to RGB
+        if (options.colorspace === g.HSB) {
+            rgb = g._hsb2rgb(v1, v2, v3);
+            _r = rgb[0];
+            _g = rgb[1];
+            _b = rgb[2];
+        } else if (options.colorspace === g.HEX) {
+            rgb = g._hex2rgb(v1);
+            _r = rgb[0];
+            _g = rgb[1];
+            _b = rgb[2];
+            _a = 1;
+        }
+
+        this.r = _r;
+        this.g = _g;
+        this.b = _b;
+        this.a = _a;
+    };
+
+    g.Color.BLACK = new g.Color(0);
+    g.Color.WHITE = new g.Color(1);
+
+    g.Color.prototype.rgb = function () {
+        return [this.r, this.g, this.b];
+    };
+
+    g.Color.prototype.rgba = function () {
+        return [this.r, this.g, this.b, this.a];
+    };
+
+    g.Color.prototype._get = function () {
+        var R = Math.round(this.r * 255),
+            G = Math.round(this.g * 255),
+            B = Math.round(this.b * 255);
+        return 'rgba(' + R + ', ' + G + ', ' + B + ', ' + this.a + ')';
+    };
+
+    g.makeColor = function (R, G, B, A, options) {
+        return new g.Color(R, G, B, A, options);
+    };
+
+    g.gray = function (gray, alpha, range) {
+        range = Math.max(range, 1);
+        return g.makeColor(gray / range, gray / range, gray / range, alpha / range);
+    };
+
+    g.rgb = function (red, green, blue, alpha, range) {
+        range = Math.max(range, 1);
+        return g.makeColor(red / range, green / range, blue / range, alpha / range);
+    };
+
+    g.hsb = function (hue, saturation, brightness, alpha, range) {
+        range = Math.max(range, 1);
+        return g.makeColor(hue / range, saturation / range, brightness / range, alpha / range, { colorspace: g.HSB });
+    };
+
+    g._getColor = function (c) {
+        if (c === null) { return 'none'; }
+        if (c === undefined) { return 'black'; }
+        if (typeof c === 'string') { return c; }
+        if (c instanceof g.Color) { return c._get(); }
+        return new g.Color(c)._get();
+    };
+
     g.drawCommand = function (ctx, command) {
         var cmd = command.cmd;
         if (cmd === 'M') {
@@ -2052,14 +1928,6 @@ if (typeof require !== 'undefined') {
         } else {
             console.log('Unknown command ', command);
         }
-    };
-
-    g._getColor = function (c) {
-        if (c === null) { return 'none'; }
-        if (c === undefined) { return 'black'; }
-        if (typeof c === 'string') { return c; }
-        if (c instanceof g.Color) { return c._get(); }
-        return new g.Color(c)._get();
     };
 
     g.drawPoints = function (ctx, points) {
@@ -2091,6 +1959,8 @@ if (typeof require !== 'undefined') {
             console.log('Error while drawing:', err);
         }
     };
+
+    // SVG //////////////////////////////////////////////////////////////////
 
     // The SVG engine uses code from the following libraries:
     // - for parsing the main svg tree: two.js - http://jonobr1.github.io/two.js/
@@ -2693,6 +2563,167 @@ if (typeof require !== 'undefined') {
     };
 
     // SHAPES ///////////////////////////////////////////////////////////////
+
+    g._rect = function (x, y, width, height) {
+        var elements = [
+            g.moveto(x, y),
+            g.lineto(x + width, y),
+            g.lineto(x + width, y + height),
+            g.lineto(x, y + height),
+            g.close()
+        ];
+        return new g.Path(elements);
+    };
+
+    g.roundedRect = function (cx, cy, width, height, rx, ry) {
+        var ONE_MINUS_QUARTER = 1.0 - 0.552,
+
+            elements = [],
+
+            dx = rx,
+            dy = ry,
+
+            left = cx,
+            right = cx + width,
+            top = cy,
+            bottom = cy + height;
+
+        // rx/ry cannot be greater than half of the width of the rectangle
+        // (required by SVG spec)
+        dx = Math.min(dx, width * 0.5);
+        dy = Math.min(dy, height * 0.5);
+        elements.push(g.moveto(left + dx, top));
+        if (dx < width * 0.5) {
+            elements.push(g.lineto(right - rx, top));
+        }
+        elements.push(g.curveto(right - dx * ONE_MINUS_QUARTER, top, right, top + dy * ONE_MINUS_QUARTER, right, top + dy));
+        if (dy < height * 0.5) {
+            elements.push(g.lineto(right, bottom - dy));
+        }
+        elements.push(g.curveto(right, bottom - dy * ONE_MINUS_QUARTER, right - dx * ONE_MINUS_QUARTER, bottom, right - dx, bottom));
+        if (dx < width * 0.5) {
+            elements.push(g.lineto(left + dx, bottom));
+        }
+        elements.push(g.curveto(left + dx * ONE_MINUS_QUARTER, bottom, left, bottom - dy * ONE_MINUS_QUARTER, left, bottom - dy));
+        if (dy < height * 0.5) {
+            elements.push(g.lineto(left, top + dy));
+        }
+        elements.push(g.curveto(left, top + dy * ONE_MINUS_QUARTER, left + dx * ONE_MINUS_QUARTER, top, left + dx, top));
+        elements.push(g.close());
+        return new g.Path(elements);
+    };
+
+    g._ellipse = function (x, y, width, height) {
+        var k = 0.55, // kappa = (-1 + sqrt(2)) / 3 * 4
+            dx = k * 0.5 * width,
+            dy = k * 0.5 * height,
+            x0 = x + 0.5 * width,
+            y0 = y + 0.5 * height,
+            x1 = x + width,
+            y1 = y + height,
+            elements = [
+                g.moveto(x, y0),
+                g.curveto(x, y0 - dy, x0 - dx, y, x0, y),
+                g.curveto(x0 + dx, y, x1, y0 - dy, x1, y0),
+                g.curveto(x1, y0 + dy, x0 + dx, y1, x0, y1),
+                g.curveto(x0 - dx, y1, x, y0 + dy, x, y0),
+                g.close()
+            ];
+        return new g.Path(elements);
+    };
+
+    g._line = function (x1, y1, x2, y2) {
+        var elements = [
+            g.moveto(x1, y1),
+            g.lineto(x2, y2)
+        ];
+        return new g.Path(elements);
+    };
+
+    g.quad = function (x1, y1, x2, y2, x3, y3, x4, y4) {
+        var elements = [
+            g.moveto(x1, y1),
+            g.lineto(x2, y2),
+            g.lineto(x3, y3),
+            g.lineto(x4, y4),
+            g.close()
+        ];
+        return new g.Path(elements);
+    };
+
+    g._arc = function (x, y, width, height, startAngle, degrees, arcType) {
+        var w, h, angStRad, ext, arcSegs, increment, cv, lineSegs,
+            index, elements, angle, relx, rely, coords;
+        w = width / 2;
+        h = height / 2;
+        angStRad = g.math.radians(startAngle);
+        ext = degrees;
+
+        if (ext >= 360.0 || ext <= -360) {
+            arcSegs = 4;
+            increment = Math.PI / 2;
+            cv = 0.5522847498307933;
+            if (ext < 0) {
+                increment = -increment;
+                cv = -cv;
+            }
+        } else {
+            arcSegs = Math.ceil(Math.abs(ext) / 90.0);
+            increment = g.math.radians(ext / arcSegs);
+            cv = 4.0 / 3.0 * Math.sin(increment / 2.0) / (1.0 + Math.cos(increment / 2.0));
+            if (cv === 0) {
+                arcSegs = 0;
+            }
+        }
+
+        if (arcType === 'open') {
+            lineSegs = 0;
+        } else if (arcType === 'chord') {
+            lineSegs = 1;
+        } else if (arcType === 'pie') {
+            lineSegs = 2;
+        }
+
+        if (w < 0 || h < 0) {
+            arcSegs = lineSegs = -1;
+        }
+
+        index = 0;
+        elements = [];
+        while (index <= arcSegs + lineSegs) {
+            angle = angStRad;
+            if (index === 0) {
+                elements.push(
+                    g.moveto(x + Math.cos(angle) * w,
+                             y + Math.sin(angle) * h)
+                );
+            } else if (index > arcSegs) {
+                if (index === arcSegs + lineSegs) {
+                    elements.push(g.close());
+                } else {
+                    elements.push(g.lineto(x, y));
+                }
+            } else {
+                angle += increment * (index - 1);
+                relx = Math.cos(angle);
+                rely = Math.sin(angle);
+                coords = [];
+                coords.push(x + (relx - cv * rely) * w);
+                coords.push(y + (rely + cv * relx) * h);
+                angle += increment;
+                relx = Math.cos(angle);
+                rely = Math.sin(angle);
+                coords.push(x + (relx + cv * rely) * w);
+                coords.push(y + (rely - cv * relx) * h);
+                coords.push(x + relx * w);
+                coords.push(y + rely * h);
+                elements.push(g.curveto.apply(null, coords));
+            }
+            index += 1;
+        }
+
+        return new g.Path(elements);
+    };
 
     g.rect = function (position, width, height, roundness) {
         if (!roundness || (roundness.x === 0 && roundness.y === 0)) {
@@ -3495,23 +3526,6 @@ if (typeof require !== 'undefined') {
             });
         }
         return new_shapes;
-    };
-
-    // COLORS ///////////////////////////////////////////////////////////////
-
-    g.gray = function (gray, alpha, range) {
-        range = Math.max(range, 1);
-        return g.makeColor(gray / range, gray / range, gray / range, alpha / range);
-    };
-
-    g.rgb = function (red, green, blue, alpha, range) {
-        range = Math.max(range, 1);
-        return g.makeColor(red / range, green / range, blue / range, alpha / range);
-    };
-
-    g.hsb = function (hue, saturation, brightness, alpha, range) {
-        range = Math.max(range, 1);
-        return g.makeColor(hue / range, saturation / range, brightness / range, alpha / range, { colorspace: g.HSB });
     };
 
     // MODULE SUPPORT ///////////////////////////////////////////////////////
