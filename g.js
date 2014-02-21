@@ -610,14 +610,6 @@ if (typeof require !== 'undefined') {
         return new g.Point(x, y);
     };
 
-    g.Particle = function (position, velocity, acceleration, mass, lifespan) {
-        this.position = position !== undefined ? position : g.Point.ZERO;
-        this.velocity = velocity !== undefined ? velocity : g.Point.ZERO;
-        this.acceleration = acceleration !== undefined ? acceleration : g.Point.ZERO;
-        this.mass = mass !== undefined ? mass : 1;
-        this.lifespan = lifespan !== undefined ? lifespan : Number.POSITIVE_INFINITY;
-    };
-
     g.MOVETO  = 'M';
     g.LINETO  = 'L';
     g.CURVETO = 'C';
