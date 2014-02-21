@@ -1915,21 +1915,6 @@ if (typeof require !== 'undefined') {
         return new g.Color(c)._get();
     };
 
-    g.drawCommand = function (ctx, command) {
-        var type = command.type;
-        if (type === 'M') {
-            ctx.moveTo(command.point.x, command.point.y);
-        } else if (type === 'L') {
-            ctx.lineTo(command.point.x, command.point.y);
-        } else if (type === 'C') {
-            ctx.bezierCurveTo(command.ctrl1.x, command.ctrl1.y, command.ctrl2.x, command.ctrl2.y, command.point.x, command.point.y);
-        } else if (type === 'z') {
-            ctx.closePath();
-        } else {
-            console.log('Unknown command ', command);
-        }
-    };
-
     g.drawPoints = function (ctx, points) {
         var pt, i;
         ctx.fillStyle = 'blue';
