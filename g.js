@@ -123,7 +123,7 @@ if (typeof require !== 'undefined') {
         return (1 + n) / 2;
     };
 
-    g._permutation = (function () {
+    g.math._permutation = (function () {
         var permutation, p, i;
         permutation = [ 151, 160, 137, 91, 90, 15,
             131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23,
@@ -147,13 +147,13 @@ if (typeof require !== 'undefined') {
     }());
 
     // Calculate Perlin noise
-    g.noise = function (x, y, z) {
+    g.math.noise = function (x, y, z) {
         var fade, lerp, grad, scale, p, X, Y, Z, u, v, w, A, AA, AB, B, BA, BB;
         fade = g.math._fade;
         lerp = g.math._lerp;
         grad = g.math._grad;
         scale = g.math._scale;
-        p = g._permutation;
+        p = g.math._permutation;
 
         // Find unit cube that contains the point.
         X = Math.floor(x) & 255;
