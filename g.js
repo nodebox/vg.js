@@ -532,12 +532,14 @@ if (typeof require !== 'undefined') {
 
     // GRAPHICS /////////////////////////////////////////////////////////////
 
-    g.Point = function (x, y) {
-        this.x = x;
-        this.y = y;
+    g.Point = g.Vec2 = function (x, y) {
+        this.x = x !== undefined ? x : 0;
+        this.y = y !== undefined ? y : 0;
     };
 
-    g.Vec2 = g.Point;
+    Object.defineProperty(g.Point.prototype, 'xy', {
+        get: function () { return [this.x, this.y]; }
+    });
 
     g.Point.ZERO = new g.Point(0, 0);
 
@@ -569,7 +571,7 @@ if (typeof require !== 'undefined') {
         return Math.atan2(this.y, this.x);
     };
 
-    g.Vec2.prototype.distanceTo = function (v) {
+    g.Point.prototype.distanceTo = function (v) {
         var dx = this.x - v.x,
             dy = this.y - v.y;
         return Math.sqrt(dx * dx + dy * dy);
