@@ -95,6 +95,69 @@ describe('Group', function () {
 
 });
 
+describe('Color', function () {
+
+    it('has a default constructor', function () {
+        var c = new g.Color();
+        expect(c.rgba()).toEqual([0, 0, 0, 1]);
+    });
+
+    it('can be constructed using numbers', function () {
+        var c;
+        c = new g.Color(0.1, 0.2, 0.3);
+        expect(c.rgba()).toEqual([0.1, 0.2, 0.3, 1]);
+        c = new g.Color(0.1, 0.2, 0.3, 0.4);
+        expect(c.rgba()).toEqual([0.1, 0.2, 0.3, 0.4]);
+    });
+
+    it('can take a base', function () {
+        var c;
+        c = new g.Color(10, 20, 30, {base: 100});
+        expect(c.rgba()).toEqual([0.1, 0.2, 0.3, 1]);
+        c = new g.Color(10, 20, 30, 40, {base: 100});
+        expect(c.rgba()).toEqual([0.1, 0.2, 0.3, 0.4]);
+    });
+
+    it('can be constructed using an array', function () {
+        var c;
+        c = new g.Color([0.1, 0.2, 0.3, 0.4]);
+        expect(c.rgba()).toEqual([0.1, 0.2, 0.3, 0.4]);
+        c = new g.Color([0, 0, 0, 0]);
+        expect(c.rgba()).toEqual([0, 0, 0, 0]);
+        c = new g.Color([10, 20, 30], {base: 100});
+        expect(c.rgba()).toEqual([0.1, 0.2, 0.3, 1]);
+        c = new g.Color([10, 20, 30, 40], {base: 100});
+        expect(c.rgba()).toEqual([0.1, 0.2, 0.3, 0.4]);
+    });
+
+    it('can be constructed using a Color object', function () {
+        var c;
+        c = new g.Color({r: 0.1, g: 0.2, b: 0.3});
+        expect(c.rgba()).toEqual([0.1, 0.2, 0.3, 1.0]);
+        c = new g.Color({r: 0.1, g: 0.2, b: 0.3, a: 0.4});
+        expect(c.rgba()).toEqual([0.1, 0.2, 0.3, 0.4]);
+    });
+
+    it('can be constructed using a string', function () {
+        var c;
+        c = new g.Color('#ff3366');
+        expect(c.rgba()).toEqual([1, 0.2, 0.4, 1]);
+    });
+
+    it('can be constructed using a grayscale value', function () {
+        var c;
+        c = new g.Color(0.3);
+        expect(c.rgba()).toEqual([0.3, 0.3, 0.3, 1]);
+        c = new g.Color(30, {base: 100});
+        expect(c.rgba()).toEqual([0.3, 0.3, 0.3, 1]);
+        c = new g.Color(0.3, 0.5);
+        expect(c.rgba()).toEqual([0.3, 0.3, 0.3, 0.5]);
+        c = new g.Color(30, 50, {base: 100});
+        expect(c.rgba()).toEqual([0.3, 0.3, 0.3, 0.5]);
+    });
+
+});
+
 xdescribe('Tagging', function () {
 
     it('can tag shapes', function () {
