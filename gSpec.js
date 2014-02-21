@@ -4,6 +4,34 @@
 var _ = require('underscore'),
     g = require('./g.js');
 
+describe('The math module', function () {
+
+    it('can round numbers', function () {
+        expect(g.math.round(0.1)).toBe(0);
+        expect(g.math.round(0.9)).toBe(1);
+        expect(g.math.round(1.234, 1)).toBe(1.2);
+        expect(g.math.round(1.289, 1)).toBe(1.3);
+        expect(g.math.round(123, -1)).toBe(120);
+        expect(g.math.round(123, -2)).toBe(100);
+    });
+
+    it('can clamp numbers', function () {
+        expect(g.math.clamp(5, -10, 10)).toBe(5);
+        expect(g.math.clamp(-100, -10, 10)).toBe(-10);
+        expect(g.math.clamp(100, -10, 10)).toBe(10);
+        expect(g.math.clamp(42, 0, 0)).toBe(0);
+        // You can switch min / max
+        expect(g.math.clamp(-100, -10, 10)).toBe(-10);
+        expect(g.math.clamp(-100, 10, -10)).toBe(-10);
+    });
+
+    it('can generate noise', function () {
+        expect(g.math.noise(0, 0, 0)).toBe(0.5);
+        expect(g.math.round(g.math.noise(0.1, 0.2, 0.3), 3)).toBe(0.676);
+    });
+
+});
+
 describe('A path', function () {
 
     it('can render itself to SVG', function () {
