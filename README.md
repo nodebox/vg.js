@@ -1,6 +1,6 @@
 g.js
 ====
-g.js is a javascript library for vector graphics.
+g.js is a JavaScript library for vector graphics.
 
 Credits
 =======
