@@ -318,33 +318,33 @@ if (typeof require !== 'undefined') {
 
     // BEZIER PATH LENGTH:
 
-    g.bezier.segmentLengths = function (pathElements, relative, n) {
+    g.bezier.segmentLengths = function (segments, relative, n) {
         /* Returns an array with the length of each segment in the path.
          * With relative=true, the total length of all segments is 1.0.
          */
         if (n === undefined) { n = 20; }
-        var i, el, cmd, pt, close_x, close_y, x0, y0, s, lengths;
+        var i, el, type, pt, close_x, close_y, x0, y0, s, lengths;
         lengths = [];
-        for (i = 0; i < pathElements.length; i += 1) {
-            el = pathElements[i];
-            cmd = el.cmd;
+        for (i = 0; i < segments.length; i += 1) {
+            el = segments[i];
+            type = el.type;
             pt = el.point;
 
             if (i === 0) {
                 close_x = pt.x;
                 close_y = pt.y;
-            } else if (cmd === g.MOVETO) {
+            } else if (type === g.MOVETO) {
                 close_x = pt.x;
                 close_y = pt.y;
                 lengths.push(0.0);
-            } else if (cmd === g.CLOSE) {
+            } else if (type === g.CLOSE) {
                 lengths.push(g.bezier.lineLength(x0, y0, close_x, close_y));
-            } else if (cmd === g.LINETO) {
+            } else if (type === g.LINETO) {
                 lengths.push(g.bezier.lineLength(x0, y0, pt.x, pt.y));
-            } else if (cmd === g.CURVETO) {
+            } else if (type === g.CURVETO) {
                 lengths.push(g.bezier.curveLength(x0, y0, el.ctrl1.x, el.ctrl1.y, el.ctrl2.x, el.ctrl2.y, pt.x, pt.y, n));
             }
-            if (cmd !== g.CLOSE) {
+            if (type !== g.CLOSE) {
                 x0 = pt.x;
                 y0 = pt.y;
             }
@@ -365,8 +365,8 @@ if (typeof require !== 'undefined') {
          */
         if (n === undefined) { n = 20; }
         return (!segmented) ?
-                g.bezier.sum(g.bezier.segmentLengths(path.elements, false, n)) :
-                g.bezier.segmentLengths(path.elements, true, n);
+                g.bezier.sum(g.bezier.segmentLengths(path.segments, false, n)) :
+                g.bezier.segmentLengths(path.segments, true, n);
     };
 
     // BEZIER PATH POINT:
@@ -380,11 +380,11 @@ if (typeof require !== 'undefined') {
         // Note: during iteration, supplying segmentLengths() yourself is 30x faster.
         var i, el, closeto;
         if (segments === undefined) {
-            segments = g.bezier.segmentLengths(path.elements, true);
+            segments = g.bezier.segmentLengths(path.segments, true);
         }
-        for (i = 0; i < path.elements.length; i += 1) {
-            el = path.elements[i];
-            if (i === 0 || el.cmd === g.MOVETO) {
+        for (i = 0; i < path.segments.length; i += 1) {
+            el = path.segments[i];
+            if (i === 0 || el.type === g.MOVETO) {
                 closeto = g.makePoint(el.point.x, el.point.y);
             }
             if (t <= segments[i] || i === segments.length - 1) {
@@ -407,14 +407,14 @@ if (typeof require !== 'undefined') {
         i = loc[0];
         t = loc[1];
         closeto = loc[2];
-        x0 = path.elements[i].point.x;
-        y0 = path.elements[i].point.y;
-        pe = path.elements[i + 1];
-        if (pe.cmd === g.LINETO || pe.cmd === g.CLOSE) {
-            pe = (pe.cmd === g.CLOSE) ?
+        x0 = path.segments[i].point.x;
+        y0 = path.segments[i].point.y;
+        pe = path.segments[i + 1];
+        if (pe.type === g.LINETO || pe.type === g.CLOSE) {
+            pe = (pe.type === g.CLOSE) ?
                      g.bezier.linePoint(t, x0, y0, closeto.x, closeto.y) :
                      g.bezier.linePoint(t, x0, y0, pe.point.x, pe.point.y);
-        } else if (pe.cmd === g.CURVETO) {
+        } else if (pe.type === g.CURVETO) {
             pe = g.bezier.curvePoint(t, x0, y0, pe.ctrl1.x, pe.ctrl1.y, pe.ctrl2.x, pe.ctrl2.y, pe.point.x, pe.point.y);
         }
         return pe;
@@ -784,24 +784,24 @@ if (typeof require !== 'undefined') {
 
     g.Matrix3.prototype.transformPath = function (path) {
         var _this = this,
-            elements = _.map(path.elements, function (pe) {
-                if (pe.cmd === g.CLOSE) { return pe; }
-                if (pe.cmd === g.MOVETO) {
-                    return { cmd: g.MOVETO,
+            segments = _.map(path.segments, function (pe) {
+                if (pe.type === g.CLOSE) { return pe; }
+                if (pe.type === g.MOVETO) {
+                    return { type: g.MOVETO,
                         point: _this.transformPoint(pe.point) };
                 }
-                if (pe.cmd === g.LINETO) {
-                    return { cmd: g.LINETO,
+                if (pe.type === g.LINETO) {
+                    return { type: g.LINETO,
                         point: _this.transformPoint(pe.point) };
                 }
-                if (pe.cmd === g.CURVETO) {
-                    return { cmd: g.CURVETO,
+                if (pe.type === g.CURVETO) {
+                    return { type: g.CURVETO,
                         point: _this.transformPoint(pe.point),
                         ctrl1: _this.transformPoint(pe.ctrl1),
                         ctrl2: _this.transformPoint(pe.ctrl2) };
                 }
             });
-        return g.makePath(elements, path.fill, path.stroke, path.strokeWidth);
+        return g.makePath(segments, path.fill, path.stroke, path.strokeWidth);
     };
 
     g.Matrix3.prototype.transformGroup = function (group) {
@@ -1097,34 +1097,34 @@ if (typeof require !== 'undefined') {
     g.CURVETO = 'C';
     g.CLOSE   = 'z';
 
-    g.CLOSE_ELEMENT = Object.freeze({ cmd: g.CLOSE });
+    g.CLOSE_SEGMENT = Object.freeze({ type: g.CLOSE });
 
     g.moveTo = g.moveto = function (x, y) {
-        return { cmd:   g.MOVETO,
+        return { type:   g.MOVETO,
                point: g.makePoint(x, y) };
     };
 
     g.lineTo = g.lineto = function (x, y) {
-        return { cmd:   g.LINETO,
+        return { type:   g.LINETO,
                point: g.makePoint(x, y) };
     };
 
     g.curveTo = g.curveto = function (c1x, c1y, c2x, c2y, x, y) {
-        return { cmd:   g.CURVETO,
+        return { type:   g.CURVETO,
                point: g.makePoint(x, y),
                ctrl1: g.makePoint(c1x, c1y),
                ctrl2: g.makePoint(c2x, c2y) };
     };
 
     g.closePath = g.closepath = g.close = function () {
-        return g.CLOSE_ELEMENT;
+        return g.CLOSE_SEGMENT;
     };
 
     g.Path = function (p, attrs) {
         if (p === undefined) {
-            this.elements = [];
+            this.segments = [];
         } else {
-            this.elements = p.elements || p;
+            this.segments = p.segments || p;
         }
         var key;
         if (attrs) {
@@ -1137,8 +1137,8 @@ if (typeof require !== 'undefined') {
     };
 
     g.Path.prototype.extend = function (p) {
-        var addElements = p.elements || p,
-            elements = this.elements.concat(addElements),
+        var addSegments = p.segments || p,
+            segments = this.segments.concat(addSegments),
             attrs = {
                 fill: this.fill,
                 stroke: this.stroke,
@@ -1146,19 +1146,19 @@ if (typeof require !== 'undefined') {
                 _bounds: this._bounds,
                 _length: this._length
             };
-        return new g.Path(elements, attrs);
+        return new g.Path(segments, attrs);
     };
 
     g.Path.prototype.moveTo = function (x, y) {
-        return this.extend(g.moveto(x, y));
+        return this.extend(g.moveTo(x, y));
     };
 
     g.Path.prototype.lineTo = function (x, y) {
-        return this.extend(g.lineto(x, y));
+        return this.extend(g.lineTo(x, y));
     };
 
     g.Path.prototype.curveTo = function (c1x, c1y, c2x, c2y, x, y) {
-        return this.extend(g.curveto(c1x, c1y, c2x, c2y, x, y));
+        return this.extend(g.curveTo(c1x, c1y, c2x, c2y, x, y));
     };
 
     g.Path.prototype.closePath = g.Path.prototype.close = function () {
@@ -1166,8 +1166,8 @@ if (typeof require !== 'undefined') {
     };
 
     g.Path.prototype.isClosed = function () {
-        if (_.isEmpty(this.elements)) { return false; }
-        return this.elements[this.elements.length - 1].cmd === g.CLOSE;
+        if (_.isEmpty(this.segments)) { return false; }
+        return this.segments[this.segments.length - 1].type === g.CLOSE;
     };
 
     g.Path.prototype.rect = function (x, y, width, height) {
@@ -1194,14 +1194,14 @@ if (typeof require !== 'undefined') {
             _bounds: this._bounds,
             _length: this._length
         };
-        return new g.Path(this.elements, attrs);
+        return new g.Path(this.segments, attrs);
     };
 
     g.Path.prototype.contours = function () {
         var contours = [],
             currentContour = [];
-        _.each(this.elements, function (el) {
-            if (el.cmd === g.MOVETO) {
+        _.each(this.segments, function (el) {
+            if (el.type === g.MOVETO) {
                 if (!_.isEmpty(currentContour)) {
                     contours.push(currentContour);
                 }
@@ -1220,7 +1220,7 @@ if (typeof require !== 'undefined') {
 
     g.Path.prototype.bounds = function () {
         if (this._bounds) { return this._bounds; }
-        if (_.isEmpty(this.elements)) { return g.makeRect(0, 0, 0, 0); }
+        if (_.isEmpty(this.segments)) { return g.makeRect(0, 0, 0, 0); }
 
         var px, py, prev, right, bottom,
             minX = Number.MAX_VALUE,
@@ -1228,8 +1228,8 @@ if (typeof require !== 'undefined') {
             maxX = -(Number.MAX_VALUE),
             maxY = -(Number.MAX_VALUE);
 
-        _.each(this.elements, function (el) {
-            if (el.cmd === g.MOVETO || el.cmd === g.LINETO) {
+        _.each(this.segments, function (el) {
+            if (el.type === g.MOVETO || el.type === g.LINETO) {
                 px = el.point.x;
                 py = el.point.y;
                 if (px < minX) { minX = px; }
@@ -1237,7 +1237,7 @@ if (typeof require !== 'undefined') {
                 if (px > maxX) { maxX = px; }
                 if (py > maxY) { maxY = py; }
                 prev = el;
-            } else if (el.cmd === g.CURVETO) {
+            } else if (el.type === g.CURVETO) {
                 var r = g.bezier.extrema(prev.point, el.ctrl1, el.ctrl2, el.point);
                 right = r.x + r.width;
                 bottom = r.y + r.height;
@@ -1256,7 +1256,7 @@ if (typeof require !== 'undefined') {
         /* Returns the DynamicPathElement at time t (0.0-1.0) on the path.
          */
         if (segments === undefined) {
-            // Cache the segment lengths for performace.
+            // Cache the segment lengths for performance.
             segments = g.bezier.length(this, true, 10);
         }
         return g.bezier.point(this, t, segments);
@@ -1269,7 +1269,7 @@ if (typeof require !== 'undefined') {
         var d, a, i, segments,
             start = (options && options.start !== undefined) ? options.start : 0.0,
             end = (options && options.end !== undefined) ? options.end : 1.0;
-        if (this.elements.length === 0) {
+        if (this.segments.length === 0) {
             // Otherwise g.bezier.point() will raise an error for empty paths.
             return [];
         }
@@ -1302,7 +1302,7 @@ if (typeof require !== 'undefined') {
         var i, polygon = this.points(precision),
             points = [];
         for (i = 0; i < polygon.length; i += 1) {
-            if (polygon[i].cmd !== g.CLOSE) {
+            if (polygon[i].type !== g.CLOSE) {
                 points.push(polygon[i].point);
             }
         }
@@ -1315,7 +1315,7 @@ if (typeof require !== 'undefined') {
 
     g.Path.prototype.resampleByAmount = function (points, perContour) {
         var i, j, subPath, pts, elem,
-            subPaths = perContour ? this.contours() : [this.elements],
+            subPaths = perContour ? this.contours() : [this.segments],
             elems = [];
 
         function getPoint(pe) {
@@ -1326,7 +1326,7 @@ if (typeof require !== 'undefined') {
             subPath = g.makePath(subPaths[j]);
             pts = _.map(subPath.points(points + 1), getPoint);
             for (i = 0; i < pts.length - 1; i += 1) {
-                elem = { cmd:   (i === 0) ? g.MOVETO : g.LINETO,
+                elem = { type:   (i === 0) ? g.MOVETO : g.LINETO,
                        point: pts[i] };
                 elems.push(elem);
             }
@@ -1344,7 +1344,7 @@ if (typeof require !== 'undefined') {
             contourLength = subPath.length();
             amount = Math.ceil(contourLength / segmentLength);
             if (!subPath.isClosed()) { amount += 1; }
-            elems = elems.concat(subPath.resampleByAmount(amount, false).elements);
+            elems = elems.concat(subPath.resampleByAmount(amount, false).segments);
         }
         return g.makePath(elems, this.fill, this.stroke, this.strokeWidth);
     };
@@ -1352,8 +1352,8 @@ if (typeof require !== 'undefined') {
     g.Path.prototype.toPathData = function () {
         var i, d, pe, x, y, x1, y1, x2, y2;
         d = '';
-        for (i = 0; i < this.elements.length; i += 1) {
-            pe = this.elements[i];
+        for (i = 0; i < this.segments.length; i += 1) {
+            pe = this.segments[i];
             if (pe.point) {
                 x = g.math.clamp(pe.point.x, -9999, 9999);
                 y = g.math.clamp(pe.point.y, -9999, 9999);
@@ -1366,19 +1366,19 @@ if (typeof require !== 'undefined') {
                 x2 = g.math.clamp(pe.ctrl2.x, -9999, 9999);
                 y2 = g.math.clamp(pe.ctrl2.y, -9999, 9999);
             }
-            if (pe.cmd === g.MOVETO) {
+            if (pe.type === g.MOVETO) {
                 if (!isNaN(x) && !isNaN(y)) {
                     d += 'M' + x + ' ' + y;
                 }
-            } else if (pe.cmd === g.LINETO) {
+            } else if (pe.type === g.LINETO) {
                 if (!isNaN(x) && !isNaN(y)) {
                     d += 'L' + x + ' ' + y;
                 }
-            } else if (pe.cmd === g.CURVETO) {
+            } else if (pe.type === g.CURVETO) {
                 if (!isNaN(x) && !isNaN(y) && !isNaN(x1) && !isNaN(y1) && !isNaN(x2) && !isNaN(y2)) {
                     d += 'C' + x1 + ' ' + y1 + ' ' + x2 + ' ' + y2 + ' ' + x + ' ' + y;
                 }
-            } else if (pe.cmd === g.CLOSE) {
+            } else if (pe.type === g.CLOSE) {
                 d += 'Z';
             }
         }
@@ -1406,18 +1406,18 @@ if (typeof require !== 'undefined') {
 
     // Draw the path to a 2D context.
     g.Path.prototype.draw = function (ctx) {
-        var nElements, i, pe;
+        var nSegments, i, pe;
         ctx.beginPath();
-        nElements = this.elements.length;
-        for (i = 0; i < nElements; i += 1) {
-            pe = this.elements[i];
-            if (pe.cmd === g.MOVETO) {
+        nSegments = this.segments.length;
+        for (i = 0; i < nSegments; i += 1) {
+            pe = this.segments[i];
+            if (pe.type === g.MOVETO) {
                 ctx.moveTo(pe.point.x, pe.point.y);
-            } else if (pe.cmd === g.LINETO) {
+            } else if (pe.type === g.LINETO) {
                 ctx.lineTo(pe.point.x, pe.point.y);
-            } else if (pe.cmd === g.CURVETO) {
+            } else if (pe.type === g.CURVETO) {
                 ctx.bezierCurveTo(pe.ctrl1.x, pe.ctrl1.y, pe.ctrl2.x, pe.ctrl2.y, pe.point.x, pe.point.y);
-            } else if (pe.cmd === g.CLOSE) {
+            } else if (pe.type === g.CLOSE) {
                 ctx.closePath();
             }
         }
@@ -1446,7 +1446,7 @@ if (typeof require !== 'undefined') {
     g.Group = function (shapes) {
         if (!shapes) {
             this.shapes = [];
-        } else if (shapes.shapes || shapes.elements) {
+        } else if (shapes.shapes || shapes.segments) {
             this.shapes = [shapes];
         } else if (shapes) {
             this.shapes = shapes;
@@ -1470,7 +1470,7 @@ if (typeof require !== 'undefined') {
                 r = shape.bounds();
             }
             if ((shape.shapes && !_.isEmpty(shape.shapes)) ||
-                    (shape.elements && !_.isEmpty(shape.elements))) {
+                    (shape.segments && !_.isEmpty(shape.segments))) {
                 r = r.unite(shape.bounds());
             }
         }
@@ -1538,17 +1538,17 @@ if (typeof require !== 'undefined') {
     };
 
     g.combinePaths = function (shape) {
-        if (shape.elements) { return shape.elements; }
-        var i, elements = [];
+        if (shape.segments) { return shape.segments; }
+        var i, segments = [];
         for (i = 0; i < shape.shapes.length; i += 1) {
-            elements = elements.concat(g.combinePaths(shape.shapes[i]));
+            segments = segments.concat(g.combinePaths(shape.shapes[i]));
         }
-        return elements;
+        return segments;
     };
 
     g.shapePoints = function (shape) {
-        if (shape.elements) {
-            return _.map(_.filter(shape.elements, function (el) { if (el.point) { return true; } return false; }), function (el) { return el.point; });
+        if (shape.segments) {
+            return _.map(_.filter(shape.segments, function (el) { if (el.point) { return true; } return false; }), function (el) { return el.point; });
         }
         var i, points = [];
         for (i = 0; i < shape.shapes.length; i += 1) {
@@ -1916,14 +1916,14 @@ if (typeof require !== 'undefined') {
     };
 
     g.drawCommand = function (ctx, command) {
-        var cmd = command.cmd;
-        if (cmd === 'M') {
+        var type = command.type;
+        if (type === 'M') {
             ctx.moveTo(command.point.x, command.point.y);
-        } else if (cmd === 'L') {
+        } else if (type === 'L') {
             ctx.lineTo(command.point.x, command.point.y);
-        } else if (cmd === 'C') {
+        } else if (type === 'C') {
             ctx.bezierCurveTo(command.ctrl1.x, command.ctrl1.y, command.ctrl2.x, command.ctrl2.y, command.point.x, command.point.y);
-        } else if (cmd === 'z') {
+        } else if (type === 'z') {
             ctx.closePath();
         } else {
             console.log('Unknown command ', command);
@@ -1950,7 +1950,7 @@ if (typeof require !== 'undefined') {
                 } else {
                     _.each(shape, _.partial(g.draw, ctx));
                 }
-            } else if (shape.shapes || shape.elements) {
+            } else if (shape.shapes || shape.segments) {
                 shape.draw(ctx);
             } else if (shape.x !== undefined && shape.y !== undefined) {
                 g.drawPoints(ctx, [shape]);
@@ -2038,16 +2038,16 @@ if (typeof require !== 'undefined') {
 
         polygon: function (node, open) {
             var points = node.getAttribute('points'),
-                elements = [],
+                segments = [],
                 poly;
             points.replace(/([\d\.?]+),([\d\.?]+)/g, function (match, p1, p2) {
-                elements.push((elements.length === 0 ? g.moveto : g.lineto)(parseFloat(p1), parseFloat(p2)));
+                segments.push((segments.length === 0 ? g.moveto : g.lineto)(parseFloat(p1), parseFloat(p2)));
             });
             if (!open) {
-                elements.push(g.closePath());
+                segments.push(g.closePath());
             }
 
-            poly = { elements: elements };
+            poly = { segments: segments };
             return g.svg.applySvgAttributes(node, poly);
         },
 
@@ -2098,7 +2098,7 @@ if (typeof require !== 'undefined') {
         },
 
         path: function (node) {
-            var d, PathParser, elements, pp,
+            var d, PathParser, segments, pp,
                 p, newP, curr, p1, cntrl, cp, cp1x, cp1y, cp2x, cp2y,
                 rx, ry, rot, large, sweep, ex, ey, segs, i, bez;
             // TODO: convert to real lexer based on http://www.w3.org/TR/SVG11/paths.html#PathDataBNF
@@ -2206,7 +2206,7 @@ if (typeof require !== 'undefined') {
                 };
             };
 
-            elements = [];
+            segments = [];
 
             pp = new PathParser(d);
             pp.reset();
@@ -2217,18 +2217,18 @@ if (typeof require !== 'undefined') {
                 case 'M':
                 case 'm':
                     p = pp.getAsCurrentPoint();
-                    elements.push(g.moveto(p.x, p.y));
+                    segments.push(g.moveto(p.x, p.y));
                     pp.start = pp.current;
                     while (!pp.isCommandOrEnd()) {
                         p = pp.getAsCurrentPoint();
-                        elements.push(g.lineto(p.x, p.y));
+                        segments.push(g.lineto(p.x, p.y));
                     }
                     break;
                 case 'L':
                 case 'l':
                     while (!pp.isCommandOrEnd()) {
                         p = pp.getAsCurrentPoint();
-                        elements.push(g.lineto(p.x, p.y));
+                        segments.push(g.lineto(p.x, p.y));
                     }
                     break;
                 case 'H':
@@ -2236,7 +2236,7 @@ if (typeof require !== 'undefined') {
                     while (!pp.isCommandOrEnd()) {
                         newP = g.makePoint((pp.isRelativeCommand() ? pp.current.x : 0) + pp.getScalar(), pp.current.y);
                         pp.current = newP;
-                        elements.push(g.lineto(pp.current.x, pp.current.y));
+                        segments.push(g.lineto(pp.current.x, pp.current.y));
                     }
                     break;
                 case 'V':
@@ -2244,7 +2244,7 @@ if (typeof require !== 'undefined') {
                     while (!pp.isCommandOrEnd()) {
                         newP = g.makePoint(pp.current.x, (pp.isRelativeCommand() ? pp.current.y : 0) + pp.getScalar());
                         pp.current = newP;
-                        elements.push(g.lineto(pp.current.x, pp.current.y));
+                        segments.push(g.lineto(pp.current.x, pp.current.y));
                     }
                     break;
                 case 'C':
@@ -2254,7 +2254,7 @@ if (typeof require !== 'undefined') {
                         p1 = pp.getPoint();
                         cntrl = pp.getAsControlPoint();
                         cp = pp.getAsCurrentPoint();
-                        elements.push(g.curveto(p1.x, p1.y, cntrl.x, cntrl.y, cp.x, cp.y));
+                        segments.push(g.curveto(p1.x, p1.y, cntrl.x, cntrl.y, cp.x, cp.y));
                     }
                     break;
                 case 'S':
@@ -2264,7 +2264,7 @@ if (typeof require !== 'undefined') {
                         p1 = pp.getReflectedControlPoint();
                         cntrl = pp.getAsControlPoint();
                         cp = pp.getAsCurrentPoint();
-                        elements.push(g.curveto(p1.x, p1.y, cntrl.x, cntrl.y, cp.x, cp.y));
+                        segments.push(g.curveto(p1.x, p1.y, cntrl.x, cntrl.y, cp.x, cp.y));
                     }
                     break;
                 case 'Q':
@@ -2277,7 +2277,7 @@ if (typeof require !== 'undefined') {
                         cp1y = curr.y + 2 / 3 * (cntrl.y - curr.y); // CP1 = QP0 + 2 / 3 *(QP1-QP0)
                         cp2x = cp1x + 1 / 3 * (cp.x - curr.x); // CP2 = CP1 + 1 / 3 *(QP2-QP0)
                         cp2y = cp1y + 1 / 3 * (cp.y - curr.y); // CP2 = CP1 + 1 / 3 *(QP2-QP0)
-                        elements.push(g.curveto(cp1x, cp1y, cp2x, cp2y, cp.x, cp.y));
+                        segments.push(g.curveto(cp1x, cp1y, cp2x, cp2y, cp.x, cp.y));
                     }
                     break;
                 case 'T':
@@ -2291,7 +2291,7 @@ if (typeof require !== 'undefined') {
                         cp1y = curr.y + 2 / 3 * (cntrl.y - curr.y); // CP1 = QP0 + 2 / 3 *(QP1-QP0)
                         cp2x = cp1x + 1 / 3 * (cp.x - curr.x); // CP2 = CP1 + 1 / 3 *(QP2-QP0)
                         cp2y = cp1y + 1 / 3 * (cp.y - curr.y); // CP2 = CP1 + 1 / 3 *(QP2-QP0)
-                        elements.push(g.curveto(cp1x, cp1y, cp2x, cp2y, cp.x, cp.y));
+                        segments.push(g.curveto(cp1x, cp1y, cp2x, cp2y, cp.x, cp.y));
                     }
                     break;
                 case 'A':
@@ -2309,25 +2309,25 @@ if (typeof require !== 'undefined') {
                         segs = g.svg.arcToSegments(ex, ey, rx, ry, large, sweep, rot, curr.x, curr.y);
                         for (i = 0; i < segs.length; i += 1) {
                             bez = g.svg.segmentToBezier.apply(this, segs[i]);
-                            elements.push(g.curveto.apply(this, bez));
+                            segments.push(g.curveto.apply(this, bez));
                         }
                     }
                     break;
                 case 'Z':
                 case 'z':
-                    elements.push(g.closePath());
+                    segments.push(g.closePath());
                     pp.current = pp.start;
                     break;
                 }
             }
-            return g.svg.applySvgAttributes(node, g.makePath(elements));
+            return g.svg.applySvgAttributes(node, g.makePath(segments));
         }
     };
 
     g.svg.applySvgAttributes = function (node, shape) {
         var fill, stroke, strokeWidth, transforms, types, transform, i;
 
-        if (shape.elements) {
+        if (shape.segments) {
             fill = 'black';
         }
 
@@ -2451,15 +2451,15 @@ if (typeof require !== 'undefined') {
         }
 
         function applyAttributes(shape) {
-            if (shape.elements) {
-                var elements = transform.transformShape(shape).elements,
+            if (shape.segments) {
+                var segments = transform.transformShape(shape).segments,
                     f = (fill === undefined) ? shape.fill : fill,
                     s = (stroke === undefined) ? shape.stroke : stroke,
                     sw = (strokeWidth === undefined) ? shape.strokeWidth : strokeWidth;
                 if (sw !== undefined) {
                     sw *= transform[0];
                 }
-                return g.makePath(elements, f, s, sw);
+                return g.makePath(segments, f, s, sw);
             } else if (shape.shapes) {
                 return g.makeGroup(_.map(shape.shapes, applyAttributes));
             }
@@ -2565,20 +2565,20 @@ if (typeof require !== 'undefined') {
     // SHAPES ///////////////////////////////////////////////////////////////
 
     g._rect = function (x, y, width, height) {
-        var elements = [
+        var segments = [
             g.moveto(x, y),
             g.lineto(x + width, y),
             g.lineto(x + width, y + height),
             g.lineto(x, y + height),
             g.close()
         ];
-        return new g.Path(elements);
+        return new g.Path(segments);
     };
 
     g.roundedRect = function (cx, cy, width, height, rx, ry) {
         var ONE_MINUS_QUARTER = 1.0 - 0.552,
 
-            elements = [],
+            segments = [],
 
             dx = rx,
             dy = ry,
@@ -2592,25 +2592,25 @@ if (typeof require !== 'undefined') {
         // (required by SVG spec)
         dx = Math.min(dx, width * 0.5);
         dy = Math.min(dy, height * 0.5);
-        elements.push(g.moveto(left + dx, top));
+        segments.push(g.moveto(left + dx, top));
         if (dx < width * 0.5) {
-            elements.push(g.lineto(right - rx, top));
+            segments.push(g.lineto(right - rx, top));
         }
-        elements.push(g.curveto(right - dx * ONE_MINUS_QUARTER, top, right, top + dy * ONE_MINUS_QUARTER, right, top + dy));
+        segments.push(g.curveto(right - dx * ONE_MINUS_QUARTER, top, right, top + dy * ONE_MINUS_QUARTER, right, top + dy));
         if (dy < height * 0.5) {
-            elements.push(g.lineto(right, bottom - dy));
+            segments.push(g.lineto(right, bottom - dy));
         }
-        elements.push(g.curveto(right, bottom - dy * ONE_MINUS_QUARTER, right - dx * ONE_MINUS_QUARTER, bottom, right - dx, bottom));
+        segments.push(g.curveto(right, bottom - dy * ONE_MINUS_QUARTER, right - dx * ONE_MINUS_QUARTER, bottom, right - dx, bottom));
         if (dx < width * 0.5) {
-            elements.push(g.lineto(left + dx, bottom));
+            segments.push(g.lineto(left + dx, bottom));
         }
-        elements.push(g.curveto(left + dx * ONE_MINUS_QUARTER, bottom, left, bottom - dy * ONE_MINUS_QUARTER, left, bottom - dy));
+        segments.push(g.curveto(left + dx * ONE_MINUS_QUARTER, bottom, left, bottom - dy * ONE_MINUS_QUARTER, left, bottom - dy));
         if (dy < height * 0.5) {
-            elements.push(g.lineto(left, top + dy));
+            segments.push(g.lineto(left, top + dy));
         }
-        elements.push(g.curveto(left, top + dy * ONE_MINUS_QUARTER, left + dx * ONE_MINUS_QUARTER, top, left + dx, top));
-        elements.push(g.close());
-        return new g.Path(elements);
+        segments.push(g.curveto(left, top + dy * ONE_MINUS_QUARTER, left + dx * ONE_MINUS_QUARTER, top, left + dx, top));
+        segments.push(g.close());
+        return new g.Path(segments);
     };
 
     g._ellipse = function (x, y, width, height) {
@@ -2621,7 +2621,7 @@ if (typeof require !== 'undefined') {
             y0 = y + 0.5 * height,
             x1 = x + width,
             y1 = y + height,
-            elements = [
+            segments = [
                 g.moveto(x, y0),
                 g.curveto(x, y0 - dy, x0 - dx, y, x0, y),
                 g.curveto(x0 + dx, y, x1, y0 - dy, x1, y0),
@@ -2629,31 +2629,31 @@ if (typeof require !== 'undefined') {
                 g.curveto(x0 - dx, y1, x, y0 + dy, x, y0),
                 g.close()
             ];
-        return new g.Path(elements);
+        return new g.Path(segments);
     };
 
     g._line = function (x1, y1, x2, y2) {
-        var elements = [
+        var segments = [
             g.moveto(x1, y1),
             g.lineto(x2, y2)
         ];
-        return new g.Path(elements);
+        return new g.Path(segments);
     };
 
     g.quad = function (x1, y1, x2, y2, x3, y3, x4, y4) {
-        var elements = [
+        var segments = [
             g.moveto(x1, y1),
             g.lineto(x2, y2),
             g.lineto(x3, y3),
             g.lineto(x4, y4),
             g.close()
         ];
-        return new g.Path(elements);
+        return new g.Path(segments);
     };
 
     g._arc = function (x, y, width, height, startAngle, degrees, arcType) {
         var w, h, angStRad, ext, arcSegs, increment, cv, lineSegs,
-            index, elements, angle, relx, rely, coords;
+            index, segments, angle, relx, rely, coords;
         w = width / 2;
         h = height / 2;
         angStRad = g.math.radians(startAngle);
@@ -2689,19 +2689,19 @@ if (typeof require !== 'undefined') {
         }
 
         index = 0;
-        elements = [];
+        segments = [];
         while (index <= arcSegs + lineSegs) {
             angle = angStRad;
             if (index === 0) {
-                elements.push(
+                segments.push(
                     g.moveto(x + Math.cos(angle) * w,
                              y + Math.sin(angle) * h)
                 );
             } else if (index > arcSegs) {
                 if (index === arcSegs + lineSegs) {
-                    elements.push(g.close());
+                    segments.push(g.close());
                 } else {
-                    elements.push(g.lineto(x, y));
+                    segments.push(g.lineto(x, y));
                 }
             } else {
                 angle += increment * (index - 1);
@@ -2717,12 +2717,12 @@ if (typeof require !== 'undefined') {
                 coords.push(y + (rely - cv * relx) * h);
                 coords.push(x + relx * w);
                 coords.push(y + rely * h);
-                elements.push(g.curveto.apply(null, coords));
+                segments.push(g.curveto.apply(null, coords));
             }
             index += 1;
         }
 
-        return new g.Path(elements);
+        return new g.Path(segments);
     };
 
     g.rect = function (position, width, height, roundness) {
@@ -2768,11 +2768,11 @@ if (typeof require !== 'undefined') {
             c1y = pt1.y + 2 / 3.0 * (qy - pt1.y),
             c2x = pt2.x + 2 / 3.0 * (qx - pt2.x),
             c2y = pt2.y + 2 / 3.0 * (qy - pt2.y),
-            elements = [
+            segments = [
                 g.moveto(pt1.x, pt1.y),
                 g.curveto(c1x, c1y, c2x, c2y, pt2.x, pt2.y)
             ];
-        return g.makePath(elements, null, {'r': 0, 'g': 0, 'b': 0, 'a': 1}, 1.0);
+        return g.makePath(segments, null, {'r': 0, 'g': 0, 'b': 0, 'a': 1}, 1.0);
     };
 
     g.polygon = function (position, radius, sides, align) {
@@ -2783,7 +2783,7 @@ if (typeof require !== 'undefined') {
             r = radius,
             a = 360.0 / sides,
             da = 0,
-            elements = [];
+            segments = [];
         if (align === true) {
             c0 = g.geometry.coordinates(x, y, r, 0);
             c1 = g.geometry.coordinates(x, y, r, a);
@@ -2791,30 +2791,30 @@ if (typeof require !== 'undefined') {
         }
         for (i = 0; i < sides; i += 1) {
             c = g.geometry.coordinates(x, y, r, (a * i) + da);
-            elements.push(((i === 0) ? g.moveto : g.lineto)(c.x, c.y));
+            segments.push(((i === 0) ? g.moveto : g.lineto)(c.x, c.y));
         }
-        elements.push(g.close());
-        return new g.Path(elements);
+        segments.push(g.close());
+        return new g.Path(segments);
     };
 
     g.star = function (position, points, outer, inner) {
         var i, angle, radius, x, y,
-            elements = [g.moveto(position.x, position.y + outer / 2)];
+            segments = [g.moveto(position.x, position.y + outer / 2)];
         // Calculate the points of the star.
         for (i = 1; i < points * 2; i += 1) {
             angle = i * Math.PI / points;
             radius = (i % 2 === 1) ? inner / 2 : outer / 2;
             x = position.x + radius * Math.sin(angle);
             y = position.y + radius * Math.cos(angle);
-            elements.push(g.lineto(x, y));
+            segments.push(g.lineto(x, y));
         }
-        elements.push(g.close());
-        return new g.Path(elements);
+        segments.push(g.close());
+        return new g.Path(segments);
     };
 
     g.freehand = function (pathString) {
-        var i, j, values, cmd,
-            elements = [],
+        var i, j, values, type,
+            segments = [],
             nonEmpty = function (s) { return s !== ''; },
             contours = _.filter(pathString.split('M'), nonEmpty);
 
@@ -2824,13 +2824,13 @@ if (typeof require !== 'undefined') {
             values = _.filter(contours[j].split(' '), nonEmpty);
             for (i = 0; i < values.length; i += 2) {
                 if (values[i + 1] !== undefined) {
-                    cmd = (i === 0) ? g.moveto : g.lineto;
-                    elements.push(cmd(parseFloat(values[i]), parseFloat(values[i + 1])));
+                    type = (i === 0) ? g.moveto : g.lineto;
+                    segments.push(type(parseFloat(values[i]), parseFloat(values[i + 1])));
                 }
             }
         }
 
-        return g.makePath(elements, null, {'r': 0, 'g': 0, 'b': 0, 'a': 1}, 1);
+        return g.makePath(segments, null, {'r': 0, 'g': 0, 'b': 0, 'a': 1}, 1);
     };
 
     // Create a grid of points.
@@ -2994,24 +2994,24 @@ if (typeof require !== 'undefined') {
         };
 
         reflectPath = function (path) {
-            var elements = _.map(path.elements, function (elem) {
+            var segments = _.map(path.segments, function (elem) {
                 var pt, ctrl1, ctrl2;
-                if (elem.cmd === g.CLOSE) {
+                if (elem.type === g.CLOSE) {
                     return elem;
-                } else if (elem.cmd === g.MOVETO) {
+                } else if (elem.type === g.MOVETO) {
                     pt = f(elem.point);
                     return g.moveto(pt.x, pt.y);
-                } else if (elem.cmd === g.LINETO) {
+                } else if (elem.type === g.LINETO) {
                     pt = f(elem.point);
                     return g.lineto(pt.x, pt.y);
-                } else if (elem.cmd === g.CURVETO) {
+                } else if (elem.type === g.CURVETO) {
                     pt = f(elem.point);
                     ctrl1 = f(elem.ctrl1);
                     ctrl2 = f(elem.ctrl2);
                     return g.curveto(ctrl1.x, ctrl1.y, ctrl2.x, ctrl2.y, pt.x, pt.y);
                 }
             });
-            return g.makePath(elements, path.fill, path.stroke, path.strokeWidth);
+            return g.makePath(segments, path.fill, path.stroke, path.strokeWidth);
         };
 
         reflectGroup = function (group) {
@@ -3048,25 +3048,25 @@ if (typeof require !== 'undefined') {
         rand = g.randomGenerator(seed);
 
         wigglePoints = function (shape) {
-            if (shape.elements) {
-                var i, dx, dy, pe, elements = [];
-                for (i = 0; i < shape.elements.length; i += 1) {
+            if (shape.segments) {
+                var i, dx, dy, pe, segments = [];
+                for (i = 0; i < shape.segments.length; i += 1) {
                     dx = (rand(0, 1) - 0.5) * offset.x * 2;
                     dy = (rand(0, 1) - 0.5) * offset.y * 2;
-                    pe = shape.elements[i];
-                    if (pe.cmd === g.CLOSE) {
-                        elements.push(pe);
-                    } else if (pe.cmd === g.MOVETO) {
-                        elements.push(g.moveto(pe.point.x + dx, pe.point.y + dy));
-                    } else if (pe.cmd === g.LINETO) {
-                        elements.push(g.lineto(pe.point.x + dx, pe.point.y + dy));
-                    } else if (pe.cmd === g.CURVETO) {
-                        elements.push(g.curveto(pe.ctrl1.x, pe.ctrl1.y,
+                    pe = shape.segments[i];
+                    if (pe.type === g.CLOSE) {
+                        segments.push(pe);
+                    } else if (pe.type === g.MOVETO) {
+                        segments.push(g.moveto(pe.point.x + dx, pe.point.y + dy));
+                    } else if (pe.type === g.LINETO) {
+                        segments.push(g.lineto(pe.point.x + dx, pe.point.y + dy));
+                    } else if (pe.type === g.CURVETO) {
+                        segments.push(g.curveto(pe.ctrl1.x, pe.ctrl1.y,
                                          pe.ctrl2.x, pe.ctrl2.y,
                                          pe.point.x + dx, pe.point.y + dy));
                     }
                 }
-                return g.makePath(elements, shape.fill, shape.stroke, shape.strokeWidth);
+                return g.makePath(segments, shape.fill, shape.stroke, shape.strokeWidth);
             } else if (shape.shapes) {
                 return g.makeGroup(_.map(shape.shapes, wigglePoints));
             } else {
@@ -3075,13 +3075,13 @@ if (typeof require !== 'undefined') {
         };
 
         wigglePaths = function (shape) {
-            if (shape.elements) {
+            if (shape.segments) {
                 return shape;
             } else if (shape.shapes) {
                 var i, subShape, dx, dy, t, newShapes = [];
                 for (i = 0; i < shape.shapes.length; i += 1) {
                     subShape = shape.shapes[i];
-                    if (subShape.elements) {
+                    if (subShape.segments) {
                         dx = (rand(0, 1) - 0.5) * offset.x * 2;
                         dy = (rand(0, 1) - 0.5) * offset.y * 2;
                         t = new g.Transform().translate(dx, dy);
@@ -3097,17 +3097,17 @@ if (typeof require !== 'undefined') {
         };
 
         wiggleContours = function (shape) {
-            if (shape.elements) {
+            if (shape.segments) {
                 var i, dx, dy, t,
                     subPaths = g.getContours(shape),
-                    elements = [];
+                    segments = [];
                 for (i = 0; i < subPaths.length; i += 1) {
                     dx = (rand(0, 1) - 0.5) * offset.x * 2;
                     dy = (rand(0, 1) - 0.5) * offset.y * 2;
                     t = new g.Transform().translate(dx, dy);
-                    elements = elements.concat(t.transformShape(g.makePath(subPaths[i])).elements);
+                    segments = segments.concat(t.transformShape(g.makePath(subPaths[i])).segments);
                 }
-                return g.makePath(elements, shape.fill, shape.stroke, shape.strokeWidth);
+                return g.makePath(segments, shape.fill, shape.stroke, shape.strokeWidth);
             } else if (shape.shapes) {
                 return g.makeGroup(_.map(shape.shapes, wiggleContours));
             } else {
@@ -3155,15 +3155,15 @@ if (typeof require !== 'undefined') {
 
     g.connect = function (points, closed) {
         if (points === null) { return null; }
-        var i, pt, elements = [];
+        var i, pt, segments = [];
         for (i = 0; i < points.length; i += 1) {
             pt = points[i];
-            elements.push((i === 0 ? g.moveto : g.lineto)(pt.x, pt.y));
+            segments.push((i === 0 ? g.moveto : g.lineto)(pt.x, pt.y));
         }
         if (closed) {
-            elements.push(g.closePath());
+            segments.push(g.closePath());
         }
-        return g.makePath(elements, null, {'r': 0, 'g': 0, 'b': 0, 'a': 1}, 1);
+        return g.makePath(segments, null, {'r': 0, 'g': 0, 'b': 0, 'a': 1}, 1);
     };
 
     g.align = function (shape, position, hAlign, vAlign) {
@@ -3210,17 +3210,17 @@ if (typeof require !== 'undefined') {
         strength /= 100.0;
 
         var snapShape = function (shape) {
-            if (shape.elements) {
-                var elements = _.map(shape.elements, function (pe) {
-                    if (pe.cmd === g.CLOSE) { return pe; }
+            if (shape.segments) {
+                var segments = _.map(shape.segments, function (pe) {
+                    if (pe.type === g.CLOSE) { return pe; }
                     var x, y, ctrl1x, ctrl1y, ctrl2x, ctrl2y;
                     x = _snap(pe.point.x + position.x, position.x, distance, strength) - position.x;
                     y = _snap(pe.point.y + position.y, position.y, distance, strength) - position.y;
-                    if (pe.cmd === g.MOVETO) {
+                    if (pe.type === g.MOVETO) {
                         return g.moveto(x, y);
-                    } else if (pe.cmd === g.LINETO) {
+                    } else if (pe.type === g.LINETO) {
                         return g.lineto(x, y);
-                    } else if (pe.cmd === g.CURVETO) {
+                    } else if (pe.type === g.CURVETO) {
                         ctrl1x = _snap(pe.ctrl1.x + position.x, position.x, distance, strength) - position.x;
                         ctrl1y = _snap(pe.ctrl1.y + position.y, position.y, distance, strength) - position.y;
                         ctrl2x = _snap(pe.ctrl2.x + position.x, position.x, distance, strength) - position.x;
@@ -3228,7 +3228,7 @@ if (typeof require !== 'undefined') {
                         return g.curveto(ctrl1x, ctrl1y, ctrl2x, ctrl2y, x, y);
                     }
                 });
-                return g.makePath(elements, shape.fill, shape.stroke, shape.strokeWidth);
+                return g.makePath(segments, shape.fill, shape.stroke, shape.strokeWidth);
             } else if (shape.shapes) {
                 return g.makeGroup(_.map(shape.shapes, snapShape));
             } else {
@@ -3241,10 +3241,10 @@ if (typeof require !== 'undefined') {
 
     g.deletePoints = function (shape, bounding, deleteSelected) {
         var deletePoints = function (shape) {
-            if (shape.elements) {
+            if (shape.segments) {
                 var i, elem, elems = [];
-                for (i = 0; i < shape.elements.length; i += 1) {
-                    elem = shape.elements[i];
+                for (i = 0; i < shape.segments.length; i += 1) {
+                    elem = shape.segments[i];
                     if (elem.point === undefined ||
                             (deleteSelected && bounding.contains(elem.point.x, elem.point.y)) ||
                             (!deleteSelected && !bounding.contains(elem.point.x, elem.point.y))) {
@@ -3264,16 +3264,16 @@ if (typeof require !== 'undefined') {
 
     g.deletePaths = function (shape, bounding, deleteSelected) {
         var deletePaths = function (shape) {
-            if (shape.elements) {
+            if (shape.segments) {
                 return null;
             } else if (shape.shapes) {
                 var i, j, s, selected, elem, subShapes, newShapes = [];
                 for (i = 0; i < shape.shapes.length; i += 1) {
                     s = shape.shapes[i];
-                    if (s.elements) {
+                    if (s.segments) {
                         selected = false;
-                        for (j = 0; j < s.elements.length; j += 1) {
-                            elem = s.elements[j];
+                        for (j = 0; j < s.segments.length; j += 1) {
+                            elem = s.segments[j];
                             if (elem.point && bounding.contains(elem.point.x, elem.point.y)) {
                                 selected = true;
                                 break;
@@ -3427,14 +3427,14 @@ if (typeof require !== 'undefined') {
             var i, s, shapes = [];
             for (i = 0; i < shape.shapes.length; i += 1) {
                 s = shape.shapes[i];
-                if (s.elements) {
+                if (s.segments) {
                     shapes.push(s);
                 } else if (s.shapes) {
                     shapes = shapes.concat(g.ungroup(s));
                 }
             }
             return shapes;
-        } else if (shape.elements) {
+        } else if (shape.segments) {
             return [shape];
         }
     };
@@ -3442,14 +3442,14 @@ if (typeof require !== 'undefined') {
     g.centroid = function (shape) {
         if (shape === null) { return g.Point.ZERO; }
         var i, pt,
-            elements = g.combinePaths(shape),
-            firstPoint = elements[0].point,
+            segments = g.combinePaths(shape),
+            firstPoint = segments[0].point,
             xs = firstPoint.x,
             ys = firstPoint.y,
             count = 1;
-        for (i = 1; i < elements.length; i += 1) {
-            if (elements[i].point) {
-                pt = elements[i].point;
+        for (i = 1; i < segments.length; i += 1) {
+            if (segments[i].point) {
+                pt = segments[i].point;
                 xs += pt.x;
                 ys += pt.y;
                 count += 1;
@@ -3460,13 +3460,13 @@ if (typeof require !== 'undefined') {
 
     g.link = function (shape1, shape2, orientation) {
         if (shape1 === null || shape2 === null) { return null; }
-        var elements, hw, hh,
+        var segments, hw, hh,
             a = shape1.bounds(),
             b = shape2.bounds();
 
         if (orientation === 'horizontal') {
             hw = (b.x - (a.x + a.width)) / 2;
-            elements = [
+            segments = [
                 g.moveto(a.x + a.width, a.y),
                 g.curveto(a.x + a.width + hw, a.y, b.x - hw, b.y, b.x, b.y),
                 g.lineto(b.x, b.y + b.height),
@@ -3474,14 +3474,14 @@ if (typeof require !== 'undefined') {
             ];
         } else {
             hh = (b.y - (a.y + a.height)) / 2;
-            elements = [
+            segments = [
                 g.moveto(a.x, a.y + a.height),
                 g.curveto(a.x, a.y + a.height + hh, b.x, b.y - hh, b.x, b.y),
                 g.lineto(b.x + b.width, b.y),
                 g.curveto(b.x + b.width, b.y - hh, a.x + a.width, a.y + a.height + hh, a.x + a.width, a.y + a.height)
             ];
         }
-        return new g.Path(elements);
+        return new g.Path(segments);
     };
 
     g.stack = function (shapes, direction, margin) {
