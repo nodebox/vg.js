@@ -25,6 +25,15 @@ describe('The math module', function () {
         expect(g.math.clamp(-100, 10, -10)).toBe(-10);
     });
 
+    it('can interpolate two numbers', function () {
+        expect(g.math.mix(0, 100, 0)).toBe(0);
+        expect(g.math.mix(0, 100, 1)).toBe(100);
+        expect(g.math.mix(0, 100, -1)).toBe(-100);
+        expect(g.math.mix(0, 100, 2)).toBe(200);
+        expect(g.math.mix(0, 100, -1, true)).toBe(0);
+        expect(g.math.mix(0, 100, 2, true)).toBe(100);
+    });
+
     it('can generate noise', function () {
         expect(g.math.noise(0, 0, 0)).toBe(0.5);
         expect(g.math.round(g.math.noise(0.1, 0.2, 0.3), 3)).toBe(0.676);
