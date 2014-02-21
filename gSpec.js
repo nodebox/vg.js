@@ -4,9 +4,9 @@
 var _ = require('underscore'),
     g = require('./g.js');
 
-describe("Path", function () {
+describe('Path', function () {
 
-    it("can render itself to SVG.", function () {
+    it('can render itself to SVG.', function () {
         var p;
         p = new g.Path()
             .moveTo(10, 20)
@@ -15,7 +15,7 @@ describe("Path", function () {
         expect(p.toSVG()).toBe('<path d="M10 20L30 40Z"/>');
     });
 
-    xit("can clone itself.", function () {
+    xit('can clone itself.', function () {
         var p, newP;
         p = new g.Path();
         p.fill = 'red';
@@ -34,9 +34,9 @@ describe("Path", function () {
 
 });
 
-describe("Group", function () {
+describe('Group', function () {
 
-    it("can render itself to SVG.", function () {
+    it('can render itself to SVG.', function () {
         var group, p;
         group = new g.Group();
         expect(group.toSVG()).toBe('<g></g>');
@@ -48,7 +48,7 @@ describe("Group", function () {
         expect(group.toSVG()).toBe('<g><path d="M10 20L30 40Z"/></g>');
     });
 
-    xit("can clone itself.", function () {
+    xit('can clone itself.', function () {
         var group, newGroup;
         group = new g.Group();
         group.paths.push(g.DEMO_RECT.clone());
@@ -61,7 +61,7 @@ describe("Group", function () {
         expect(newGroup.hasTag('foo')).toBeTruthy();
     });
 
-    xit("can be tagged.", function () {
+    xit('can be tagged.', function () {
         var group, p1, p2;
         group = new g.Group();
         p1 = new g.Path();
@@ -79,7 +79,7 @@ describe("Group", function () {
         expect(group.findByTag('bar')).toEqual([p1]);
     });
 
-    it("has bounds", function () {
+    it('has bounds', function () {
         var group, p1, p2;
         group = new g.Group();
         expect(group.bounds()).toEqual(new g.Rect(0, 0, 0, 0));
@@ -95,16 +95,16 @@ describe("Group", function () {
 
 });
 
-xdescribe("Tagging", function () {
+xdescribe('Tagging', function () {
 
-    it("can tag shapes", function () {
+    it('can tag shapes', function () {
         var shape = g.DEMO_GROUP.clone();
-        shape.tag("foo", function () {
+        shape.tag('foo', function () {
             return true;
         });
-        expect(shape.hasTag("foo")).toBeTruthy();
+        expect(shape.hasTag('foo')).toBeTruthy();
         _.each(shape.paths, function (path) {
-            expect(path.hasTag("foo")).toBeTruthy();
+            expect(path.hasTag('foo')).toBeTruthy();
         });
     });
 
