@@ -90,21 +90,19 @@ if (typeof require !== 'undefined') {
         return n;
     };
 
-    g.math.mix = function (a, b, t) {
-        if (t < 0.0) { return a; }
-        if (t > 1.0) { return b; }
-        return a + (b - a) * t;
+    // Linearly interpolate between from and to for t=0-1.
+    // If clamp=true, values outside of 0-1 will be clamped.
+    g.math.mix = g.math.lerp = function (from, to, t, clamp) {
+        if (clamp) {
+            if (t < 0) { return from; }
+            if (t > 1) { return to; }
+        }
+        return from + (to - from) * t;
     };
 
     // Compute fade curve for point t.
     g.math._fade = function (t) {
         return t * t * t * (t * (t * 6 - 15) + 10);
-    };
-
-
-    // Linearly interpolate between a and b.
-    g.math._lerp = function (t, a, b) {
-        return a + t * (b - a);
     };
 
     // Convert low 4 bits of hash code into 12 gradient directions.
@@ -147,7 +145,7 @@ if (typeof require !== 'undefined') {
     g.math.noise = function (x, y, z) {
         var fade, lerp, grad, scale, p, X, Y, Z, u, v, w, A, AA, AB, B, BA, BB;
         fade = g.math._fade;
-        lerp = g.math._lerp;
+        lerp = g.math.lerp;
         grad = g.math._grad;
         scale = g.math._scale;
         p = g.math._permutation;
@@ -174,14 +172,14 @@ if (typeof require !== 'undefined') {
         BB = p[B + 1] + Z;
 
         // Add blended results from 8 corners of the cube.
-        return scale(lerp(w, lerp(v, lerp(u, grad(p[AA], x, y, z),
-            grad(p[BA], x - 1, y, z)),
-            lerp(u, grad(p[AB], x, y - 1, z),
-                grad(p[BB], x - 1, y - 1, z))),
-            lerp(v, lerp(u, grad(p[AA + 1], x, y, z - 1),
-                grad(p[BA + 1], x - 1, y, z - 1)),
-                lerp(u, grad(p[AB + 1], x, y - 1, z - 1),
-                    grad(p[BB + 1], x - 1, y - 1, z - 1)))));
+        return scale(lerp(lerp(lerp(grad(p[AA], x, y, z),
+            grad(p[BA], x - 1, y, z), u),
+            lerp(grad(p[AB], x, y - 1, z),
+                 grad(p[BB], x - 1, y - 1, z), u), v),
+            lerp(lerp(grad(p[AA + 1], x, y, z - 1),
+                grad(p[BA + 1], x - 1, y, z - 1), u),
+                lerp(grad(p[AB + 1], x, y - 1, z - 1),
+                    grad(p[BB + 1], x - 1, y - 1, z - 1), u), v), w));
     };
 
 
