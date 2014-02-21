@@ -25,45 +25,15 @@ if (typeof require !== 'undefined') {
 //    if (typeof Float32Array === 'undefined') {
 //        var Float32Array = Array;
 //    }
-//
-//    if (Object.freeze === undefined) {
-//        Object.freeze = function (o) {
-//            return o;
-//        };
-//    }
-//
-//    if (Object.isFrozen === undefined) {
-//        Object.isFrozen = function (o) {
-//            return false;
-//        };
-//    }
+
+
+    if (Array.isArray === undefined) {
+        Array.isArray = function (v) {
+            return Object.prototype.toString.call(v) === '[object Array]';
+        };
+    }
 
     var g = {};
-
-    // deepFreeze code from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
-    g.deepFreeze = function (o) {
-        var prop, propKey;
-        Object.freeze(o); // First freeze the object.
-        for (propKey in o) {
-            if (o.hasOwnProperty(propKey)) {
-                prop = o[propKey];
-                if (prop instanceof Object && !Object.isFrozen(prop)) {
-                    // If the object is on the prototype, not an object, or is already frozen,
-                    // skip it. Note that this might leave an unfrozen reference somewhere in the
-                    // object if there is an already frozen object containing an unfrozen object.
-                    g.deepFreeze(prop); // Recursively call deepFreeze.
-                }
-            }
-        }
-        return o;
-    };
-
-    g.frozen = function (fn) {
-        return function () {
-            var res = fn.apply(null, arguments);
-            return g.deepFreeze(res);
-        };
-    };
 
     // Generate a random function that is seeded with the given value.
     g.randomGenerator = function (seed) {
@@ -386,8 +356,6 @@ if (typeof require !== 'undefined') {
         return lengths;
     };
 
-    g.bezier.segmentLengths = g.frozen(g.bezier.segmentLengths);
-
     g.bezier.length = function (path, segmented, n) {
         /* Returns the approximate length of the path.
          * Calculates the length of each curve in the path using n linear samples.
@@ -426,8 +394,6 @@ if (typeof require !== 'undefined') {
         if (i === segments.length - 1 && segments[i] === 0) { i -= 1; }
         return [i, t, closeto];
     };
-
-    g.bezier._locate = g.frozen(g.bezier._locate);
 
     g.bezier.point = function (path, t, segments) {
         /* Returns the DynamicPathElement at time t on the path.
@@ -569,7 +535,6 @@ if (typeof require !== 'undefined') {
     g.Point = function (x, y) {
         this.x = x;
         this.y = y;
-        Object.freeze(this);
     };
 
     g.Vec2 = g.Point;
@@ -649,7 +614,6 @@ if (typeof require !== 'undefined') {
         this.acceleration = acceleration !== undefined ? acceleration : g.Point.ZERO;
         this.mass = mass !== undefined ? mass : 1;
         this.lifespan = lifespan !== undefined ? lifespan : Number.POSITIVE_INFINITY;
-        g.deepFreeze(this);
     };
 
     g.MOVETO  = 'M';
@@ -659,19 +623,15 @@ if (typeof require !== 'undefined') {
 
     g.CLOSE_ELEMENT = Object.freeze({ cmd: g.CLOSE });
 
-    g.moveto = function (x, y) {
+    g.moveTo = g.moveto = function (x, y) {
         return { cmd:   g.MOVETO,
                point: g.makePoint(x, y) };
     };
 
-    g.moveTo = g.moveto = g.frozen(g.moveto);
-
-    g.lineto = function (x, y) {
+    g.lineTo = g.lineto = function (x, y) {
         return { cmd:   g.LINETO,
                point: g.makePoint(x, y) };
     };
-
-    g.lineTo = g.lineto = g.frozen(g.lineto);
 
     g.curveTo = g.curveto = function (c1x, c1y, c2x, c2y, x, y) {
         return { cmd:   g.CURVETO,
@@ -679,8 +639,6 @@ if (typeof require !== 'undefined') {
                ctrl1: g.makePoint(c1x, c1y),
                ctrl2: g.makePoint(c2x, c2y) };
     };
-
-    g.curveTo = g.curveto = g.frozen(g.curveto);
 
     g.closePath = g.closepath = g.close = function () {
         return g.CLOSE_ELEMENT;
@@ -861,7 +819,6 @@ if (typeof require !== 'undefined') {
                 }
             }
         }
-        g.deepFreeze(this);
     };
 
     g.Path.prototype.extend = function (p) {
@@ -1013,7 +970,7 @@ if (typeof require !== 'undefined') {
         for (i = 0; i < amount; i += 1) {
             a.push(this.point(start + d * i, segments));
         }
-        return Object.freeze(a);
+        return a;
     };
 
     g.Path.prototype.length = function (precision) {
@@ -1177,7 +1134,6 @@ if (typeof require !== 'undefined') {
         } else if (shapes) {
             this.shapes = shapes;
         }
-        g.deepFreeze(this);
     };
 
     g.Group.prototype.colorize = function (fill, stroke, strokeWidth) {
@@ -1284,14 +1240,11 @@ if (typeof require !== 'undefined') {
         return points;
     };
 
-    g.combinePaths = g.frozen(g.combinePaths);
-
     g.Rect = function (x, y, width, height) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
-        g.deepFreeze(this);
     };
 
     g.Rect.prototype.normalize = function () {
@@ -1681,7 +1634,6 @@ if (typeof require !== 'undefined') {
         this.x = x === undefined ? 0 : x;
         this.y = y === undefined ? 0 : y;
         this.z = z === undefined ? 0 : z;
-        g.deepFreeze(this);
     };
 
     // Generate the zero vector.
@@ -1770,7 +1722,6 @@ if (typeof require !== 'undefined') {
         } else {
             this.m = [1, 0, 0, 0, 1, 0, 0, 0, 1]; // Identity matrix.
         }
-        g.deepFreeze(this);
     };
 
     g.Matrix3.IDENTITY = new g.Matrix3();
@@ -1885,7 +1836,7 @@ if (typeof require !== 'undefined') {
     // Construct a 4x4 matrix.
     g.Matrix4 = function (m) {
         if (m !== undefined) {
-           // todo: check for type and length
+           // TODO Check for type and length
             this.m = m;
         } else {
             m = new Float32Array(16);
@@ -1907,8 +1858,6 @@ if (typeof require !== 'undefined') {
             m[15] = 1.0;
             this.m = m;
         }
-        // A Float32Array object cannot actually be frozen.
-        Object.freeze(this);
     };
 
     g.Matrix4.IDENTITY = new g.Matrix4();
@@ -2198,7 +2147,7 @@ if (typeof require !== 'undefined') {
                 elements.push(g.closePath());
             }
 
-            poly = Object.freeze({ elements: elements });
+            poly = { elements: elements };
             return g.svg.applySvgAttributes(node, poly);
         },
 
@@ -2848,7 +2797,7 @@ if (typeof require !== 'undefined') {
                 points.push(g.makePoint(x, y));
             }
         }
-        return Object.freeze(points);
+        return points;
     };
 
     g.demoRect = function () {
