@@ -3472,7 +3472,9 @@ if (typeof require !== 'undefined') {
     };
 
     g.ungroup = function (shape) {
-        if (shape.shapes) {
+        if (!shape) {
+            return [];
+        } else if (shape.shapes) {
             var i, s, shapes = [];
             mori.each(shape.shapes, function (s) {
                 if (s.elements) {
@@ -3484,6 +3486,8 @@ if (typeof require !== 'undefined') {
             return shapes;
         } else if (shape.elements) {
             return [shape];
+        } else {
+            return [];
         }
     };
 
