@@ -54,6 +54,16 @@ if (typeof require !== 'undefined') {
 
     g.math = {};
 
+    g.math.sum = function (values) {
+        var i,
+            n = values.length,
+            total = 0;
+        for (i = 0; i < n; i += 1) {
+            total += values[i];
+        }
+        return total;
+    };
+
     g.math.round = function (x, decimals) {
         return (!decimals) ?
                 Math.round(x) :
@@ -252,10 +262,6 @@ if (typeof require !== 'undefined') {
 
     // BEZIER MATH:
 
-    g.bezier.sum = function (values) {
-        return _.reduce(values, function (a, b) { return a + b; });
-    };
-
     // Returns coordinates for the point at t (0.0-1.0) on the line.
     g.bezier.linePoint = function (t, x0, y0, x1, y1) {
         var x = x0 + t * (x1 - x0),
@@ -346,7 +352,7 @@ if (typeof require !== 'undefined') {
             }
         }
         if (relative === true) {
-            s = g.bezier.sum(lengths);
+            s = g.math.sum(lengths);
             return (s > 0) ?
                     _.map(lengths, function (v) { return v / s; }) :
                     _.map(lengths, function () { return 0.0; });
@@ -360,7 +366,7 @@ if (typeof require !== 'undefined') {
     g.bezier.length = function (path, segmented, n) {
         if (n === undefined) { n = 20; }
         return (!segmented) ?
-                g.bezier.sum(g.bezier.segmentLengths(path.segments, false, n)) :
+                g.math.sum(g.bezier.segmentLengths(path.segments, false, n)) :
                 g.bezier.segmentLengths(path.segments, true, n);
     };
 

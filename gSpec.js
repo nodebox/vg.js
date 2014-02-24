@@ -6,6 +6,12 @@ var _ = require('underscore'),
 
 describe('The math module', function () {
 
+    it('can sum numbers', function () {
+        expect(g.math.sum([])).toBe(0);
+        expect(g.math.sum([1])).toBe(1);
+        expect(g.math.sum([1, 2, 3])).toBe(6);
+    });
+
     it('can round numbers', function () {
         expect(g.math.round(0.1)).toBe(0);
         expect(g.math.round(0.9)).toBe(1);
