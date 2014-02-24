@@ -2972,21 +2972,21 @@ if (typeof require !== 'undefined') {
         };
 
         reflectPath = function (path) {
-            var segments = _.map(path.segments, function (elem) {
+            var segments = _.map(path.segments, function (seg) {
                 var pt, ctrl1, ctrl2;
-                if (elem.type === g.CLOSE) {
-                    return elem;
-                } else if (elem.type === g.MOVETO) {
-                    pt = f(elem.point);
+                if (seg.type === g.MOVETO) {
+                    pt = f(seg.point);
                     return g.moveto(pt.x, pt.y);
-                } else if (elem.type === g.LINETO) {
-                    pt = f(elem.point);
+                } else if (seg.type === g.LINETO) {
+                    pt = f(seg.point);
                     return g.lineto(pt.x, pt.y);
-                } else if (elem.type === g.CURVETO) {
-                    pt = f(elem.point);
-                    ctrl1 = f(elem.ctrl1);
-                    ctrl2 = f(elem.ctrl2);
+                } else if (seg.type === g.CURVETO) {
+                    pt = f(seg.point);
+                    ctrl1 = f(seg.ctrl1);
+                    ctrl2 = f(seg.ctrl2);
                     return g.curveto(ctrl1.x, ctrl1.y, ctrl2.x, ctrl2.y, pt.x, pt.y);
+                } else {
+                    return seg;
                 }
             });
             return g.makePath(segments, path.fill, path.stroke, path.strokeWidth);
