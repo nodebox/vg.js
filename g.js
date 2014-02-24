@@ -207,9 +207,10 @@ if (typeof require !== 'undefined') {
     };
 
 
-    // Ray casting algorithm.
-    // Determines how many times a horizontal ray starting from the point
-    // intersects with the sides of the polygon.
+    // Determines if the given point is within the polygon, given as a list of points.
+
+    // This function uses a ray casting algorithm to determine how many times
+    // a horizontal ray starting from the point intersects with the sides of the polygon.
     // If it is an even number of times, the point is outside, if odd, inside.
     // The algorithm does not always report correctly when the point is very close to the boundary.
     // The polygon is passed as an array of Points.
@@ -364,36 +365,35 @@ if (typeof require !== 'undefined') {
     // BEZIER PATH POINT:
 
     // For a given relative t on the path (0.0-1.0), returns an array [index, t, PathElement],
-    // with the index of the PathElement before t,
-    // the absolute time on this segment,
-    // the last MOVETO or any subsequent CLOSETO after i.
-    // Note: during iteration, supplying segmentLengths() yourself is 30x faster.
-    g.bezier._locate = function (path, t, segments) {
+    // with the index of the PathElement before t, the absolute position on this segment,
+    // the last MOVETO or any subsequent CLOSE segments after i.
+    // Note: during iteration, supplying segment lengths yourself is 30x faster.
+    g.bezier._locate = function (path, t, segmentLengths) {
         var i, el, closeto;
-        if (segments === undefined) {
-            segments = g.bezier.segmentLengths(path.segments, true);
+        if (segmentLengths === undefined) {
+            segmentLengths = g.bezier.segmentLengths(path.segments, true);
         }
         for (i = 0; i < path.segments.length; i += 1) {
             el = path.segments[i];
             if (i === 0 || el.type === g.MOVETO) {
                 closeto = g.makePoint(el.point.x, el.point.y);
             }
-            if (t <= segments[i] || i === segments.length - 1) {
+            if (t <= segmentLengths[i] || i === segmentLengths.length - 1) {
                 break;
             }
-            t -= segments[i];
+            t -= segmentLengths[i];
         }
-        if (segments[i] !== 0) { t /= segments[i]; }
-        if (i === segments.length - 1 && segments[i] === 0) { i -= 1; }
+        if (segmentLengths[i] !== 0) { t /= segmentLengths[i]; }
+        if (i === segmentLengths.length - 1 && segmentLengths[i] === 0) { i -= 1; }
         return [i, t, closeto];
     };
 
     // Returns the DynamicPathElement at time t on the path.
     // Note: in PathElement, ctrl1 is how the curve started, and ctrl2 how it arrives in this point.
     // Here, ctrl1 is how the curve arrives, and ctrl2 how it continues to the next point.
-    g.bezier.point = function (path, t, segments) {
+    g.bezier.point = function (path, t, segmentLengths) {
         var loc, i, closeto, x0, y0, pe;
-        loc = g.bezier._locate(path, t, segments);
+        loc = g.bezier._locate(path, t, segmentLengths);
         i = loc[0];
         t = loc[1];
         closeto = loc[2];
@@ -2939,8 +2939,9 @@ if (typeof require !== 'undefined') {
         return t.transformShape(shape);
     };
 
+    // Fit the given shape to the bounding shape.
+    // If keepProportions = true, the shape will not be stretched.
     g.fitTo = function (shape, bounding, keepProportions) {
-        // Fit a shape to another shape.
         if (shape === null) { return null; }
         if (bounding === null) { return shape; }
 
@@ -3170,8 +3171,8 @@ if (typeof require !== 'undefined') {
         return t.transformShape(shape);
     };
 
+    // Snap geometry to a grid.
     g.snap = function (shape, distance, strength, position) {
-        // Snap geometry to a grid.
 
         function _snap(v, offset, distance, strength) {
             if (offset === null) { offset = 0.0; }
