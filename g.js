@@ -3396,7 +3396,9 @@ if (typeof require !== 'undefined') {
     };
 
     g.ungroup = function (shape) {
-        if (shape.shapes) {
+        if (!shape) {
+            return [];
+        } else if (shape.shapes) {
             var i, s, shapes = [];
             for (i = 0; i < shape.shapes.length; i += 1) {
                 s = shape.shapes[i];
@@ -3409,6 +3411,8 @@ if (typeof require !== 'undefined') {
             return shapes;
         } else if (shape.segments) {
             return [shape];
+        } else {
+            return [];
         }
     };
 
