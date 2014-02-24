@@ -772,21 +772,20 @@ if (typeof require !== 'undefined') {
 
     g.Matrix3.prototype.transformPath = function (path) {
         var _this = this,
-            segments = _.map(path.segments, function (pe) {
-                if (pe.type === g.CLOSE) { return pe; }
-                if (pe.type === g.MOVETO) {
+            segments = _.map(path.segments, function (seg) {
+                if (seg.type === g.MOVETO) {
                     return { type: g.MOVETO,
-                        point: _this.transformPoint(pe.point) };
-                }
-                if (pe.type === g.LINETO) {
+                        point: _this.transformPoint(seg.point) };
+                } else if (seg.type === g.LINETO) {
                     return { type: g.LINETO,
-                        point: _this.transformPoint(pe.point) };
-                }
-                if (pe.type === g.CURVETO) {
+                        point: _this.transformPoint(seg.point) };
+                } else if (seg.type === g.CURVETO) {
                     return { type: g.CURVETO,
-                        point: _this.transformPoint(pe.point),
-                        ctrl1: _this.transformPoint(pe.ctrl1),
-                        ctrl2: _this.transformPoint(pe.ctrl2) };
+                        point: _this.transformPoint(seg.point),
+                        ctrl1: _this.transformPoint(seg.ctrl1),
+                        ctrl2: _this.transformPoint(seg.ctrl2) };
+                } else {
+                    return seg;
                 }
             });
         return g.makePath(segments, path.fill, path.stroke, path.strokeWidth);
