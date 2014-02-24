@@ -1298,9 +1298,9 @@ if (typeof require !== 'undefined') {
     };
 
     g.Path.prototype.resampleByAmount = function (points, perContour) {
-        var i, j, subPath, pts, elem,
+        var i, j, subPath, pts, seg,
             subPaths = perContour ? this.contours() : [this.segments],
-            elems = [];
+            segments = [];
 
         function getPoint(pe) {
             return pe.point;
@@ -1310,27 +1310,27 @@ if (typeof require !== 'undefined') {
             subPath = g.makePath(subPaths[j]);
             pts = _.map(subPath.points(points + 1), getPoint);
             for (i = 0; i < pts.length - 1; i += 1) {
-                elem = { type:   (i === 0) ? g.MOVETO : g.LINETO,
+                seg = { type:   (i === 0) ? g.MOVETO : g.LINETO,
                        point: pts[i] };
-                elems.push(elem);
+                segments.push(seg);
             }
-            elems.push(g.closePath());
+            segments.push(g.closePath());
         }
-        return g.makePath(elems, this.fill, this.stroke, this.strokeWidth);
+        return g.makePath(segments, this.fill, this.stroke, this.strokeWidth);
     };
 
     g.Path.prototype.resampleByLength = function (segmentLength) {
         var i, subPath, contourLength, amount,
             subPaths = this.contours(),
-            elems = [];
+            segments = [];
         for (i = 0; i < subPaths.length; i += 1) {
             subPath = g.makePath(subPaths[i]);
             contourLength = subPath.length();
             amount = Math.ceil(contourLength / segmentLength);
             if (!subPath.isClosed()) { amount += 1; }
-            elems = elems.concat(subPath.resampleByAmount(amount, false).segments);
+            segments = segments.concat(subPath.resampleByAmount(amount, false).segments);
         }
-        return g.makePath(elems, this.fill, this.stroke, this.strokeWidth);
+        return g.makePath(segments, this.fill, this.stroke, this.strokeWidth);
     };
 
     g.Path.prototype.toPathData = function () {
@@ -3215,16 +3215,16 @@ if (typeof require !== 'undefined') {
     g.deletePoints = function (shape, bounding, deleteSelected) {
         var deletePoints = function (shape) {
             if (shape.segments) {
-                var i, elem, elems = [];
+                var i, seg, segments = [];
                 for (i = 0; i < shape.segments.length; i += 1) {
-                    elem = shape.segments[i];
-                    if (elem.point === undefined ||
-                            (deleteSelected && bounding.contains(elem.point.x, elem.point.y)) ||
-                            (!deleteSelected && !bounding.contains(elem.point.x, elem.point.y))) {
-                        elems.push(elem);
+                    seg = shape.segments[i];
+                    if (seg.point === undefined ||
+                            (deleteSelected && bounding.contains(seg.point.x, seg.point.y)) ||
+                            (!deleteSelected && !bounding.contains(seg.point.x, seg.point.y))) {
+                        segments.push(seg);
                     }
                 }
-                return g.makePath(elems, shape.fill, shape.stroke, shape.strokeWidth);
+                return g.makePath(segments, shape.fill, shape.stroke, shape.strokeWidth);
             } else if (shape.shapes) {
                 return g.makeGroup(_.map(shape.shapes, deletePoints));
             } else {
@@ -3240,14 +3240,14 @@ if (typeof require !== 'undefined') {
             if (shape.segments) {
                 return null;
             } else if (shape.shapes) {
-                var i, j, s, selected, elem, subShapes, newShapes = [];
+                var i, j, s, selected, seg, subShapes, newShapes = [];
                 for (i = 0; i < shape.shapes.length; i += 1) {
                     s = shape.shapes[i];
                     if (s.segments) {
                         selected = false;
                         for (j = 0; j < s.segments.length; j += 1) {
-                            elem = s.segments[j];
-                            if (elem.point && bounding.contains(elem.point.x, elem.point.y)) {
+                            seg = s.segments[j];
+                            if (seg.point && bounding.contains(seg.point.x, seg.point.y)) {
                                 selected = true;
                                 break;
                             }
