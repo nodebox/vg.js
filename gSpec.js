@@ -34,6 +34,16 @@ describe('The math module', function () {
         expect(g.math.mix(0, 100, 2, true)).toBe(100);
     });
 
+    it('can snap numbers', function () {
+        expect(g.math.snap(0, 100)).toBe(0);
+        expect(g.math.snap(49, 100)).toBe(0);
+        expect(g.math.snap(50, 100)).toBe(100);
+
+        expect(g.math.snap(50, 100, 0)).toBe(50);
+        expect(g.math.snap(50, 100, 0.5)).toBe(75);
+        expect(g.math.snap(50, 100, 1)).toBe(100);
+    });
+
     it('can generate noise', function () {
         expect(g.math.noise(0, 0, 0)).toBe(0.5);
         expect(g.math.round(g.math.noise(0.1, 0.2, 0.3), 3)).toBe(0.676);
