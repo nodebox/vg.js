@@ -253,7 +253,7 @@ if (typeof require !== 'undefined') {
     // BEZIER MATH:
 
     g.bezier.sum = function (values) {
-        return _.reduce(values, function (a, b) { return a + b; }); // sum
+        return _.reduce(values, function (a, b) { return a + b; });
     };
 
     // Returns coordinates for the point at t (0.0-1.0) on the line.
@@ -346,7 +346,7 @@ if (typeof require !== 'undefined') {
             }
         }
         if (relative === true) {
-            s = g.bezier.sum(lengths); // sum
+            s = g.bezier.sum(lengths);
             return (s > 0) ?
                     _.map(lengths, function (v) { return v / s; }) :
                     _.map(lengths, function () { return 0.0; });
