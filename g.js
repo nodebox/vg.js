@@ -269,7 +269,7 @@ if (typeof require !== 'undefined') {
 
     // Returns coordinates for the point at t (0.0-1.0) on the curve
     // (de Casteljau interpolation algorithm).
-    g.bezier.curvePoint = function (t, x0, y0, x1, y1, x2, y2, x3, y3, handles) {
+    g.bezier.curvePoint = function (t, x0, y0, x1, y1, x2, y2, x3, y3) {
         var dt = 1 - t,
             x01 = x0 * dt + x1 * t,
             y01 = y0 * dt + y1 * t,
@@ -286,12 +286,6 @@ if (typeof require !== 'undefined') {
             y = h1y * dt + h2y * t;
 
         return g.curveto(h1x, h1y, h2x, h2y, x, y);
-    /*    if (!handles) {
-            return {x, y, h1x, h1y, h2x, h2y];
-        } else {
-            // Include the new handles of pt0 and pt3 (see g.bezier.insert_point()).
-            return [x, y, h1x, h1y, h2x, h2y, x01, y01, x23, y23];
-        }*/
     };
 
     // Returns the length of the curve.
