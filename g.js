@@ -3095,12 +3095,12 @@ if (typeof require !== 'undefined') {
 
         if (scope === 'points') {
             return wigglePoints(shape);
-        }
-        if (scope === 'paths') {
+        } else if (scope === 'paths') {
             return wigglePaths(shape);
-        }
-        if (scope === 'contours') {
+        } else if (scope === 'contours') {
             return wiggleContours(shape);
+        } else {
+            throw new Error('Invalid scope.');
         }
     };
 
