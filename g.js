@@ -86,7 +86,7 @@ if (typeof require !== 'undefined') {
     // Strength defines how strongly the values move to the grid. If 1, the values will always
     // be on the grid lines, if 0, the value is unchanged.
     g.math.snap = function (v, distance, strength) {
-        stength = strength !== undefined ? strength : 1;
+        strength = strength !== undefined ? strength : 1;
         return (v * (1.0 - strength)) + (strength * Math.round(v / distance) * distance);
     };
 
