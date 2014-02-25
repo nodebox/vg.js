@@ -666,15 +666,6 @@ if (typeof require !== 'undefined') {
         return new g.Point(x, y);
     };
 
-    g.Particle = function (position, velocity, acceleration, mass, lifespan) {
-        this.position = position !== undefined ? Object.freeze(position) : g.Point.ZERO;
-        this.velocity = velocity !== undefined ? Object.freeze(velocity) : g.Point.ZERO;
-        this.acceleration = acceleration !== undefined ? Object.freeze(acceleration) : g.Point.ZERO;
-        this.mass = mass !== undefined ? mass : 1;
-        this.lifespan = lifespan !== undefined ? lifespan : Number.POSITIVE_INFINITY;
-        Object.freeze(this);
-    };
-
     g.MOVETO  = "M";
     g.LINETO  = "L";
     g.CURVETO = "C";
