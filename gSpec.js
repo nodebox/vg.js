@@ -73,8 +73,8 @@ describe('The bezier module', function () {
         segments.push(g.close());
         segmentLengths = g.bezier.segmentLengths(segments);
         expect(segmentLengths.length).toBe(segments.length - 1);
-        expect(segmentLengths[0]).toBe(100)
-        expect(segmentLengths[1]).toBe(50)
+        expect(segmentLengths[0]).toBe(100);
+        expect(segmentLengths[1]).toBe(50);
         expect(Math.round(segmentLengths[2])).toBe(112);
     });
 

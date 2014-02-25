@@ -1774,7 +1774,7 @@ if (typeof require !== 'undefined') {
 
     // Converts the given R,G,B values to a hexadecimal color string.
     g._rgb2hex = function (r, g, b) {
-        function toHex (i) {
+        function toHex(i) {
             var s;
             if (i === 0) {
                 return '00';
