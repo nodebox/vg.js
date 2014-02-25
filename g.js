@@ -529,27 +529,22 @@ g.Point = function (x, y, attrs) {
     this._x = x;
     this._y = y;
     this._attrs = attrs;
-    this["__defineGetter__"]("x", g.Point._getX);
-    this["__defineSetter__"]("x", g.Point._setX);
-    this["__defineGetter__"]("y", g.Point._getY);
-    this["__defineSetter__"]("y", g.Point._setY);
     Object.freeze(this);
 };
 
-g.Point._getX = function () {
-    return this._x;
-};
-
-g.Point._setX = function () {
-    throw "Error: point.x is readonly, use point.withX() instead.";
-};
-
-g.Point._getY = function () {
-    return this._y;
-};
-
-g.Point._setY = function () {
-    throw "Error: point.y is readonly, use point.withY() instead.";
+g.Point.prototype = {
+    get x() {
+        return this._x;
+    },
+    set x() {
+        throw "Error: point.x is readonly, use point.withX() instead.";
+    },
+    get y() {
+        return this._y;
+    },
+    set y() {
+        throw "Error: point.y is readonly, use point.withY() instead.";
+    }
 };
 
 g.Vec2 = g.Point;
@@ -574,6 +569,7 @@ g.Point.prototype.attr = function (attr) {
 g.Point.prototype.withAttr = function (attr, val) {
     var attrs = this._attrs || mori.hash_map();
     attrs = mori.assoc(attrs, attr, val);
+    Object.freeze(attrs);
     return new g.Point(this.x, this.y, attrs);
 };
 
@@ -855,13 +851,13 @@ g.Path = function (p, attrs) {
             if (attrs[key] !== undefined) {
                 this[key] = attrs[key];
                 if (this[key] instanceof Object) {
-//                    Object.freeze(this[key]);
+                    Object.freeze(this[key]);
                 }
             }
         }
     }
-//    Object.freeze(this.elements);
-//    Object.freeze(this);
+    Object.freeze(this.elements);
+    Object.freeze(this);
 };
 
 g.Path.prototype.extend = function (p) {
