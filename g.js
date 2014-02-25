@@ -1177,10 +1177,12 @@ g.makePath = function (p, fill, stroke, strokeWidth) {
 
 g.Group = function (shapes) {
     if (!shapes) {
-        this.shapes = [];
+        this.shapes = mori.vector();
     } else if (shapes.shapes || shapes.elements) {
-        this.shapes = [shapes];
-    } else if (shapes) {
+        this.shapes = mori.vector(shapes);
+    } else if (shapes instanceof Array) {
+        this.shapes = mori.into(mori.vector(), shapes);
+    } else {
         this.shapes = shapes;
     }
     Object.freeze(this.shapes);
@@ -1188,26 +1190,24 @@ g.Group = function (shapes) {
 };
 
 g.Group.prototype.colorize = function (fill, stroke, strokeWidth) {
-    var shapes = _.map(this.shapes, function (shape) {
+    var shapes = mori.map(function (shape) {
         return shape.colorize(fill, stroke, strokeWidth);
-    });
+    }, this.shapes);
     return g.makeGroup(shapes);
 };
 
 g.Group.prototype.bounds = function () {
-    if (_.isEmpty(this.shapes)) { return g.makeRect(0, 0, 0, 0); }
-    var i, r, shape,
-        shapes = this.shapes;
-    for (i = 0; i < shapes.length; i += 1) {
-        shape = shapes[i];
+    if (mori.is_empty(this.shapes)) { return g.makeRect(0, 0, 0, 0); }
+    var r;
+    mori.each(this.shapes, function (shape) {
         if (r === undefined) {
             r = shape.bounds();
         }
-        if ((shape.shapes && !_.isEmpty(shape.shapes)) ||
+        if ((shape.shapes && !_mori.is_empty(shape.shapes)) ||
                 (shape.elements && !mori.is_empty(shape.elements))) {
             r = r.unite(shape.bounds());
         }
-    }
+    });
     return (r !== undefined) ? r : g.makeRect(0, 0, 0, 0);
 };
 
@@ -1215,12 +1215,11 @@ g.Group.prototype.contains = function (x, y, precision) {
     /* Returns true when point (x,y) falls within the contours of the group.
      */
     if (precision === undefined) { precision = 100; }
-    var i, shapes = this.shapes;
-    for (i = 0; i < shapes.length; i += 1) {
-        if (shapes[i].contains(x, y, precision)) {
+    mori.each(this.shapes, function (shape) {
+        if (shape.contains(x, y, precision)) {
             return true;
         }
-    }
+    });
     return false;
 };
 
@@ -1231,33 +1230,31 @@ g.Group.prototype.resampleByAmount = function (points, perContour) {
         return path.resampleByAmount(points, perContour);
     }
 
-    shapes = _.map(this.shapes, function (shape) {
+    shapes = mori.map(function (shape) {
         return shape.resampleByAmount(points, perContour);
-    });
+    }, this.shapes);
     return g.makeGroup(shapes);
 };
 
 g.Group.prototype.resampleByLength = function (length) {
-    var shapes = _.map(this.shapes, function (shape) {
+    var shapes = mori.map(function (shape) {
         return shape.resampleByLength(length);
-    });
+    }, this.shapes);
     return g.makeGroup(shapes);
 };
 
 g.Group.prototype.toSVG = function () {
-    var l;
-    l = _.map(this.shapes, function (shape) {
+    var l = mori.map(function (shape) {
         return shape.toSVG();
-    });
+    }, this.shapes);
     return '<g>' + l.join('') + '</g>';
 };
 
 // Draw the group to a 2D context.
 g.Group.prototype.draw = function (ctx) {
-    var i, shapes = this.shapes, nShapes = shapes.length;
-    for (i = 0; i < nShapes; i += 1) {
-        shapes[i].draw(ctx);
-    }
+    mori.each(this.shapes, function (shape) {
+       shape.draw(ctx); 
+    });
 };
 
 g.makeGroup = g.group = function (shapes) {
@@ -1273,10 +1270,10 @@ g.merge = function () {
 
 g.combinePaths = function (shape) {
     if (shape.elements) { return shape.elements; }
-    var i, elements = mori.vector();
-    for (i = 0; i < shape.shapes.length; i += 1) {
-        elements = mori.into(elements, g.combinePaths(shape.shapes[i]));
-    }
+    var elements = mori.vector();
+    mori.each(shape.shapes, function (shape) {
+       elements = mori.into(elements, g.combinePaths(shape));
+    });
     return Object.freeze(elements);
 };
 
@@ -1284,10 +1281,10 @@ g.shapePoints = function (shape) {
     if (shape.elements) {
         return _.map(_.filter(mori.into_array(shape.elements), function (el) { if (el.point) { return true; } return false; }), function (el) { return el.point; });
     }
-    var i, points = [];
-    for (i = 0; i < shape.shapes.length; i += 1) {
-        points = points.concat(g.shapePoints(shape.shapes[i]));
-    }
+    var points = [];
+    mori.each(shape.shapes, function (shape) {
+        points = points.concat(g.shapePoints(shape));
+    });
     return points;
 };
 
@@ -1877,9 +1874,9 @@ g.Matrix3.prototype.transformPath = function (path) {
 
 g.Matrix3.prototype.transformGroup = function (group) {
     var _this = this,
-        shapes = _.map(group.shapes, function (shape) {
+        shapes = mori.map(function (shape) {
             return _this.transformShape(shape);
-        });
+        }, group.shapes);
     return g.makeGroup(shapes);
 };
 
@@ -2618,7 +2615,7 @@ g.svg.applySvgAttributes = function (node, shape) {
             }
             return g.makePath(elements, f, s, sw);
         } else if (shape.shapes) {
-            return g.makeGroup(_.map(shape.shapes, applyAttributes));
+            return g.makeGroup(mori.map(applyAttributes, shape.shapes));
         }
     }
 
@@ -3016,9 +3013,9 @@ g.reflect = function (shape, position, angle, keepOriginal) {
     };
 
     reflectGroup = function (group) {
-        var shapes = _.map(group.shapes, function (shape) {
+        var shapes = mori.map(function (shape) {
             return reflect(shape);
-        });
+        }, group.shapes);
         return g.makeGroup(shapes);
     };
 
@@ -3030,7 +3027,7 @@ g.reflect = function (shape, position, angle, keepOriginal) {
     newShape = reflect(shape);
 
     if (keepOriginal) {
-        return g.makeGroup([shape, newShape]);
+        return g.makeGroup(mori.vector(shape, newShape));
     } else {
         return newShape;
     }
@@ -3069,7 +3066,7 @@ g.wiggle = function (shape, scope, offset, seed) {
             elements = mori.into(mori.vector(), elements);
             return g.makePath(elements, shape.fill, shape.stroke, shape.strokeWidth);
         } else if (shape.shapes) {
-            return g.makeGroup(_.map(shape.shapes, wigglePoints));
+            return g.makeGroup(mori.map(wigglePoints, shape.shapes));
         } else {
             return _.map(shape, wigglePoints);
         }
@@ -3079,18 +3076,18 @@ g.wiggle = function (shape, scope, offset, seed) {
         if (shape.elements) {
             return shape;
         } else if (shape.shapes) {
-            var i, subShape, dx, dy, t, newShapes = [];
-            for (i = 0; i < shape.shapes.length; i += 1) {
-                subShape = shape.shapes[i];
+            var newShapes = mori.vector();
+            mori.each(shape.shapes, function (subShape) {
+                var dx, dy, t;
                 if (subShape.elements) {
                     dx = (rand(0, 1) - 0.5) * offset.x * 2;
                     dy = (rand(0, 1) - 0.5) * offset.y * 2;
                     t = new g.Transform().translate(dx, dy);
-                    newShapes.push(t.transformShape(subShape));
+                    newShapes = mori.conj(newShapes, t.transformShape(subShape));
                 } else if (subShape.shapes) {
-                    newShapes.push(wigglePaths(subShape));
+                    newShapes = mori.conj(newShapes, wigglePaths(subShape));
                 }
-            }
+            });
             return new g.Group(newShapes);
         } else {
             return _.map(shape, wigglePaths);
@@ -3110,7 +3107,7 @@ g.wiggle = function (shape, scope, offset, seed) {
             }
             return g.makePath(elements, shape.fill, shape.stroke, shape.strokeWidth);
         } else if (shape.shapes) {
-            return g.makeGroup(_.map(shape.shapes, wiggleContours));
+            return g.makeGroup(mori.map(wiggleContours, shape.shapes));
         } else {
             return _.map(shape, wiggleContours);
         }
@@ -3238,7 +3235,7 @@ g.snap = function (shape, distance, strength, position) {
             elements = mori.into(mori.vector(), elements);
             return g.makePath(elements, shape.fill, shape.stroke, shape.strokeWidth);
         } else if (shape.shapes) {
-            return g.makeGroup(_.map(shape.shapes, snapShape));
+            return g.makeGroup(mori.map(snapShape, shape.shapes));
         } else {
             return _.map(shape, snapShape);
         }
@@ -3261,7 +3258,7 @@ g.deletePoints = function (shape, bounding, deleteSelected) {
             }
             return g.makePath(elems, shape.fill, shape.stroke, shape.strokeWidth);
         } else if (shape.shapes) {
-            return g.makeGroup(_.map(shape.shapes, deletePoints));
+            return g.makeGroup(mori.map(deletePoints, shape.shapes));
         } else {
             return _.map(shape, deletePoints);
         }
@@ -3433,14 +3430,13 @@ g.sort = function (shapes, orderBy, point) {
 g.ungroup = function (shape) {
     if (shape.shapes) {
         var i, s, shapes = [];
-        for (i = 0; i < shape.shapes.length; i += 1) {
-            s = shape.shapes[i];
+        mori.each(shape.shapes, function (s) {
             if (s.elements) {
                 shapes.push(s);
             } else if (s.shapes) {
                 shapes = shapes.concat(g.ungroup(s));
             }
-        }
+        });
         return shapes;
     } else if (shape.elements) {
         return [shape];
