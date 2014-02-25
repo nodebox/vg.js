@@ -1609,60 +1609,97 @@ if (typeof require !== 'undefined') {
         return [[v, z, x], [y, v, x], [x, v, z], [x, y, v], [z, x, v]][parseInt(i, 10)];
     };
 
-    g.Color = function (R, G, B, A, options) {
-        var rgb;
-        if (R instanceof g.Color) {
-            return R;
-        } else if (R.r !== undefined && R.g !== undefined && R.b !== undefined && R.a !== undefined) {
-            G = R.g;
-            B = R.b;
-            A = R.a;
-            R = R.r;
-        } else if (R instanceof Array) {
-            G = R[1];
-            B = R[2];
-            A = R[3] || 1;
-            R = R[0];
-        } else if (R === undefined || R === null) {
-            R = G = B = A = 0;
-        } else if (G === undefined || G === null) {
-            G = B = R;
-            A = 1;
-        } else if (B === undefined || B === null) {
-            A = G;
-            G = B = R;
-        } else if (A === undefined || A === null) {
-            A = 1;
+    g.Color = function (v1, v2, v3, v4, v5) {
+        var _r, _g, _b, _a, rgb, options;
+        if (v1 === undefined) {
+            _r = _g = _b = 0;
+            _a = 1;
+        } else if (Array.isArray(v1)) {
+            options = v2 || {};
+            _r = v1[0] !== undefined ? v1[0] : 0;
+            _g = v1[1] !== undefined ? v1[1] : 0;
+            _b = v1[2] !== undefined ? v1[2] : 0;
+            _a = v1[3] !== undefined ? v1[3] : options.base || 1;
+        } else if (v1.r !== undefined) {
+            options = v2 || {};
+            _r = v1.r;
+            _g = v1.g;
+            _b = v1.b;
+            _a = v1.a !== undefined ? v1.a : options.base || 1;
+        } else if (typeof v1 === 'string') {
+            rgb = g._hex2rgb(v1);
+            _r = rgb[0];
+            _g = rgb[1];
+            _b = rgb[2];
+            _a = 1;
+        } else if (typeof v1 === 'number') {
+            if (arguments.length === 1) { // Grayscale value
+                _r = _g = _b = v1;
+                _a = 1;
+            } else if (arguments.length === 2) { // Gray and alpha or options
+                _r = _g = _b = v1;
+                if (typeof v2 === 'number') {
+                    _a = v2;
+                } else {
+                    options = v2;
+                    _a = options.base || 1;
+                }
+            } else if (arguments.length === 3) { // RGB or gray, alpha and options
+                if (typeof v3 === 'number') {
+                    _r = v1;
+                    _g = v2;
+                    _b = v3;
+                    _a = 1;
+                } else {
+                    _r = _g = _b = v1;
+                    _a = v2;
+                    options = v3;
+                }
+            } else if (arguments.length === 4) { // RGB and alpha or options
+                _r = v1;
+                _g = v2;
+                _b = v3;
+                if (typeof v4 === 'number') {
+                    _a = v4;
+                } else {
+                    options = v4;
+                    _a = options.base || 1;
+                }
+            } else { // RGBA + options
+                _r = v1;
+                _g = v2;
+                _b = v3;
+                _a = v4;
+                options = v5;
+            }
+        }
+        options = options || {};
+
+        // The base option allows you to specify values in a different range.
+        if (options.base !== undefined) {
+            _r /= options.base;
+            _g /= options.base;
+            _b /= options.base;
+            _a /= options.base;
+        }
+        // Convert HSB colors to RGB
+        if (options.colorspace === g.HSB) {
+            rgb = g._hsb2rgb(v1, v2, v3);
+            _r = rgb[0];
+            _g = rgb[1];
+            _b = rgb[2];
+        } else if (options.colorspace === g.HEX) {
+            rgb = g._hex2rgb(v1);
+            _r = rgb[0];
+            _g = rgb[1];
+            _b = rgb[2];
+            _a = 1;
         }
 
-        if (options) {
-            // Transform to base 1:
-            if (options.base !== undefined) {
-                R /= options.base;
-                G /= options.base;
-                B /= options.base;
-                A /= options.base;
-            }
-            // Transform to color space RGB:
-            if (options.colorspace === g.HSB) {
-                rgb = g._hsb2rgb(R, G, B);
-                R = rgb[0];
-                G = rgb[1];
-                B = rgb[2];
-            }
-            // Transform to color space HEX:
-            if (options.colorspace === g.HEX) {
-                rgb = g._hex2rgb(R);
-                R = rgb[0];
-                G = rgb[1];
-                B = rgb[2];
-                A = 1;
-            }
-        }
-        this.r = R;
-        this.g = G;
-        this.b = B;
-        this.a = A;
+        this.r = _r;
+        this.g = _g;
+        this.b = _b;
+        this.a = _a;
         Object.freeze(this);
     };
 
@@ -2847,6 +2884,7 @@ if (typeof require !== 'undefined') {
     g.grid = function (columns, rows, width, height, position) {
         var columnSize, left, rowSize, top, rowIndex, colIndex, x, y,
             points = [];
+        points.length = columns * rows;
         position = position !== undefined ? position : g.Point.ZERO;
         if (columns > 1) {
             columnSize = width / (columns - 1);
