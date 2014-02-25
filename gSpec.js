@@ -202,6 +202,14 @@ describe('A color', function () {
         expect(c.rgba()).toEqual([0.3, 0.3, 0.3, 0.5]);
     });
 
+    it('can be converted to a hexadecimal value', function () {
+        expect(g._rgb2hex(0, 0, 0)).toEqual('#000000');
+        expect(g._rgb2hex(0.01, 0.01, 0.01)).toEqual('#030303');
+        expect(g._rgb2hex(0.1, 0.5, 0.9)).toEqual('#1A80E6');
+        expect(g._rgb2hex(0.99, 0.99, 0.99)).toEqual('#FCFCFC');
+        expect(g._rgb2hex(1, 1, 1)).toEqual('#FFFFFF');
+    });
+
 });
 
 xdescribe('Tagging', function () {

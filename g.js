@@ -1765,13 +1765,22 @@ if (typeof require !== 'undefined') {
 
     // Converts the given R,G,B values to a hexadecimal color string.
     g._rgb2hex = function (r, g, b) {
-        var parseHex = function (i) {
-            return ((i === 0) ? "00" : (i.length < 2) ? "0" + i : i).toString(16).toUpperCase();
-        };
-        return "#"
-            + parseHex(Math.round(r * 255))
-            + parseHex(Math.round(g * 255))
-            + parseHex(Math.round(b * 255));
+        function toHex (i) {
+            var s;
+            if (i === 0) {
+                return '00';
+            } else {
+                s = i.toString(16).toUpperCase();
+                if (s.length < 2) {
+                    s = '0' + s;
+                }
+                return s;
+            }
+        }
+        return '#'
+            + toHex(Math.round(r * 255))
+            + toHex(Math.round(g * 255))
+            + toHex(Math.round(b * 255));
     };
 
     // Converts the given hexadecimal color string to R,G,B (between 0.0-1.0).
