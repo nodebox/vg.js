@@ -1854,21 +1854,21 @@ g.Matrix3.prototype.transformPoint = function (point) {
 
 g.Matrix3.prototype.transformPath = function (path) {
     var _this = this,
-        elements = _.map(path.elements, function (pe) {
-            if (pe.cmd === g.CLOSE) { return pe; }
-            if (pe.cmd === g.MOVETO) {
+        elements = mori.map(path.elements, function (elem) {
+            if (elem.cmd === g.CLOSE) { return elem; }
+            if (elem.cmd === g.MOVETO) {
                 return { cmd: g.MOVETO,
-                    point: _this.transformPoint(pe.point) };
+                    point: _this.transformPoint(elem.point) };
             }
-            if (pe.cmd === g.LINETO) {
+            if (elem.cmd === g.LINETO) {
                 return { cmd: g.LINETO,
-                    point: _this.transformPoint(pe.point) };
+                    point: _this.transformPoint(elem.point) };
             }
-            if (pe.cmd === g.CURVETO) {
+            if (elem.cmd === g.CURVETO) {
                 return { cmd: g.CURVETO,
-                    point: _this.transformPoint(pe.point),
-                    ctrl1: _this.transformPoint(pe.ctrl1),
-                    ctrl2: _this.transformPoint(pe.ctrl2) };
+                    point: _this.transformPoint(elem.point),
+                    ctrl1: _this.transformPoint(elem.ctrl1),
+                    ctrl2: _this.transformPoint(elem.ctrl2) };
             }
         });
     return g.makePath(elements, path.fill, path.stroke, path.strokeWidth);
