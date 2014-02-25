@@ -1184,7 +1184,7 @@ if (typeof require !== 'undefined') {
     };
 
     g.Path.prototype.isClosed = function () {
-        if (_.isEmpty(this.segments)) { return false; }
+        if (this.segments.length === 0) { return false; }
         return this.segments[this.segments.length - 1].type === g.CLOSE;
     };
 
@@ -1220,7 +1220,7 @@ if (typeof require !== 'undefined') {
             currentContour = [];
         _.each(this.segments, function (el) {
             if (el.type === g.MOVETO) {
-                if (!_.isEmpty(currentContour)) {
+                if (currentContour.length !== 0) {
                     contours.push(currentContour);
                 }
                 currentContour = [el];
@@ -1229,7 +1229,7 @@ if (typeof require !== 'undefined') {
             }
         });
 
-        if (!_.isEmpty(currentContour)) {
+        if (currentContour.length !== 0) {
             contours.push(currentContour);
         }
 
@@ -1238,7 +1238,7 @@ if (typeof require !== 'undefined') {
 
     g.Path.prototype.bounds = function () {
         if (this._bounds) { return this._bounds; }
-        if (_.isEmpty(this.segments)) { return g.makeRect(0, 0, 0, 0); }
+        if (this.segments.length === 0) { return g.makeRect(0, 0, 0, 0); }
 
         var px, py, prev, right, bottom,
             minX = Number.MAX_VALUE,
@@ -1490,7 +1490,7 @@ if (typeof require !== 'undefined') {
     };
 
     g.Group.prototype.bounds = function () {
-        if (_.isEmpty(this.shapes)) { return g.makeRect(0, 0, 0, 0); }
+        if (this.shapes.length === 0) { return g.makeRect(0, 0, 0, 0); }
         var i, r, shape,
             shapes = this.shapes;
         for (i = 0; i < shapes.length; i += 1) {
@@ -1498,8 +1498,8 @@ if (typeof require !== 'undefined') {
             if (r === undefined) {
                 r = shape.bounds();
             }
-            if ((shape.shapes && !_.isEmpty(shape.shapes)) ||
-                    (shape.segments && !_.isEmpty(shape.segments))) {
+            if ((shape.shapes && shape.shapes.length !== 0) ||
+                    (shape.segments && shape.segments.length !== 0)) {
                 r = r.unite(shape.bounds());
             }
         }
