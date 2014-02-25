@@ -41,6 +41,15 @@ describe('The math module', function () {
 
 });
 
+describe('A point', function () {
+
+    it('has a sane constructor', function () {
+        expect(new g.Point().xy).toEqual([0, 0]);
+        expect(new g.Point(3, 5).xy).toEqual([3, 5]);
+    });
+
+});
+
 describe('A path', function () {
 
     it('can render itself to SVG', function () {

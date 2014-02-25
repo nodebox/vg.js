@@ -538,9 +538,9 @@ if (typeof require !== 'undefined') {
 
     // GRAPHICS /////////////////////////////////////////////////////////////
 
-    g.Point = function (x, y, attrs) {
-        this._x = x;
-        this._y = y;
+    g.Point = g.Vec2 = function (x, y, attrs) {
+        this._x = x !== undefined ? x : 0;
+        this._y = y !== undefined ? y : 0;
         this._attrs = attrs;
         Object.freeze(this);
     };
@@ -557,10 +557,14 @@ if (typeof require !== 'undefined') {
         },
         set y() {
             throw "Error: point.y is readonly, use point.withY() instead.";
+        },
+        get xy() {
+            return [this._x, this._y];
+        },
+        set xy() {
+            throw "Error: point.xy is readonly.";
         }
     };
-
-    g.Vec2 = g.Point;
 
     g.Point.ZERO = new g.Point(0, 0);
 
@@ -623,7 +627,7 @@ if (typeof require !== 'undefined') {
         return Math.atan2(this.y, this.x);
     };
 
-    g.Vec2.prototype.distanceTo = function (v) {
+    g.Point.prototype.distanceTo = function (v) {
         var dx = this.x - v.x,
             dy = this.y - v.y;
         return Math.sqrt(dx * dx + dy * dy);
