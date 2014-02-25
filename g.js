@@ -316,8 +316,8 @@ g.bezier.segmentLengths = function (pathElements, relative, n) {
     if (n === undefined) { n = 20; }
     var i, el, cmd, pt, close_x, close_y, x0, y0, s, lengths;
     lengths = [];
-    for (i = 0; i < pathElements.length; i += 1) {
-        el = pathElements[i];
+    i = 0;
+    mori.each(pathElements, function (el) {
         cmd = el.cmd;
         pt = el.point;
 
@@ -339,7 +339,8 @@ g.bezier.segmentLengths = function (pathElements, relative, n) {
             x0 = pt.x;
             y0 = pt.y;
         }
-    }
+        i += 1;
+    });
     if (relative === true) {
         s = g.bezier.sum(lengths); // sum
         lengths = (s > 0) ?
@@ -373,8 +374,8 @@ g.bezier._locate = function (path, t, segments) {
     if (segments === undefined) {
         segments = g.bezier.segmentLengths(path.elements, true);
     }
-    for (i = 0; i < path.elements.length; i += 1) {
-        el = path.elements[i];
+    for (i = 0; i < mori.count(path.elements); i += 1) {
+        el = mori.nth(path.elements, i);
         if (i === 0 || el.cmd === g.MOVETO) {
             closeto = g.makePoint(el.point.x, el.point.y);
         }
@@ -398,9 +399,9 @@ g.bezier.point = function (path, t, segments) {
     i = loc[0];
     t = loc[1];
     closeto = loc[2];
-    x0 = path.elements[i].point.x;
-    y0 = path.elements[i].point.y;
-    pe = path.elements[i + 1];
+    x0 = mori.nth(path.elements, i).point.x;
+    y0 = mori.nth(path.elements, i).point.y;
+    pe = mori.nth(path.elements, i + 1);
     if (pe.cmd === g.LINETO || pe.cmd === g.CLOSE) {
         pe = (pe.cmd === g.CLOSE) ?
                  g.bezier.linePoint(t, x0, y0, closeto.x, closeto.y) :
@@ -950,7 +951,6 @@ g.Path.prototype.contours = function () {
     if (!_.isEmpty(currentContour)) {
         contours.push(currentContour);
     }
-
     return contours;
 };
 
@@ -1017,7 +1017,6 @@ g.Path.prototype.points = function (amount, options) {
     d = (amount > 1) ? (end - start) / (amount - 1) : (end - start);
     a = [];
     segments = g.bezier.length(this, true, 10);
-
     for (i = 0; i < amount; i += 1) {
         a.push(this.point(start + d * i, segments));
     }
@@ -1051,13 +1050,12 @@ g.Path.prototype.contains = function (x, y, precision) {
 
 g.Path.prototype.resampleByAmount = function (points, perContour) {
     var i, j, subPath, pts, elem,
-        subPaths = perContour ? this.contours() : mori.into_array(this.elements),
+        subPaths = perContour ? this.contours() : [mori.into_array(this.elements)],
         path = new g.Path();
 
     function getPoint(pe) {
         return pe.point;
     }
-
     for (j = 0; j < subPaths.length; j += 1) {
         subPath = g.makePath(subPaths[j]);
         pts = _.map(subPath.points(points + 1), getPoint);
@@ -1089,32 +1087,32 @@ g.Path.prototype.resampleByLength = function (segmentLength) {
 g.Path.prototype.toPathData = function () {
     var i, d, pe, x, y, x1, y1, x2, y2;
     d = '';
-    mori.each(this.elements, function (pe) {
-        if (pe.point) {
-            x = g.clamp(pe.point.x, -9999, 9999);
-            y = g.clamp(pe.point.y, -9999, 9999);
+    mori.each(this.elements, function (elem) {
+        if (elem.point) {
+            x = g.clamp(elem.point.x, -9999, 9999);
+            y = g.clamp(elem.point.y, -9999, 9999);
         }
-        if (pe.ctrl1) {
-            x1 = g.clamp(pe.ctrl1.x, -9999, 9999);
-            y1 = g.clamp(pe.ctrl1.y, -9999, 9999);
+        if (elem.ctrl1) {
+            x1 = g.clamp(elem.ctrl1.x, -9999, 9999);
+            y1 = g.clamp(elem.ctrl1.y, -9999, 9999);
         }
-        if (pe.ctrl2) {
-            x2 = g.clamp(pe.ctrl2.x, -9999, 9999);
-            y2 = g.clamp(pe.ctrl2.y, -9999, 9999);
+        if (elem.ctrl2) {
+            x2 = g.clamp(elem.ctrl2.x, -9999, 9999);
+            y2 = g.clamp(elem.ctrl2.y, -9999, 9999);
         }
-        if (pe.cmd === g.MOVETO) {
+        if (elem.cmd === g.MOVETO) {
             if (!isNaN(x) && !isNaN(y)) {
                 d += 'M' + x + ' ' + y;
             }
-        } else if (pe.cmd === g.LINETO) {
+        } else if (elem.cmd === g.LINETO) {
             if (!isNaN(x) && !isNaN(y)) {
                 d += 'L' + x + ' ' + y;
             }
-        } else if (pe.cmd === g.CURVETO) {
+        } else if (elem.cmd === g.CURVETO) {
             if (!isNaN(x) && !isNaN(y) && !isNaN(x1) && !isNaN(y1) && !isNaN(x2) && !isNaN(y2)) {
                 d += 'C' + x1 + ' ' + y1 + ' ' + x2 + ' ' + y2 + ' ' + x + ' ' + y;
             }
-        } else if (pe.cmd === g.CLOSE) {
+        } else if (elem.cmd === g.CLOSE) {
             d += 'Z';
         }
     });
@@ -1142,16 +1140,16 @@ g.Path.prototype.toSVG = function () {
 
 // Draw the path to a 2D context.
 g.Path.prototype.draw = function (ctx) {
-    var i, pe;
+    var i;
     ctx.beginPath();
-    mori.each(this.elements, function (pe) {
-        if (pe.cmd === g.MOVETO) {
-            ctx.moveTo(pe.point.x, pe.point.y);
-        } else if (pe.cmd === g.LINETO) {
-            ctx.lineTo(pe.point.x, pe.point.y);
-        } else if (pe.cmd === g.CURVETO) {
-            ctx.bezierCurveTo(pe.ctrl1.x, pe.ctrl1.y, pe.ctrl2.x, pe.ctrl2.y, pe.point.x, pe.point.y);
-        } else if (pe.cmd === g.CLOSE) {
+    mori.each(this.elements, function (elem) {
+        if (elem.cmd === g.MOVETO) {
+            ctx.moveTo(elem.point.x, elem.point.y);
+        } else if (elem.cmd === g.LINETO) {
+            ctx.lineTo(elem.point.x, elem.point.y);
+        } else if (elem.cmd === g.CURVETO) {
+            ctx.bezierCurveTo(elem.ctrl1.x, elem.ctrl1.y, elem.ctrl2.x, elem.ctrl2.y, elem.point.x, elem.point.y);
+        } else if (elem.cmd === g.CLOSE) {
             ctx.closePath();
         }
     });
@@ -1166,13 +1164,13 @@ g.Path.prototype.draw = function (ctx) {
     }
 };
 
-g.makePath = function (pe, fill, stroke, strokeWidth) {
+g.makePath = function (p, fill, stroke, strokeWidth) {
     var attrs = {
         fill: fill,
         stroke: stroke,
         strokeWidth: strokeWidth
     };
-    return new g.Path(pe, attrs);
+    return new g.Path(p, attrs);
 };
 
 g.Group = function (shapes) {
@@ -1282,7 +1280,7 @@ g.combinePaths = function (shape) {
 
 g.shapePoints = function (shape) {
     if (shape.elements) {
-        return _.map(_.filter(shape.elements, function (el) { if (el.point) { return true; } return false; }), function (el) { return el.point; });
+        return _.map(_.filter(mori.into_array(shape.elements), function (el) { if (el.point) { return true; } return false; }), function (el) { return el.point; });
     }
     var i, points = [];
     for (i = 0; i < shape.shapes.length; i += 1) {
@@ -1854,8 +1852,7 @@ g.Matrix3.prototype.transformPoint = function (point) {
 
 g.Matrix3.prototype.transformPath = function (path) {
     var _this = this,
-        elements = mori.map(path.elements, function (elem) {
-            if (elem.cmd === g.CLOSE) { return elem; }
+        func = function (elem) {
             if (elem.cmd === g.MOVETO) {
                 return { cmd: g.MOVETO,
                     point: _this.transformPoint(elem.point) };
@@ -1870,7 +1867,9 @@ g.Matrix3.prototype.transformPath = function (path) {
                     ctrl1: _this.transformPoint(elem.ctrl1),
                     ctrl2: _this.transformPoint(elem.ctrl2) };
             }
-        });
+            return elem;
+        },
+        elements = mori.into(mori.vector(), mori.map(func, path.elements));
     return g.makePath(elements, path.fill, path.stroke, path.strokeWidth);
 };
 
@@ -2993,7 +2992,7 @@ g.reflect = function (shape, position, angle, keepOriginal) {
     };
 
     reflectPath = function (path) {
-        var elements = _.map(path.elements, function (elem) {
+        var elements = mori.map(function (elem) {
             var pt, ctrl1, ctrl2;
             if (elem.cmd === g.CLOSE) {
                 return elem;
@@ -3009,7 +3008,8 @@ g.reflect = function (shape, position, angle, keepOriginal) {
                 ctrl2 = f(elem.ctrl2);
                 return g.curveto(ctrl1.x, ctrl1.y, ctrl2.x, ctrl2.y, pt.x, pt.y);
             }
-        });
+        }, path.elements);
+        elements = mori.into(mori.vector(), elements);
         return g.makePath(elements, path.fill, path.stroke, path.strokeWidth);
     };
 
@@ -3049,7 +3049,7 @@ g.wiggle = function (shape, scope, offset, seed) {
     wigglePoints = function (shape) {
         if (shape.elements) {
             var i, dx, dy,
-            elements = mori.map(shape.elements, function (elem) {
+            elements = mori.map(function (elem) {
                 dx = (rand(0, 1) - 0.5) * offset.x * 2;
                 dy = (rand(0, 1) - 0.5) * offset.y * 2;
                 if (elem.cmd === g.CLOSE) {
@@ -3063,7 +3063,8 @@ g.wiggle = function (shape, scope, offset, seed) {
                                      elem.ctrl2.x, elem.ctrl2.y,
                                      elem.point.x + dx, elem.point.y + dy);
                 }
-            });
+            }, shape.elements);
+            elements = mori.into(mori.vector(), elements);
             return g.makePath(elements, shape.fill, shape.stroke, shape.strokeWidth);
         } else if (shape.shapes) {
             return g.makeGroup(_.map(shape.shapes, wigglePoints));
@@ -3215,23 +3216,24 @@ g.snap = function (shape, distance, strength, position) {
 
     var snapShape = function (shape) {
         if (shape.elements) {
-            var elements = mori.map(shape.elements, function (pe) {
-                if (pe.cmd === g.CLOSE) { return pe; }
+            var elements = mori.map(function (elem) {
+                if (elem.cmd === g.CLOSE) { return elem; }
                 var x, y, ctrl1x, ctrl1y, ctrl2x, ctrl2y;
-                x = _snap(pe.point.x + position.x, position.x, distance, strength) - position.x;
-                y = _snap(pe.point.y + position.y, position.y, distance, strength) - position.y;
-                if (pe.cmd === g.MOVETO) {
+                x = _snap(elem.point.x + position.x, position.x, distance, strength) - position.x;
+                y = _snap(elem.point.y + position.y, position.y, distance, strength) - position.y;
+                if (elem.cmd === g.MOVETO) {
                     return g.moveto(x, y);
-                } else if (pe.cmd === g.LINETO) {
+                } else if (elem.cmd === g.LINETO) {
                     return g.lineto(x, y);
-                } else if (pe.cmd === g.CURVETO) {
-                    ctrl1x = _snap(pe.ctrl1.x + position.x, position.x, distance, strength) - position.x;
-                    ctrl1y = _snap(pe.ctrl1.y + position.y, position.y, distance, strength) - position.y;
-                    ctrl2x = _snap(pe.ctrl2.x + position.x, position.x, distance, strength) - position.x;
-                    ctrl2y = _snap(pe.ctrl2.y + position.y, position.y, distance, strength) - position.y;
+                } else if (elem.cmd === g.CURVETO) {
+                    ctrl1x = _snap(elem.ctrl1.x + position.x, position.x, distance, strength) - position.x;
+                    ctrl1y = _snap(elem.ctrl1.y + position.y, position.y, distance, strength) - position.y;
+                    ctrl2x = _snap(elem.ctrl2.x + position.x, position.x, distance, strength) - position.x;
+                    ctrl2y = _snap(elem.ctrl2.y + position.y, position.y, distance, strength) - position.y;
                     return g.curveto(ctrl1x, ctrl1y, ctrl2x, ctrl2y, x, y);
                 }
-            });
+            }, shape.elements);
+            elements = mori.into(mori.vector(), elements);
             return g.makePath(elements, shape.fill, shape.stroke, shape.strokeWidth);
         } else if (shape.shapes) {
             return g.makeGroup(_.map(shape.shapes, snapShape));
