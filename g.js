@@ -544,6 +544,10 @@ if (typeof require !== 'undefined') {
 
     g.Point.ZERO = new g.Point(0, 0);
 
+    g.Point.prototype.clone = function () {
+        return new g.Point(this.x, this.y);
+    };
+
     g.Point.prototype.add = function (v) {
         return new g.Point(this.x + v.x, this.y + v.y);
     };
@@ -1114,49 +1118,69 @@ if (typeof require !== 'undefined') {
         return g.CLOSE_SEGMENT;
     };
 
-    g.Path = function (p, attrs) {
-        if (p === undefined) {
-            this.segments = [];
-        } else {
-            this.segments = p.segments || p;
+    g._cloneSegment = function (seg) {
+        var newSeg = {type: seg.type};
+        if (newSeg.type !== g.CLOSE) {
+            newSeg.point = seg.point.clone();
         }
-        var key;
-        if (attrs) {
-            for (key in attrs) {
-                if (attrs[key] !== undefined) {
-                    this[key] = attrs[key];
-                }
-            }
+        if (newSeg.type === g.CURVETO) {
+            newSeg.ctrl1 = seg.ctrl1.clone();
+            newSeg.ctrl2 = seg.ctrl2.clone();
+        }
+        return newSeg;
+    };
+
+    g._cloneColor = function (c) {
+        if (c === null) {
+            return null;
+        } else if (typeof c === 'string') {
+            return c;
+        } else {
+            return new g.Color(c.r, c.g, c.b, c.a);
         }
     };
 
-    g.Path.prototype.extend = function (p) {
-        var addSegments = p.segments || p,
-            segments = this.segments.concat(addSegments),
-            attrs = {
-                fill: this.fill,
-                stroke: this.stroke,
-                strokeWidth: this.strokeWidth,
-                _bounds: this._bounds,
-                _length: this._length
-            };
-        return new g.Path(segments, attrs);
+    g.Path = function (segments, fill, stroke, strokeWidth) {
+        this.segments = segments !== undefined ? segments : [];
+        this.fill = fill !== undefined ? fill : 'black';
+        this.stroke = stroke !== undefined ? stroke : null;
+        this.strokeWidth = strokeWidth !== undefined ? strokeWidth : 1;
+    };
+
+    g.Path.prototype.clone = function () {
+        var p = new g.Path(),
+            n = this.segments.length,
+            i;
+        p.segments.length = this.segments.length;
+        for (i = 0; i < n; i += 1) {
+            p.segments[i] = g._cloneSegment(this.segments[i]);
+        }
+        p.fill = g._cloneColor(this.fill);
+        p.stroke =  g._cloneColor(this.stroke);
+        p.strokeWidth = this.strokeWidth;
+        return p;
+    };
+
+    g.Path.prototype.extend = function (segmentsOrPath) {
+        var segments = segmentsOrPath.segments ? segmentsOrPath.segments : segmentsOrPath;
+        Array.prototype.push.apply(this.segments, segments);
     };
 
     g.Path.prototype.moveTo = function (x, y) {
-        return this.extend(g.moveTo(x, y));
+        this.segments.push({type: g.MOVETO, point: new g.Point(x, y)});
     };
 
     g.Path.prototype.lineTo = function (x, y) {
-        return this.extend(g.lineTo(x, y));
+        this.segments.push({type: g.LINETO, point: new g.Point(x, y)});
     };
 
     g.Path.prototype.curveTo = function (c1x, c1y, c2x, c2y, x, y) {
-        return this.extend(g.curveTo(c1x, c1y, c2x, c2y, x, y));
+        this.segments.push({type: g.LINETO, point: new g.Point(x, y),
+            ctrl1: new g.Point(c1x, c1y), ctrl2: new g.Point(c2x, c2y)});
     };
 
     g.Path.prototype.closePath = g.Path.prototype.close = function () {
-        return this.extend(g.closePath());
+        this.segments.push({type: g.CLOSE});
     };
 
     g.Path.prototype.isClosed = function () {
@@ -1165,19 +1189,19 @@ if (typeof require !== 'undefined') {
     };
 
     g.Path.prototype.rect = function (x, y, width, height) {
-        return this.extend(g._rect(x, y, width, height));
+        this.extend(g._rect(x, y, width, height));
     };
 
     g.Path.prototype.roundedRect = function (cx, cy, width, height, rx, ry) {
-        return this.extend(g.roundedRect(cx, cy, width, height, rx, ry));
+        this.extend(g.roundedRect(cx, cy, width, height, rx, ry));
     };
 
     g.Path.prototype.ellipse = function (x, y, width, height) {
-        return this.extend(g._ellipse(x, y, width, height));
+        this.extend(g._ellipse(x, y, width, height));
     };
 
     g.Path.prototype.line = function (x1, y1, x2, y2) {
-        return this.extend(g._line(x1, y1, x2, y2));
+        this.extend(g._line(x1, y1, x2, y2));
     };
 
     g.Path.prototype.colorize = function (fill, stroke, strokeWidth) {
@@ -1422,13 +1446,13 @@ if (typeof require !== 'undefined') {
         }
     };
 
-    g.makePath = function (pe, fill, stroke, strokeWidth) {
-        var attrs = {
-            fill: fill,
-            stroke: stroke,
-            strokeWidth: strokeWidth
-        };
-        return new g.Path(pe, attrs);
+    g.makePath = function (segments, fill, stroke, strokeWidth) {
+        var p = new g.Path();
+        p.segments = segments;
+        p.fill = fill;
+        p.stroke = stroke;
+        p.strokeWidth = strokeWidth;
+        return p;
     };
 
     // GROUP ////////////////////////////////////////////////////////////////
@@ -1441,6 +1465,21 @@ if (typeof require !== 'undefined') {
         } else if (shapes) {
             this.shapes = shapes;
         }
+    };
+
+    g.Group.prototype.add = function (shape) {
+        this.shapes.push(shape);
+    };
+
+    g.Group.prototype.clone = function () {
+        var newShapes = [],
+            n = this.shapes.length,
+            i;
+        newShapes.length = n;
+        for (i = 0; i < n; i += 1 ) {
+            newShapes[i] = this.shapes[i].clone();
+        }
+        return new g.Group(newShapes);
     };
 
     g.Group.prototype.colorize = function (fill, stroke, strokeWidth) {
