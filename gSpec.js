@@ -117,6 +117,14 @@ describe('A path', function () {
         expect(newP.hasTag('foo')).toBeTruthy();
     });
 
+    it('can be resampled', function () {
+        var p = new g.Path(),
+            newPath;
+        p.addRect(10, 20, 30, 40);
+        newPath = p.resampleByAmount(100);
+        expect(newPath.segments.length).toBe(101); // 100 lines + 1 close segment
+    });
+
 });
 
 describe('A group', function () {
