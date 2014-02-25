@@ -1,5 +1,5 @@
 /*jslint sloppy:true, nomen:true */
-/*global require, describe, xdescribe, it, xit, expect, _, g,  */
+/*global require, describe, xdescribe, it, xit, expect */
 
 var _ = require('underscore'),
     g = require('./g.js');
@@ -154,7 +154,7 @@ describe('A group', function () {
         group.paths = [p1, p2];
 
         expect(group.findByTag('foo')).toEqual([]);
-        group.tag('foo', function (p) {
+        group.tag('foo', function () {
             return true;
         });
         expect(group.findByTag('foo')).toEqual([p1, p2]);

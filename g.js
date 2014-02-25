@@ -7,7 +7,7 @@
 // De Smedt T. & Daelemans W. (2012). Pattern for Python. Journal of Machine Learning Research.
 
 /*jslint nomen:true, bitwise:true, regexp:true */
-/*global _, Uint8Array, Float32Array, module, console, require, define, window  */
+/*global Uint8Array, Float32Array, module, console, require, define, window  */
 
 if (typeof require !== 'undefined') {
     var _ = require('underscore');
@@ -326,7 +326,7 @@ if (typeof require !== 'undefined') {
     g.bezier.segmentLengths = function (segments, relative, n) {
         relative = relative !== undefined ? relative : false;
         if (n === undefined) { n = 20; }
-        var i, el, type, pt, close_x, close_y, x0, y0, s, lengths;
+        var i, el, type, pt, closeX, closeY, x0, y0, s, lengths;
         lengths = [];
         for (i = 0; i < segments.length; i += 1) {
             el = segments[i];
@@ -334,14 +334,14 @@ if (typeof require !== 'undefined') {
             pt = el.point;
 
             if (i === 0) {
-                close_x = pt.x;
-                close_y = pt.y;
+                closeX = pt.x;
+                closeY = pt.y;
             } else if (type === g.MOVETO) {
-                close_x = pt.x;
-                close_y = pt.y;
+                closeX = pt.x;
+                closeY = pt.y;
                 lengths.push(0.0);
             } else if (type === g.CLOSE) {
-                lengths.push(g.bezier.lineLength(x0, y0, close_x, close_y));
+                lengths.push(g.bezier.lineLength(x0, y0, closeX, closeY));
             } else if (type === g.LINETO) {
                 lengths.push(g.bezier.lineLength(x0, y0, pt.x, pt.y));
             } else if (type === g.CURVETO) {
@@ -378,14 +378,14 @@ if (typeof require !== 'undefined') {
     // the last MOVETO or any subsequent CLOSE segments after i.
     // Note: during iteration, supplying segment lengths yourself is 30x faster.
     g.bezier._locate = function (path, t, segmentLengths) {
-        var i, el, closeto;
+        var i, el, closeTo;
         if (segmentLengths === undefined) {
             segmentLengths = g.bezier.segmentLengths(path.segments, true);
         }
         for (i = 0; i < path.segments.length; i += 1) {
             el = path.segments[i];
             if (i === 0 || el.type === g.MOVETO) {
-                closeto = g.makePoint(el.point.x, el.point.y);
+                closeTo = g.makePoint(el.point.x, el.point.y);
             }
             if (t <= segmentLengths[i] || i === segmentLengths.length - 1) {
                 break;
@@ -394,24 +394,24 @@ if (typeof require !== 'undefined') {
         }
         if (segmentLengths[i] !== 0) { t /= segmentLengths[i]; }
         if (i === segmentLengths.length - 1 && segmentLengths[i] === 0) { i -= 1; }
-        return [i, t, closeto];
+        return [i, t, closeTo];
     };
 
     // Returns the DynamicPathElement at time t on the path.
     // Note: in PathElement, ctrl1 is how the curve started, and ctrl2 how it arrives in this point.
     // Here, ctrl1 is how the curve arrives, and ctrl2 how it continues to the next point.
     g.bezier.point = function (path, t, segmentLengths) {
-        var loc, i, closeto, x0, y0, pe;
+        var loc, i, closeTo, x0, y0, pe;
         loc = g.bezier._locate(path, t, segmentLengths);
         i = loc[0];
         t = loc[1];
-        closeto = loc[2];
+        closeTo = loc[2];
         x0 = path.segments[i].point.x;
         y0 = path.segments[i].point.y;
         pe = path.segments[i + 1];
         if (pe.type === g.LINETO || pe.type === g.CLOSE) {
             pe = (pe.type === g.CLOSE) ?
-                     g.bezier.linePoint(t, x0, y0, closeto.x, closeto.y) :
+                     g.bezier.linePoint(t, x0, y0, closeTo.x, closeTo.y) :
                      g.bezier.linePoint(t, x0, y0, pe.point.x, pe.point.y);
         } else if (pe.type === g.CURVETO) {
             pe = g.bezier.curvePoint(t, x0, y0, pe.ctrl1.x, pe.ctrl1.y, pe.ctrl2.x, pe.ctrl2.y, pe.point.x, pe.point.y);
@@ -420,7 +420,7 @@ if (typeof require !== 'undefined') {
     };
 
     g.bezier.extrema = function (p1, p2, p3, p4) {
-        var minx, maxx, miny, maxy,
+        var minX, maxX, minY, maxY,
             ax, bx, cx, ay, by, cy,
             temp, rcp, tx, ty,
 
@@ -438,14 +438,14 @@ if (typeof require !== 'undefined') {
         }
 
         function coefficients(t) {
-            var m_t, a, b, c, d;
-            m_t = 1 - t;
-            b = m_t * m_t;
+            var mT, a, b, c, d;
+            mT = 1 - t;
+            b = mT * mT;
             c = t * t;
             d = c * t;
-            a = b * m_t;
+            a = b * mT;
             b *= (3.0 * t);
-            c *= (3.0 * m_t);
+            c *= (3.0 * mT);
             return [a, b, c, d];
         }
 
@@ -463,32 +463,32 @@ if (typeof require !== 'undefined') {
         function bezierCheck(t) {
             if (t >= 0 && t <= 1) {
                 var p = pointAt(t);
-                if (p.x < minx) {
-                    minx = p.x;
-                } else if (p.x > maxx) {
-                    maxx = p.x;
+                if (p.x < minX) {
+                    minX = p.x;
+                } else if (p.x > maxX) {
+                    maxX = p.x;
                 }
-                if (p.y < miny) {
-                    miny = p.y;
-                } else if (p.y > maxy) {
-                    maxy = p.y;
+                if (p.y < minY) {
+                    minY = p.y;
+                } else if (p.y > maxY) {
+                    maxY = p.y;
                 }
             }
         }
 
         if (x1 < x4) {
-            minx = x1;
-            maxx = x4;
+            minX = x1;
+            maxX = x4;
         } else {
-            minx = x4;
-            maxx = x1;
+            minX = x4;
+            maxX = x1;
         }
         if (y1 < y4) {
-            miny = y1;
-            maxy = y4;
+            minY = y1;
+            maxY = y4;
         } else {
-            miny = y4;
-            maxy = y1;
+            minY = y4;
+            maxY = y1;
         }
 
         ax = 3 * (-x1 + 3 * x2 - 3 * x3 + x4);
@@ -527,7 +527,7 @@ if (typeof require !== 'undefined') {
             }
         }
 
-        return g.makeRect(minx, miny, maxx - minx, maxy - miny);
+        return g.makeRect(minX, minY, maxX - minX, maxY - minY);
     };
 
 
@@ -1162,7 +1162,7 @@ if (typeof require !== 'undefined') {
     };
 
     g.Path.prototype.extend = function (segmentsOrPath) {
-        var segments = segmentsOrPath.segments ? segmentsOrPath.segments : segmentsOrPath;
+        var segments = segmentsOrPath.segments || segmentsOrPath;
         Array.prototype.push.apply(this.segments, segments);
     };
 
@@ -1476,7 +1476,7 @@ if (typeof require !== 'undefined') {
             n = this.shapes.length,
             i;
         newShapes.length = n;
-        for (i = 0; i < n; i += 1 ) {
+        for (i = 0; i < n; i += 1) {
             newShapes[i] = this.shapes[i].clone();
         }
         return new g.Group(newShapes);
@@ -1754,10 +1754,10 @@ if (typeof require !== 'undefined') {
                 return s;
             }
         }
-        return '#'
-            + toHex(Math.round(r * 255))
-            + toHex(Math.round(g * 255))
-            + toHex(Math.round(b * 255));
+        return '#' +
+            toHex(Math.round(r * 255)) +
+            toHex(Math.round(g * 255)) +
+            toHex(Math.round(b * 255));
     };
 
     // Converts the given hexadecimal color string to R,G,B (between 0.0-1.0).
@@ -2495,19 +2495,19 @@ if (typeof require !== 'undefined') {
         if (arcToSegmentsCache[argsString]) {
           return arcToSegmentsCache[argsString];
         } */
-        var th, sin_th, cos_th, px, py, pl,
+        var th, sinTh, cosTh, px, py, pl,
             a00, a01, a10, a11, x0, y0, x1, y1,
-            d, sfactor_sq, sfactor, xc, yc,
-            th0, th1, th_arc,
+            d, sFactorSq, sFactor, xc, yc,
+            th0, th1, thArc,
             segments, result, th2, th3, i;
 
         th = rotateX * (Math.PI / 180);
-        sin_th = Math.sin(th);
-        cos_th = Math.cos(th);
+        sinTh = Math.sin(th);
+        cosTh = Math.cos(th);
         rx = Math.abs(rx);
         ry = Math.abs(ry);
-        px = cos_th * (ox - x) * 0.5 + sin_th * (oy - y) * 0.5;
-        py = cos_th * (oy - y) * 0.5 - sin_th * (ox - x) * 0.5;
+        px = cosTh * (ox - x) * 0.5 + sinTh * (oy - y) * 0.5;
+        py = cosTh * (oy - y) * 0.5 - sinTh * (ox - x) * 0.5;
         pl = (px * px) / (rx * rx) + (py * py) / (ry * ry);
         if (pl > 1) {
             pl = Math.sqrt(pl);
@@ -2515,58 +2515,58 @@ if (typeof require !== 'undefined') {
             ry *= pl;
         }
 
-        a00 = cos_th / rx;
-        a01 = sin_th / rx;
-        a10 = (-sin_th) / ry;
-        a11 = cos_th / ry;
+        a00 = cosTh / rx;
+        a01 = sinTh / rx;
+        a10 = (-sinTh) / ry;
+        a11 = cosTh / ry;
         x0 = a00 * ox + a01 * oy;
         y0 = a10 * ox + a11 * oy;
         x1 = a00 * x + a01 * y;
         y1 = a10 * x + a11 * y;
 
         d = (x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0);
-        sfactor_sq = 1 / d - 0.25;
-        if (sfactor_sq < 0) { sfactor_sq = 0; }
-        sfactor = Math.sqrt(sfactor_sq);
-        if (sweep === large) { sfactor = -sfactor; }
-        xc = 0.5 * (x0 + x1) - sfactor * (y1 - y0);
-        yc = 0.5 * (y0 + y1) + sfactor * (x1 - x0);
+        sFactorSq = 1 / d - 0.25;
+        if (sFactorSq < 0) { sFactorSq = 0; }
+        sFactor = Math.sqrt(sFactorSq);
+        if (sweep === large) { sFactor = -sFactor; }
+        xc = 0.5 * (x0 + x1) - sFactor * (y1 - y0);
+        yc = 0.5 * (y0 + y1) + sFactor * (x1 - x0);
 
         th0 = Math.atan2(y0 - yc, x0 - xc);
         th1 = Math.atan2(y1 - yc, x1 - xc);
 
-        th_arc = th1 - th0;
-        if (th_arc < 0 && sweep === 1) {
-            th_arc += 2 * Math.PI;
-        } else if (th_arc > 0 && sweep === 0) {
-            th_arc -= 2 * Math.PI;
+        thArc = th1 - th0;
+        if (thArc < 0 && sweep === 1) {
+            thArc += 2 * Math.PI;
+        } else if (thArc > 0 && sweep === 0) {
+            thArc -= 2 * Math.PI;
         }
 
-        segments = Math.ceil(Math.abs(th_arc / (Math.PI * 0.5 + 0.001)));
+        segments = Math.ceil(Math.abs(thArc / (Math.PI * 0.5 + 0.001)));
         result = [];
         for (i = 0; i < segments; i += 1) {
-            th2 = th0 + i * th_arc / segments;
-            th3 = th0 + (i + 1) * th_arc / segments;
-            result[i] = [xc, yc, th2, th3, rx, ry, sin_th, cos_th];
+            th2 = th0 + i * thArc / segments;
+            th3 = th0 + (i + 1) * thArc / segments;
+            result[i] = [xc, yc, th2, th3, rx, ry, sinTh, cosTh];
         }
 
     //    arcToSegmentsCache[argsString] = result;
         return result;
     };
 
-    g.svg.segmentToBezier = function (cx, cy, th0, th1, rx, ry, sin_th, cos_th) {
+    g.svg.segmentToBezier = function (cx, cy, th0, th1, rx, ry, sinTh, cosTh) {
     //    argsString = _join.call(arguments);
     //    if (segmentToBezierCache[argsString]) {
     //      return segmentToBezierCache[argsString];
     //    }
 
-        var a00 = cos_th * rx,
-            a01 = -sin_th * ry,
-            a10 = sin_th * rx,
-            a11 = cos_th * ry,
+        var a00 = cosTh * rx,
+            a01 = -sinTh * ry,
+            a10 = sinTh * rx,
+            a11 = cosTh * ry,
 
-            th_half = 0.5 * (th1 - th0),
-            t = (8 / 3) * Math.sin(th_half * 0.5) * Math.sin(th_half * 0.5) / Math.sin(th_half),
+            thHalf = 0.5 * (th1 - th0),
+            t = (8 / 3) * Math.sin(thHalf * 0.5) * Math.sin(thHalf * 0.5) / Math.sin(thHalf),
             x1 = cx + Math.cos(th0) - t * Math.sin(th0),
             y1 = cy + Math.sin(th0) + t * Math.cos(th0),
             x3 = cx + Math.cos(th1),
@@ -2675,7 +2675,7 @@ if (typeof require !== 'undefined') {
 
     g._arc = function (x, y, width, height, startAngle, degrees, arcType) {
         var w, h, angStRad, ext, arcSegs, increment, cv, lineSegs,
-            index, segments, angle, relx, rely, coords;
+            index, segments, angle, relX, relY, coords;
         w = width / 2;
         h = height / 2;
         angStRad = g.math.radians(startAngle);
@@ -2727,18 +2727,18 @@ if (typeof require !== 'undefined') {
                 }
             } else {
                 angle += increment * (index - 1);
-                relx = Math.cos(angle);
-                rely = Math.sin(angle);
+                relX = Math.cos(angle);
+                relY = Math.sin(angle);
                 coords = [];
-                coords.push(x + (relx - cv * rely) * w);
-                coords.push(y + (rely + cv * relx) * h);
+                coords.push(x + (relX - cv * relY) * w);
+                coords.push(y + (relY + cv * relX) * h);
                 angle += increment;
-                relx = Math.cos(angle);
-                rely = Math.sin(angle);
-                coords.push(x + (relx + cv * rely) * w);
-                coords.push(y + (rely - cv * relx) * h);
-                coords.push(x + relx * w);
-                coords.push(y + rely * h);
+                relX = Math.cos(angle);
+                relY = Math.sin(angle);
+                coords.push(x + (relX + cv * relY) * w);
+                coords.push(y + (relY - cv * relX) * h);
+                coords.push(x + relX * w);
+                coords.push(y + relY * h);
                 segments.push(g.curveto.apply(null, coords));
             }
             index += 1;
@@ -3333,7 +3333,7 @@ if (typeof require !== 'undefined') {
         return shape.point(t / 100).point;
     };
 
-    g.shapeOnPath = function (shapes, path, amount, alignment, spacing, margin, baseline_offset) {
+    g.shapeOnPath = function (shapes, path, amount, alignment, spacing, margin, baselineOffset) {
         if (!shapes) { return []; }
         if (path === null) { return []; }
 
@@ -3365,8 +3365,8 @@ if (typeof require !== 'undefined') {
             p1 = path.point(pos).point;
             p2 = path.point(pos + 0.0000001).point;
             a = g.geometry.angle(p1.x, p1.y, p2.x, p2.y);
-            if (baseline_offset) {
-                p1 = g.geometry.coordinates(p1.x, p1.y, baseline_offset, a - 90);
+            if (baselineOffset) {
+                p1 = g.geometry.coordinates(p1.x, p1.y, baselineOffset, a - 90);
             }
             t = new g.Transform();
             t = t.translate(p1.x, p1.y);
@@ -3513,42 +3513,42 @@ if (typeof require !== 'undefined') {
             return shapes;
         }
         var tx, ty, t, bounds,
-            first_bounds = shapes[0].bounds(),
-            new_shapes = [];
+            firstBounds = shapes[0].bounds(),
+            newShapes = [];
         if (direction === 'e') {
-            tx = -(first_bounds.width / 2);
+            tx = -(firstBounds.width / 2);
             _.each(shapes, function (shape) {
                 bounds = shape.bounds();
                 t = new g.Transform().translate(tx - bounds.x, 0);
-                new_shapes.push(t.transformShape(shape));
+                newShapes.push(t.transformShape(shape));
                 tx += bounds.width + margin;
             });
         } else if (direction === 'w') {
-            tx = first_bounds.width / 2;
+            tx = firstBounds.width / 2;
             _.each(shapes, function (shape) {
                 bounds = shape.bounds();
                 t = new g.Transform().translate(tx + bounds.x, 0);
-                new_shapes.push(t.transformShape(shape));
+                newShapes.push(t.transformShape(shape));
                 tx -= bounds.width + margin;
             });
         } else if (direction === 'n') {
-            ty = first_bounds.height / 2;
+            ty = firstBounds.height / 2;
             _.each(shapes, function (shape) {
                 bounds = shape.bounds();
                 t = new g.Transform().translate(0, ty + bounds.y);
-                new_shapes.push(t.transformShape(shape));
+                newShapes.push(t.transformShape(shape));
                 ty -= bounds.height + margin;
             });
         } else if (direction === 's') {
-            ty = -(first_bounds.height / 2);
+            ty = -(firstBounds.height / 2);
             _.each(shapes, function (shape) {
                 bounds = shape.bounds();
                 t = new g.Transform().translate(0, ty - bounds.y);
-                new_shapes.push(t.transformShape(shape));
+                newShapes.push(t.transformShape(shape));
                 ty += bounds.height + margin;
             });
         }
-        return new_shapes;
+        return newShapes;
     };
 
     // MODULE SUPPORT ///////////////////////////////////////////////////////
