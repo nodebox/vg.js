@@ -57,6 +57,29 @@ describe('The math module', function () {
 
 });
 
+describe('The bezier module', function () {
+
+    it('can calculate line lengths', function () {
+        expect(g.bezier.lineLength(0, 0, 100, 0)).toBe(100);
+        expect(g.bezier.lineLength(100, 0, 0, 0)).toBe(100);
+        expect(Math.round(g.bezier.lineLength(0, 0, 50, 50))).toBe(71);
+    });
+
+    it('can calculate segment lengths', function () {
+        var segments = [], segmentLengths;
+        segments.push(g.moveTo(0, 0));
+        segments.push(g.lineTo(100, 0));
+        segments.push(g.lineTo(100, 50));
+        segments.push(g.close());
+        segmentLengths = g.bezier.segmentLengths(segments);
+        expect(segmentLengths.length).toBe(segments.length - 1);
+        expect(segmentLengths[0]).toBe(100)
+        expect(segmentLengths[1]).toBe(50)
+        expect(Math.round(segmentLengths[2])).toBe(112);
+    });
+
+});
+
 describe('A point', function () {
 
     it('has a sane constructor', function () {
