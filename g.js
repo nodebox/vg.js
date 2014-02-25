@@ -668,19 +668,19 @@ g.CLOSE_ELEMENT = Object.freeze({ cmd: g.CLOSE });
 
 g.moveTo = g.moveto = function (x, y) {
     return Object.freeze({ cmd:   g.MOVETO,
-           point: g.makePoint(x, y) });
+           point: new g.Point(x, y) });
 };
 
 g.lineTo = g.lineto = function (x, y) {
     return Object.freeze({ cmd:   g.LINETO,
-           point: g.makePoint(x, y) });
+           point: new g.Point(x, y) });
 };
 
 g.curveTo = g.curveto = function (c1x, c1y, c2x, c2y, x, y) {
     return Object.freeze({ cmd:   g.CURVETO,
-           point: g.makePoint(x, y),
-           ctrl1: g.makePoint(c1x, c1y),
-           ctrl2: g.makePoint(c2x, c2y) });
+           point: new g.Point(x, y),
+           ctrl1: new g.Point(c1x, c1y),
+           ctrl2: new g.Point(c2x, c2y) });
 };
 
 g.closePath = g.closepath = g.close = function () {
@@ -846,44 +846,56 @@ g.Path = function (p, attrs) {
     } else {
         this.elements = p.elements || (p instanceof Array ? mori.into(mori.vector(), p) : p);
     }
-    var key;
-    if (attrs) {
-        for (key in attrs) {
-            if (attrs[key] !== undefined) {
-                this[key] = attrs[key];
-                if (this[key] instanceof Object) {
-                    Object.freeze(this[key]);
-                }
-            }
-        }
-    }
+    
+    this.attrs = attrs || mori.hash_map();
+
+    Object.freeze(this.attrs);
     Object.freeze(this.elements);
     Object.freeze(this);
 };
 
+g.Path.prototype = {
+    get fill() {
+        return mori.get(this.attrs, "fill") || undefined;
+    },
+    set fill() {
+        throw "Error: path.fill is readonly.";
+    },
+    get stroke() {
+        return mori.get(this.attrs, "stroke") || undefined;
+    },
+    set stroke() {
+        throw "Error: path.stroke is readonly.";
+    },
+    get strokeWidth() {
+        return mori.get(this.attrs, "strokeWidth") || undefined;
+    },
+    set strokeWidth() {
+        throw "Error: path.strokeWidth is readonly.";
+    },
+    get _bounds() {
+        return mori.get(this.attrs, "_bounds") || undefined;
+    },
+    set _bounds() {
+        throw "Error: path._bounds is readonly.";
+    },
+    get _length() {
+        return mori.get(this.attrs, "_length") || undefined;
+    },
+    set _length() {
+        throw "Error: path._length is readonly.";
+    }
+};
+
 g.Path.prototype.extend = function (p) {
     var addElements = p.elements || p,
-        elements = mori.into(this.elements, addElements),
-        attrs = {
-            fill: this.fill,
-            stroke: this.stroke,
-            strokeWidth: this.strokeWidth,
-            _bounds: this._bounds,
-            _length: this._length
-        };
-    return new g.Path(elements, attrs);
+        elements = mori.into(this.elements, addElements);
+    return new g.Path(elements, this.attrs);
 };
 
 g.Path.prototype.add = function (el) {
-    var elements = mori.conj(this.elements, el),
-        attrs = {
-            fill: this.fill,
-            stroke: this.stroke,
-            strokeWidth: this.strokeWidth,
-            _bounds: this._bounds,
-            _length: this._length
-        };
-    return new g.Path(elements, attrs);
+    var elements = mori.conj(this.elements, el);
+    return new g.Path(elements, this.attrs);
 };
 
 g.Path.prototype.moveTo = function (x, y) {
@@ -924,13 +936,7 @@ g.Path.prototype.line = function (x1, y1, x2, y2) {
 };
 
 g.Path.prototype.colorize = function (fill, stroke, strokeWidth) {
-    var attrs = {
-        fill: fill,
-        stroke: stroke,
-        strokeWidth: strokeWidth,
-        _bounds: this._bounds,
-        _length: this._length
-    };
+    var attrs = mori.assoc(this.attrs, "fill", fill, "stroke", stroke, "strokeWidth", strokeWidth);
     return new g.Path(this.elements, attrs);
 };
 
@@ -956,7 +962,7 @@ g.Path.prototype.contours = function () {
 
 g.Path.prototype.bounds = function () {
     if (this._bounds) { return this._bounds; }
-    if (_.isEmpty(this.elements)) { return g.makeRect(0, 0, 0, 0); }
+    if (mori.is_empty(this.elements)) { return g.makeRect(0, 0, 0, 0); }
 
     var px, py, prev, right, bottom,
         minX = Number.MAX_VALUE,
@@ -1073,15 +1079,15 @@ g.Path.prototype.resampleByAmount = function (points, perContour) {
 g.Path.prototype.resampleByLength = function (segmentLength) {
     var i, subPath, contourLength, amount,
         subPaths = this.contours(),
-        elems = mori.vector();
+        elements = mori.vector();
     for (i = 0; i < subPaths.length; i += 1) {
         subPath = g.makePath(subPaths[i]);
         contourLength = subPath.length();
         amount = Math.ceil(contourLength / segmentLength);
         if (!subPath.isClosed()) { amount += 1; }
-        elems = mori.into(elems, subPath.resampleByAmount(amount, false).elements);
+        elements = mori.into(elements, subPath.resampleByAmount(amount, false).elements);
     }
-    return g.makePath(elems, this.fill, this.stroke, this.strokeWidth);
+    return g.makePath(elements, this.fill, this.stroke, this.strokeWidth);
 };
 
 g.Path.prototype.toPathData = function () {
@@ -1165,11 +1171,7 @@ g.Path.prototype.draw = function (ctx) {
 };
 
 g.makePath = function (p, fill, stroke, strokeWidth) {
-    var attrs = {
-        fill: fill,
-        stroke: stroke,
-        strokeWidth: strokeWidth
-    };
+    var attrs = mori.hash_map("fill", fill, "stroke", stroke, "strokeWidth", strokeWidth);
     return new g.Path(p, attrs);
 };
 
@@ -1202,7 +1204,7 @@ g.Group.prototype.bounds = function () {
             r = shape.bounds();
         }
         if ((shape.shapes && !_.isEmpty(shape.shapes)) ||
-                (shape.elements && !_.isEmpty(shape.elements))) {
+                (shape.elements && !mori.is_empty(shape.elements))) {
             r = r.unite(shape.bounds());
         }
     }
