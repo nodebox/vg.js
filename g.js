@@ -87,6 +87,14 @@ if (typeof require !== 'undefined') {
         }
     };
 
+    // Snaps a value to a virtual grid. Distance defines the spacing between grid lines.
+    // Strength defines how strongly the values move to the grid. If 1, the values will always
+    // be on the grid lines, if 0, the value is unchanged.
+    g.math.snap = function (v, distance, strength) {
+        stength = strength !== undefined ? strength : 1;
+        return (v * (1.0 - strength)) + (strength * Math.round(v / distance) * distance);
+    };
+
     g.math.dot = function (a, b) {
         var m = Math.min(a.length, b.length),
             n = 0,
@@ -3243,13 +3251,6 @@ if (typeof require !== 'undefined') {
     // Snap geometry to a grid.
     g.snap = function (shape, distance, strength, position) {
 
-        function _snap(v, offset, distance, strength) {
-            if (offset === null) { offset = 0.0; }
-            if (distance === null) { distance = 10.0; }
-            if (strength === null) { strength = 1.0; }
-            return (v * (1.0 - strength)) + (strength * Math.round(v / distance) * distance);
-        }
-
         if (shape === null) { return null; }
         if (position === null) { position = g.Point.ZERO; }
         strength /= 100.0;
@@ -3259,18 +3260,20 @@ if (typeof require !== 'undefined') {
                 var elements = mori.map(function (elem) {
                     if (elem.cmd === g.CLOSE) { return elem; }
                     var x, y, ctrl1x, ctrl1y, ctrl2x, ctrl2y;
-                    x = _snap(elem.point.x + position.x, position.x, distance, strength) - position.x;
-                    y = _snap(elem.point.y + position.y, position.y, distance, strength) - position.y;
+                    x = g.math.snap(elem.point.x + position.x, distance, strength) - position.x;
+                    y = g.math.snap(elem.point.y + position.y, distance, strength) - position.y;
                     if (elem.cmd === g.MOVETO) {
                         return g.moveto(x, y);
                     } else if (elem.cmd === g.LINETO) {
                         return g.lineto(x, y);
                     } else if (elem.cmd === g.CURVETO) {
-                        ctrl1x = _snap(elem.ctrl1.x + position.x, position.x, distance, strength) - position.x;
-                        ctrl1y = _snap(elem.ctrl1.y + position.y, position.y, distance, strength) - position.y;
-                        ctrl2x = _snap(elem.ctrl2.x + position.x, position.x, distance, strength) - position.x;
-                        ctrl2y = _snap(elem.ctrl2.y + position.y, position.y, distance, strength) - position.y;
+                        ctrl1x = g.math.snap(elem.ctrl1.x + position.x, distance, strength) - position.x;
+                        ctrl1y = g.math.snap(elem.ctrl1.y + position.y, distance, strength) - position.y;
+                        ctrl2x = g.math.snap(elem.ctrl2.x + position.x, distance, strength) - position.x;
+                        ctrl2y = g.math.snap(elem.ctrl2.y + position.y, distance, strength) - position.y;
                         return g.curveto(ctrl1x, ctrl1y, ctrl2x, ctrl2y, x, y);
+                    } else {
+                        throw new Error('Invalid segment type.');
                     }
                 }, shape.elements);
                 elements = mori.into(mori.vector(), elements);
