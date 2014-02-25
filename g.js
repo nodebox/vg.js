@@ -194,35 +194,33 @@ if (typeof require !== 'undefined') {
 
     g.geometry = {};
 
+    // Returns the angle between two points.
     g.geometry.angle = function (x0, y0, x1, y1) {
-        /* Returns the angle between two points.
-         */
         return g.math.degrees(Math.atan2(y1 - y0, x1 - x0));
     };
 
+    // Returns the distance between two points.
     g.geometry.distance = function (x0, y0, x1, y1) {
-        /* Returns the distance between two points.
-         */
         return Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
     };
 
+    // Returns the location of a point by rotating around origin (x0,y0).
     g.geometry.coordinates = function (x0, y0, distance, angle) {
-        /* Returns the location of a point by rotating around origin (x0,y0).
-         */
         var x = x0 + Math.cos(g.math.radians(angle)) * distance,
             y = y0 + Math.sin(g.math.radians(angle)) * distance;
         return new g.Point(x, y);
     };
 
+
+    // Ray casting algorithm.
+    // Determines how many times a horizontal ray starting from the point
+    // intersects with the sides of the polygon.
+    // If it is an even number of times, the point is outside, if odd, inside.
+    // The algorithm does not always report correctly when the point is very close to the boundary.
+    // The polygon is passed as an array of Points.
+    //
+    // Based on: W. Randolph Franklin, 1970, http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
     g.geometry.pointInPolygon = function (points, x, y) {
-        /* Ray casting algorithm.
-         * Determines how many times a horizontal ray starting from the point
-         * intersects with the sides of the polygon.
-         * If it is an even number of times, the point is outside, if odd, inside.
-         * The algorithm does not always report correctly when the point is very close to the boundary.
-         * The polygon is passed as an array of Points.
-         */
-        // Based on: W. Randolph Franklin, 1970, http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
         var i, j, x0, y0, x1, y1,
             odd = false,
             n = points.length;
@@ -254,26 +252,23 @@ if (typeof require !== 'undefined') {
         return _.reduce(values, function (a, b) { return a + b; }); // sum
     };
 
+    // Returns coordinates for the point at t (0.0-1.0) on the line.
     g.bezier.linePoint = function (t, x0, y0, x1, y1) {
-        /* Returns coordinates for the point at t (0.0-1.0) on the line.
-         */
         var x = x0 + t * (x1 - x0),
             y = y0 + t * (y1 - y0);
         return g.lineto(x, y);
     };
 
+    // Returns the length of the line.
     g.bezier.lineLength = function (x0, y0, x1, y1) {
-        /* Returns the length of the line.
-         */
         var a = Math.pow(Math.abs(x0 - x1), 2),
             b = Math.pow(Math.abs(y0 - y1), 2);
         return Math.sqrt(a + b);
     };
 
+    // Returns coordinates for the point at t (0.0-1.0) on the curve
+    // (de Casteljau interpolation algorithm).
     g.bezier.curvePoint = function (t, x0, y0, x1, y1, x2, y2, x3, y3, handles) {
-        /* Returns coordinates for the point at t (0.0-1.0) on the curve
-         * (de Casteljau interpolation algorithm).
-         */
         var dt = 1 - t,
             x01 = x0 * dt + x1 * t,
             y01 = y0 * dt + y1 * t,
@@ -298,11 +293,10 @@ if (typeof require !== 'undefined') {
         }*/
     };
 
+    // Returns the length of the curve.
+    // Integrates the estimated length of the cubic bezier spline defined by x0, y0, ... x3, y3,
+    // by adding up the length of n linear lines along the curve.
     g.bezier.curveLength = function (x0, y0, x1, y1, x2, y2, x3, y3, n) {
-        /* Returns the length of the curve.
-         * Integrates the estimated length of the cubic bezier spline defined by x0, y0, ... x3, y3,
-         * by adding up the length of n linear lines along the curve.
-         */
         if (n === undefined) { n = 20; }
         var i, t, pe,
             length = 0,
@@ -323,10 +317,9 @@ if (typeof require !== 'undefined') {
 
     // BEZIER PATH LENGTH:
 
+    // Returns an array with the length of each segment in the path.
+    // With relative=true, the total length of all segments is 1.0.
     g.bezier.segmentLengths = function (pathElements, relative, n) {
-        /* Returns an array with the length of each segment in the path.
-         * With relative=true, the total length of all segments is 1.0.
-         */
         if (n === undefined) { n = 20; }
         var i, el, cmd, pt, close_x, close_y, x0, y0, s, lengths;
         lengths = [];
@@ -364,11 +357,10 @@ if (typeof require !== 'undefined') {
         return Object.freeze(lengths);
     };
 
+    // Returns the approximate length of the path.
+    // Calculates the length of each curve in the path using n linear samples.
+    // With segmented=true, returns an array with the relative length of each segment (sum=1.0).
     g.bezier.length = function (path, segmented, n) {
-        /* Returns the approximate length of the path.
-         * Calculates the length of each curve in the path using n linear samples.
-         * With segmented=true, returns an array with the relative length of each segment (sum=1.0).
-         */
         if (n === undefined) { n = 20; }
         return (!segmented) ?
                 g.bezier.sum(g.bezier.segmentLengths(path.elements, false, n)) :
@@ -377,13 +369,12 @@ if (typeof require !== 'undefined') {
 
     // BEZIER PATH POINT:
 
+    // For a given relative t on the path (0.0-1.0), returns an array [index, t, PathElement],
+    // with the index of the PathElement before t,
+    // the absolute time on this segment,
+    // the last MOVETO or any subsequent CLOSETO after i.
+    // Note: during iteration, supplying segmentLengths() yourself is 30x faster.
     g.bezier._locate = function (path, t, segments) {
-        /* For a given relative t on the path (0.0-1.0), returns an array [index, t, PathElement],
-         * with the index of the PathElement before t,
-         * the absolute time on this segment,
-         * the last MOVETO or any subsequent CLOSETO after i.
-        */
-        // Note: during iteration, supplying segmentLengths() yourself is 30x faster.
         var i, el, closeto;
         if (segments === undefined) {
             segments = g.bezier.segmentLengths(path.elements, true);
@@ -403,11 +394,10 @@ if (typeof require !== 'undefined') {
         return Object.freeze([i, t, closeto]);
     };
 
+    // Returns the DynamicPathElement at time t on the path.
+    // Note: in PathElement, ctrl1 is how the curve started, and ctrl2 how it arrives in this point.
+    // Here, ctrl1 is how the curve arrives, and ctrl2 how it continues to the next point.
     g.bezier.point = function (path, t, segments) {
-        /* Returns the DynamicPathElement at time t on the path.
-         * Note: in PathElement, ctrl1 is how the curve started, and ctrl2 how it arrives in this point.
-         * Here, ctrl1 is how the curve arrives, and ctrl2 how it continues to the next point.
-         */
         var loc, i, closeto, x0, y0, pe;
         loc = g.bezier._locate(path, t, segments);
         i = loc[0];
@@ -752,12 +742,10 @@ if (typeof require !== 'undefined') {
         return new g.Vec3(x / w, y / w, z / w);
     };
 
-
+    // A geometric transformation in Euclidean space (i.e. 2D)
+    // that preserves collinearity and ratio of distance between points.
+    // Linear transformations include rotation, translation, scaling, shear.
     g.Matrix3 = g.Transform = function (m) {
-        /* A geometric transformation in Euclidean space (i.e. 2D)
-         * that preserves collinearity and ratio of distance between points.
-         * Linear transformations include rotation, translation, scaling, shear.
-         */
         if (m !== undefined) {
             this.m = m;
         } else {
@@ -768,11 +756,10 @@ if (typeof require !== 'undefined') {
 
     g.Matrix3.IDENTITY = new g.Matrix3();
 
+    // Returns the 3x3 matrix multiplication of A and B.
+    // Note that scale(), translate(), rotate() work with premultiplication,
+    // e.g. the matrix A followed by B = BA and not AB.
     g.Matrix3._mmult = function (a, b) {
-        /* Returns the 3x3 matrix multiplication of A and B.
-         * Note that scale(), translate(), rotate() work with premultiplication,
-         * e.g. the matrix A followed by B = BA and not AB.
-         */
         if (a.m !== undefined) { a = a.m; }
         if (b.m !== undefined) { b = b.m; }
 
@@ -828,9 +815,8 @@ if (typeof require !== 'undefined') {
         return g.Matrix3._mmult([1, Math.tan(ky), 0, -Math.tan(kx), 1, 0, 0, 0, 1], this.m);
     };
 
+    // Returns the new coordinates of the given point (x,y) after transformation.
     g.Matrix3.prototype.transformPoint = function (point) {
-        /* Returns the new coordinates of the given point (x,y) after transformation.
-         */
         var x = point.x,
             y = point.y,
             m = this.m;
@@ -1331,9 +1317,8 @@ if (typeof require !== 'undefined') {
         return g.makeRect(minX, minY, maxX - minX, maxY - minY);
     };
 
+    // Returns the DynamicPathElement at time t (0.0-1.0) on the path.
     g.Path.prototype.point = function (t, segments) {
-        /* Returns the DynamicPathElement at time t (0.0-1.0) on the path.
-         */
         if (segments === undefined) {
             // Cache the segment lengths for performace.
             segments = g.bezier.length(this, true, 10);
@@ -1341,10 +1326,9 @@ if (typeof require !== 'undefined') {
         return g.bezier.point(this, t, segments);
     };
 
+    // Returns an array of DynamicPathElements along the path.
+    // To omit the last point on closed paths: {end: 1-1.0/amount}
     g.Path.prototype.points = function (amount, options) {
-        /* Returns an array of DynamicPathElements along the path.
-         * To omit the last point on closed paths: {end: 1-1.0/amount}
-         */
         var d, a, i, segments,
             start = (options && options.start !== undefined) ? options.start : 0.0,
             end = (options && options.end !== undefined) ? options.end : 1.0;
@@ -1366,16 +1350,14 @@ if (typeof require !== 'undefined') {
         return Object.freeze(a);
     };
 
+    // Returns an approximation of the total length of the path.
     g.Path.prototype.length = function (precision) {
-        /* Returns an approximation of the total length of the path.
-         */
         if (precision === undefined) { precision = 10; }
         return g.bezier.length(this, false, precision);
     };
 
+    // Returns true when point (x,y) falls within the contours of the path.
     g.Path.prototype.contains = function (x, y, precision) {
-        /* Returns true when point (x,y) falls within the contours of the path.
-         */
         if (precision === undefined) { precision = 100; }
         var i, polygon = this.points(precision),
             points = [];
@@ -1550,9 +1532,8 @@ if (typeof require !== 'undefined') {
         return (r !== undefined) ? r : g.makeRect(0, 0, 0, 0);
     };
 
+    // Returns true when point (x,y) falls within the contours of the group.
     g.Group.prototype.contains = function (x, y, precision) {
-        /* Returns true when point (x,y) falls within the contours of the group.
-         */
         if (precision === undefined) { precision = 100; }
         mori.each(this.shapes, function (shape) {
             if (shape.contains(x, y, precision)) {
