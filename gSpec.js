@@ -1,5 +1,5 @@
 /*jslint sloppy:true, nomen:true */
-/*global require, describe, xdescribe, it, xit, expect, _, g,  */
+/*global require, describe, xdescribe, it, xit, expect */
 
 var _ = require('underscore'),
     g = require('./g.js');

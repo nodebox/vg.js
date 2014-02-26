@@ -6,8 +6,9 @@
 // Based on: canvas.js, https://github.com/clips/pattern/blob/master/pattern/canvas.js (BSD)
 // De Smedt T. & Daelemans W. (2012). Pattern for Python. Journal of Machine Learning Research.
 
+/*jslint es5: true */
 /*jslint nomen:true, bitwise:true, regexp:true */
-/*global _, Uint8Array, Float32Array, module, console, require, define, window  */
+/*global _, mori, Uint8Array:true, Float32Array:true, module, console, require, define, window  */
 
 if (typeof require !== 'undefined') {
     var _ = require('underscore');
@@ -19,11 +20,11 @@ if (typeof require !== 'undefined') {
     // The Java rhino engine doesn't know the following variables, so to not break compatibility with the Java version of NodeBox,
     // we provide a fallback mechanism.
     if (typeof Uint8Array === 'undefined') {
-        var Uint8Array = Array;
+        Uint8Array = Array;
     }
 
     if (typeof Float32Array === 'undefined') {
-        var Float32Array = Array;
+        Float32Array = Array;
     }
 
     if (Object.freeze === undefined) {
@@ -550,19 +551,19 @@ if (typeof require !== 'undefined') {
         get x() {
             return this._x;
         },
-        set x() {
+        set x(value) {
             throw "Error: point.x is readonly, use point.withX() instead.";
         },
         get y() {
             return this._y;
         },
-        set y() {
+        set y(value) {
             throw "Error: point.y is readonly, use point.withY() instead.";
         },
         get xy() {
             return [this._x, this._y];
         },
-        set xy() {
+        set xy(value) {
             throw "Error: point.xy is readonly.";
         }
     };
@@ -1190,31 +1191,31 @@ if (typeof require !== 'undefined') {
         get fill() {
             return mori.get(this.attrs, "fill") || undefined;
         },
-        set fill() {
+        set fill(value) {
             throw "Error: path.fill is readonly.";
         },
         get stroke() {
             return mori.get(this.attrs, "stroke") || undefined;
         },
-        set stroke() {
+        set stroke(value) {
             throw "Error: path.stroke is readonly.";
         },
         get strokeWidth() {
             return mori.get(this.attrs, "strokeWidth") || undefined;
         },
-        set strokeWidth() {
+        set strokeWidth(value) {
             throw "Error: path.strokeWidth is readonly.";
         },
         get _bounds() {
             return mori.get(this.attrs, "_bounds") || undefined;
         },
-        set _bounds() {
+        set _bounds(value) {
             throw "Error: path._bounds is readonly.";
         },
         get _length() {
             return mori.get(this.attrs, "_length") || undefined;
         },
-        set _length() {
+        set _length(value) {
             throw "Error: path._length is readonly.";
         }
     };
@@ -1533,7 +1534,7 @@ if (typeof require !== 'undefined') {
             if (r === undefined) {
                 r = shape.bounds();
             }
-            if ((shape.shapes && !_mori.is_empty(shape.shapes)) ||
+            if ((shape.shapes && !mori.is_empty(shape.shapes)) ||
                     (shape.elements && !mori.is_empty(shape.elements))) {
                 r = r.unite(shape.bounds());
             }
@@ -1582,7 +1583,7 @@ if (typeof require !== 'undefined') {
     // Draw the group to a 2D context.
     g.Group.prototype.draw = function (ctx) {
         mori.each(this.shapes, function (shape) {
-           shape.draw(ctx); 
+            shape.draw(ctx);
         });
     };
 
@@ -1601,7 +1602,7 @@ if (typeof require !== 'undefined') {
         if (shape.elements) { return shape.elements; }
         var elements = mori.vector();
         mori.each(shape.shapes, function (shape) {
-           elements = mori.into(elements, g.combinePaths(shape));
+            elements = mori.into(elements, g.combinePaths(shape));
         });
         return Object.freeze(elements);
     };
@@ -3104,21 +3105,21 @@ if (typeof require !== 'undefined') {
         wigglePoints = function (shape) {
             if (shape.elements) {
                 var i, dx, dy,
-                elements = mori.map(function (elem) {
-                    dx = (rand(0, 1) - 0.5) * offset.x * 2;
-                    dy = (rand(0, 1) - 0.5) * offset.y * 2;
-                    if (elem.cmd === g.CLOSE) {
-                        return elem;
-                    } else if (elem.cmd === g.MOVETO) {
-                        return g.moveto(elem.point.x + dx, elem.point.y + dy);
-                    } else if (elem.cmd === g.LINETO) {
-                        return g.lineto(elem.point.x + dx, elem.point.y + dy);
-                    } else if (elem.cmd === g.CURVETO) {
-                        return g.curveto(elem.ctrl1.x, elem.ctrl1.y,
+                    elements = mori.map(function (elem) {
+                        dx = (rand(0, 1) - 0.5) * offset.x * 2;
+                        dy = (rand(0, 1) - 0.5) * offset.y * 2;
+                        if (elem.cmd === g.CLOSE) {
+                            return elem;
+                        } else if (elem.cmd === g.MOVETO) {
+                            return g.moveto(elem.point.x + dx, elem.point.y + dy);
+                        } else if (elem.cmd === g.LINETO) {
+                            return g.lineto(elem.point.x + dx, elem.point.y + dy);
+                        } else if (elem.cmd === g.CURVETO) {
+                            return g.curveto(elem.ctrl1.x, elem.ctrl1.y,
                                          elem.ctrl2.x, elem.ctrl2.y,
                                          elem.point.x + dx, elem.point.y + dy);
-                    }
-                }, shape.elements);
+                        }
+                    }, shape.elements);
                 elements = mori.into(mori.vector(), elements);
                 return g.makePath(elements, shape.fill, shape.stroke, shape.strokeWidth);
             } else if (shape.shapes) {
