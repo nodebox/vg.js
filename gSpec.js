@@ -169,11 +169,11 @@ describe('A group', function () {
         group = new g.Group();
         expect(group.bounds()).toEqual(new g.Rect(0, 0, 0, 0));
         p1 = new g.Path()
-            .rect(10, 20, 30, 40);
+            .addRect(10, 20, 30, 40);
         group = g.group([p1]);
         expect(group.bounds()).toEqual(new g.Rect(10, 20, 30, 40));
         p2 = new g.Path()
-            .rect(100, 200, 10, 10);
+            .addRect(100, 200, 10, 10);
         group = g.group([p1, p2]);
         expect(group.bounds()).toEqual(new g.Rect(10, 20, 100, 190));
     });

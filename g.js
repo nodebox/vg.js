@@ -1252,19 +1252,19 @@ if (typeof require !== 'undefined') {
         return mori.last(this.elements).cmd === g.CLOSE;
     };
 
-    g.Path.prototype.rect = function (x, y, width, height) {
+    g.Path.prototype.addRect = function (x, y, width, height) {
         return this.extend(g._rect(x, y, width, height));
     };
 
-    g.Path.prototype.roundedRect = function (cx, cy, width, height, rx, ry) {
+    g.Path.prototype.addRoundedRect = function (cx, cy, width, height, rx, ry) {
         return this.extend(g.roundedRect(cx, cy, width, height, rx, ry));
     };
 
-    g.Path.prototype.ellipse = function (x, y, width, height) {
+    g.Path.prototype.addEllipse = function (x, y, width, height) {
         return this.extend(g._ellipse(x, y, width, height));
     };
 
-    g.Path.prototype.line = function (x1, y1, x2, y2) {
+    g.Path.prototype.addLine = function (x1, y1, x2, y2) {
         return this.extend(g._line(x1, y1, x2, y2));
     };
 
