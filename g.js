@@ -11,7 +11,8 @@
 /*global _, mori, Uint8Array:true, Float32Array:true, module, console, require, define, window  */
 
 if (typeof require !== 'undefined') {
-    var _ = require('underscore');
+    var _ = require('underscore'),
+        mori = require('mori');
 }
 
 (function () {

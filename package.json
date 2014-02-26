@@ -9,7 +9,8 @@
         "url": "https://github.com/nodebox/g.js.git"
     },
     "dependencies": {
-        "underscore": "1.6.0"
+        "underscore": "1.6.0",
+        "mori": "0.2.5"
     },
     "devDependencies": {
         "jasmine-node": "~1.13.1",

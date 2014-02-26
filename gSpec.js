@@ -2,6 +2,7 @@
 /*global require, describe, xdescribe, it, xit, expect */
 
 var _ = require('underscore'),
+    mori = require('mori'),
     g = require('./g.js');
 
 describe('The math module', function () {
