@@ -1248,7 +1248,7 @@ if (typeof require !== 'undefined') {
     };
 
     g.Path.prototype.isClosed = function () {
-        if (mori.is_empty(this.elements)) { return false; }
+        if (mori.count(this.elements) === 0) { return false; }
         return mori.last(this.elements).cmd === g.CLOSE;
     };
 
@@ -1295,7 +1295,7 @@ if (typeof require !== 'undefined') {
 
     g.Path.prototype.bounds = function () {
         if (this._bounds) { return this._bounds; }
-        if (mori.is_empty(this.elements)) { return g.makeRect(0, 0, 0, 0); }
+        if (mori.count(this.elements) === 0) { return g.makeRect(0, 0, 0, 0); }
 
         var px, py, prev, right, bottom,
             minX = Number.MAX_VALUE,
@@ -1528,14 +1528,14 @@ if (typeof require !== 'undefined') {
     };
 
     g.Group.prototype.bounds = function () {
-        if (mori.is_empty(this.shapes)) { return g.makeRect(0, 0, 0, 0); }
+        if (mori.count(this.shapes) === 0) { return g.makeRect(0, 0, 0, 0); }
         var r;
         mori.each(this.shapes, function (shape) {
             if (r === undefined) {
                 r = shape.bounds();
             }
-            if ((shape.shapes && !mori.is_empty(shape.shapes)) ||
-                    (shape.elements && !mori.is_empty(shape.elements))) {
+            if ((shape.shapes && mori.count(shape.shapes) > 0) ||
+                    (shape.elements && mori.count(shape.elements) > 0)) {
                 r = r.unite(shape.bounds());
             }
         });
