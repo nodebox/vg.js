@@ -259,6 +259,36 @@ describe('A color', function () {
 
 });
 
+describe('The colorize filter', function () {
+    
+    it('works on paths', function () {
+        var p = new g.Path(),
+            p2;
+        p.addRect(10, 20, 30, 40);
+        p2 = g.colorize(p, 'blue', 'red', 5);
+        expect(p2.fill).toBe('blue');
+        expect(p2.stroke).toBe('red');
+        expect(p2.strokeWidth).toBe(5);
+    });
+    
+    it('works on groups', function () {
+        var g1 = g.group(g.demoRect()),
+            g2,
+            p1,
+            p2;
+        g2 = g.colorize(g1, 'blue', 'red', 5);
+        p1 = g1.shapes[0];
+        p2 = g2.shapes[0];
+        expect(p1.fill).toBe('black');
+        expect(p1.stroke).toBeNull();
+        expect(p1.strokeWidth).toBe(1);
+        expect(p2.fill).toBe('blue');
+        expect(p2.stroke).toBe('red');
+        expect(p2.strokeWidth).toBe(5);
+    });
+    
+});
+
 xdescribe('Tagging', function () {
 
     it('can tag shapes', function () {

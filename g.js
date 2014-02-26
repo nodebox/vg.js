@@ -1205,14 +1205,11 @@ if (typeof require !== 'undefined') {
     };
 
     g.Path.prototype.colorize = function (fill, stroke, strokeWidth) {
-        var attrs = {
-            fill: fill,
-            stroke: stroke,
-            strokeWidth: strokeWidth,
-            _bounds: this._bounds,
-            _length: this._length
-        };
-        return new g.Path(this.segments, attrs);
+        var p = this.clone();
+        p.fill = g._cloneColor(fill);
+        p.stroke = g._cloneColor(stroke);
+        p.strokeWidth = strokeWidth;
+        return p;
     };
 
     g.Path.prototype.contours = function () {
@@ -1486,7 +1483,7 @@ if (typeof require !== 'undefined') {
         var shapes = _.map(this.shapes, function (shape) {
             return shape.colorize(fill, stroke, strokeWidth);
         });
-        return g.makeGroup(shapes);
+        return g.group(shapes);
     };
 
     g.Group.prototype.bounds = function () {
