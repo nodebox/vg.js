@@ -2021,7 +2021,7 @@ if (typeof require !== 'undefined') {
         return s.replace(/[\s\r\t\n]+/gm, ' ');
     };
 
-    g.svg.ToNumberArray = function (s) {
+    g.svg.toNumberArray = function (s) {
         var i,
             a = g.svg.trim(g.svg.compressSpaces((s || '').replace(/,/g, ' '))).split(' ');
         for (i = 0; i < a.length; i += 1) {
@@ -2354,14 +2354,14 @@ if (typeof require !== 'undefined') {
         types = {};
 
         types.translate = function (s) {
-            var a = g.svg.ToNumberArray(s),
+            var a = g.svg.toNumberArray(s),
                 tx = a[0],
                 ty = a[1] || 0;
             return new g.Transform().translate(tx, ty);
         };
 
         types.scale = function (s) {
-            var a = g.svg.ToNumberArray(s),
+            var a = g.svg.toNumberArray(s),
                 sx = a[0],
                 sy = a[1] || sx;
             return new g.Transform().scale(sx, sy);
@@ -2369,7 +2369,7 @@ if (typeof require !== 'undefined') {
 
         types.rotate = function (s) {
             var t,
-                a = g.svg.ToNumberArray(s),
+                a = g.svg.toNumberArray(s),
                 r = a[0],
                 tx = a[1] || 0,
                 ty = a[2] || 0;
@@ -2381,7 +2381,7 @@ if (typeof require !== 'undefined') {
         };
 
         types.matrix = function (s) {
-            var m = g.svg.ToNumberArray(s);
+            var m = g.svg.toNumberArray(s);
             return [m[0], m[1], 0, m[2], m[3], 0, m[4], m[5], 1];
         };
 
