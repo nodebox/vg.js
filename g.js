@@ -1425,16 +1425,16 @@ if (typeof require !== 'undefined') {
         d = '';
         mori.each(this.elements, function (elem) {
             if (elem.point) {
-                x = g.clamp(elem.point.x, -9999, 9999);
-                y = g.clamp(elem.point.y, -9999, 9999);
+                x = g.math.clamp(elem.point.x, -9999, 9999);
+                y = g.math.clamp(elem.point.y, -9999, 9999);
             }
             if (elem.ctrl1) {
-                x1 = g.clamp(elem.ctrl1.x, -9999, 9999);
-                y1 = g.clamp(elem.ctrl1.y, -9999, 9999);
+                x1 = g.math.clamp(elem.ctrl1.x, -9999, 9999);
+                y1 = g.math.clamp(elem.ctrl1.y, -9999, 9999);
             }
             if (elem.ctrl2) {
-                x2 = g.clamp(elem.ctrl2.x, -9999, 9999);
-                y2 = g.clamp(elem.ctrl2.y, -9999, 9999);
+                x2 = g.math.clamp(elem.ctrl2.x, -9999, 9999);
+                y2 = g.math.clamp(elem.ctrl2.y, -9999, 9999);
             }
             if (elem.cmd === g.MOVETO) {
                 if (!isNaN(x) && !isNaN(y)) {
@@ -1575,10 +1575,12 @@ if (typeof require !== 'undefined') {
     };
 
     g.Group.prototype.toSVG = function () {
-        var l = mori.map(function (shape) {
-            return shape.toSVG();
-        }, this.shapes);
-        return '<g>' + l.join('') + '</g>';
+        var svg = "<g>";
+        mori.each(this.shapes, function (shape) {
+            svg += shape.toSVG();
+        });
+        svg += "</g>";
+        return svg;
     };
 
     // Draw the group to a 2D context.

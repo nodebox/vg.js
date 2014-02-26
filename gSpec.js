@@ -101,7 +101,7 @@ describe('A path', function () {
         expect(p.toSVG()).toBe('<path d="M10 20L30 40Z"/>');
     });
 
-    xit('can clone itself', function () {
+/*    xit('can clone itself', function () {
         var p, newP;
         p = new g.Path();
         p.fill = 'red';
@@ -116,14 +116,14 @@ describe('A path', function () {
         expect(newP.fill).toBe('red');
         expect(newP.stroke).toBe('green');
         expect(newP.hasTag('foo')).toBeTruthy();
-    });
+    }); */
 
     it('can be resampled', function () {
-        var p = new g.Path(),
-            newPath;
-        p.addRect(10, 20, 30, 40);
+        var p, newPath;
+        p = new g.Path()
+            .addRect(10, 20, 30, 40);
         newPath = p.resampleByAmount(100);
-        expect(newPath.segments.length).toBe(101); // 100 lines + 1 close segment
+        expect(mori.count(newPath.elements)).toBe(101); // 100 lines + 1 close segment
     });
 
 });
@@ -142,7 +142,7 @@ describe('A group', function () {
         expect(group.toSVG()).toBe('<g><path d="M10 20L30 40Z"/></g>');
     });
 
-    xit('can clone itself', function () {
+/*    xit('can clone itself', function () {
         var group, newGroup;
         group = new g.Group();
         group.paths.push(g.DEMO_RECT.clone());
@@ -153,9 +153,9 @@ describe('A group', function () {
         expect(newGroup.paths.length).toBe(1);
         expect(newGroup.paths[0].hasTag('foo')).toBeTruthy();
         expect(newGroup.hasTag('foo')).toBeTruthy();
-    });
+    }); */
 
-    xit('can be tagged', function () {
+/*    xit('can be tagged', function () {
         var group, p1, p2;
         group = new g.Group();
         p1 = new g.Path();
@@ -171,7 +171,7 @@ describe('A group', function () {
             return p === p1;
         });
         expect(group.findByTag('bar')).toEqual([p1]);
-    });
+    }); */
 
     it('has bounds', function () {
         var group, p1, p2;
