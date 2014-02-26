@@ -329,6 +329,7 @@ if (typeof require !== 'undefined') {
     // Returns an array with the length of each segment in the path.
     // With relative=true, the total length of all segments is 1.0.
     g.bezier.segmentLengths = function (pathElements, relative, n) {
+        relative = relative !== undefined ? relative : false;
         if (n === undefined) { n = 20; }
         var i, el, cmd, pt, close_x, close_y, x0, y0, s, lengths;
         lengths = [];
