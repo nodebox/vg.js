@@ -2,7 +2,7 @@
     "name": "g.js",
     "description": "A JavaScript library for vector graphics.",
     "keywords": ["vector", "graphics", "canvas", "2d"],
-    "version": "0.0.1",
+    "version": "0.0.2",
     "license": "MIT",
     "repository": {
         "type": "git",
