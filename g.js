@@ -1586,6 +1586,58 @@ if (typeof require !== 'undefined') {
         return points;
     };
 
+    // TEXT ////////////////////////////////////////////////////////////////
+
+    g._dummyContext = null;
+
+    g.Text = function (text, x, y, options) {
+        this.text = text;
+        this.x = x;
+        this.y = y;
+        options = options || {};
+        this.fontSize = options.fontSize || 24;
+        this.font = options.font || 'sans-serif';
+    };
+
+    // The `measureWidth` function requires a canvas, so we set up a dummy one
+    // that we re-use for the duration of the page.
+    g.Text._getDummyContext = function () {
+        if (!g._dummyContext) {
+            if (typeof document !== 'undefined') {
+                g._dummyContext = document.createElement('canvas').getContext('2d');
+            } else {
+                // For node.js, use a fake context that estimates the width.
+                g._dummyContext = {
+                    font: '10px sans-serif',
+                    measureText: function (text) {
+                        var fontSize = parseFloat(this.font);
+                        // The 0.6 is the average width / fontSize ratio across all characters and font sizes.
+                        return {width: text.length * fontSize * 0.6};
+                    }
+                };
+            }
+        }
+        return g._dummyContext;
+    };
+
+    g.Text.prototype._getFont = function () {
+        return this.fontSize + 'px ' + this.font;
+    };
+
+    g.Text.prototype.draw = function (ctx) {
+        ctx.font = this._getFont();
+        ctx.fillText(this.text, this.x, this.y);
+    };
+
+    g.Text.prototype.bounds = function () {
+        var ctx = g.Text._getDummyContext(),
+            metrics;
+        ctx.font = this._getFont();
+        // FIXME: measureText returns a TextMetrics object that only contains width.
+        metrics = ctx.measureText(this.text);
+        return new g.Rect(this.x, this.y - this.fontSize, metrics.width, this.fontSize * 1.2);
+    };
+
     // COLOR ////////////////////////////////////////////////////////////////
 
     g.RGB = 'RGB';

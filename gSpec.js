@@ -188,6 +188,44 @@ describe('A group', function () {
 
 });
 
+describe('A text object', function () {
+
+    it('has a sane constructor', function () {
+        var t = new g.Text('Hello', 20, 20);
+        expect(t.fontSize).toBe(24);
+        expect(t.font).toBe('sans-serif');
+    });
+
+    it('can take options', function () {
+        var t = new g.Text('Hello', 20, 20, {fontSize: 18, font: 'Arial'});
+        expect(t.fontSize).toBe(18);
+        expect(t.font).toBe('Arial');
+    });
+
+    it('is drawable', function () {
+        var t = new g.Text('Hello', 20, 20);
+        expect(g.isDrawable(t)).toBeTruthy();
+        t.bounds();
+    });
+
+    it('has bounds', function () {
+        var text = 'Hello',
+            fontSize = 24,
+            t = new g.Text('Hello', 20, 20, {fontSize: fontSize}),
+            bounds = g.bounds(t);
+        expect(bounds.x).toEqual(20);
+        expect(bounds.y).toEqual(-4);
+        // Because node.js doesn't have access to the canvas, we fake the width
+        // measurement by taking the text.length and multiplying it by the font size,
+        // then multiplying it by 0.6, which is the average character width across all
+        // letters and font sizes.
+        expect(bounds.width).toEqual(text.length * fontSize * 0.6);
+        // The line height is hard-coded.
+        expect(bounds.height).toEqual(24 * 1.2);
+    });
+
+});
+
 describe('A color', function () {
 
     it('has a default constructor', function () {
@@ -265,6 +303,7 @@ describe('Drawables', function () {
         expect(g.isDrawable(g.demoRect())).toBeTruthy();
         expect(g.isDrawable(new g.Point())).toBeTruthy();
         expect(g.isDrawable(new g.Color(1, 0, 0))).toBeTruthy();
+        expect(g.isDrawable(new g.Text('Hello', 10, 10))).toBeTruthy();
 
         expect(g.isDrawable(null)).toBeFalsy();
         expect(g.isDrawable(0)).toBeFalsy();
@@ -281,7 +320,6 @@ describe('Drawables', function () {
     });
 
 });
-
 
 describe('The grid generator', function () {
 
