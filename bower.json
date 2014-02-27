@@ -1,0 +1,24 @@
+{
+    "name": "g.js",
+    "description": "A JavaScript library for vector graphics.",
+    "keywords": ["vector", "graphics", "canvas", "2d"],
+    "version": "0.0.1",
+    "homepage": "https://github.com/nodebox/g.js",
+    "authors": [
+        "Frederik De Bleser <frederik@emrg.be>",
+        "Tom De Smedt <tom@emrg.be>",
+        "Stefan Gabriëls <stefan@emrg.be>"
+    ],
+    "license": "MIT",
+    "main": "g.js",
+    "dependencies": {
+        "underscore": "1.6.0"
+    },
+    "ignore": [
+        "**/.*",
+        "node_modules",
+        "bower_components",
+        "test",
+        "tests"
+    ]
+}
