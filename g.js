@@ -1183,6 +1183,18 @@ if (typeof require !== 'undefined') {
     
         this.attrs = attrs || mori.hash_map();
 
+        if (!mori.has_key(this.attrs, "fill")) {
+            this.attrs = mori.assoc(this.attrs, "fill", "black");
+        }
+        
+        if (!mori.has_key(this.attrs, "stroke")) {
+            this.attrs = mori.assoc(this.attrs, "stroke", null);
+        }
+
+        if (!mori.has_key(this.attrs, "strokeWidth")) {
+            this.attrs = mori.assoc(this.attrs, "strokeWidth", 1);
+        }
+
         Object.freeze(this.attrs);
         Object.freeze(this.elements);
         Object.freeze(this);
@@ -1190,31 +1202,31 @@ if (typeof require !== 'undefined') {
 
     g.Path.prototype = {
         get fill() {
-            return mori.get(this.attrs, "fill") || undefined;
+            return mori.get(this.attrs, "fill");
         },
         set fill(value) {
             throw "Error: path.fill is readonly.";
         },
         get stroke() {
-            return mori.get(this.attrs, "stroke") || undefined;
+            return mori.get(this.attrs, "stroke");
         },
         set stroke(value) {
             throw "Error: path.stroke is readonly.";
         },
         get strokeWidth() {
-            return mori.get(this.attrs, "strokeWidth") || undefined;
+            return mori.get(this.attrs, "strokeWidth");
         },
         set strokeWidth(value) {
             throw "Error: path.strokeWidth is readonly.";
         },
         get _bounds() {
-            return mori.get(this.attrs, "_bounds") || undefined;
+            return mori.get(this.attrs, "_bounds");
         },
         set _bounds(value) {
             throw "Error: path._bounds is readonly.";
         },
         get _length() {
-            return mori.get(this.attrs, "_length") || undefined;
+            return mori.get(this.attrs, "_length");
         },
         set _length(value) {
             throw "Error: path._length is readonly.";
@@ -1513,6 +1525,8 @@ if (typeof require !== 'undefined') {
         } else if (shapes.shapes || shapes.elements) {
             this.shapes = mori.vector(shapes);
         } else if (shapes instanceof Array) {
+            this.shapes = mori.into(mori.vector(), shapes);
+        } else if (mori.is_seq(shapes) && !mori.is_vector(shapes)) {
             this.shapes = mori.into(mori.vector(), shapes);
         } else {
             this.shapes = shapes;
