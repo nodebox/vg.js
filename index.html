@@ -107,10 +107,13 @@
     var selectedCell = null;
     document.addEventListener('keydown', function (e) {
         if (e.which === 13 && e.ctrlKey) { // Ctrl-Enter
+            e.preventDefault();
             executeSelectedCell();
         } else if (e.which === 38 && e.ctrlKey) { // Ctrl-Up
+            e.preventDefault();
             selectPreviousCell();
         } else if (e.which === 40 && e.ctrlKey) { // Ctrl-Down
+            e.preventDefault();
             selectNextCell();
         }
     });
