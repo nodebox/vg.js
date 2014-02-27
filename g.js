@@ -3065,6 +3065,13 @@ if (typeof require !== 'undefined') {
 
     g.wiggle = function (shape, scope, offset, seed) {
         var rand, wigglePoints, wigglePaths, wiggleContours;
+        scope = scope || 'points';
+        if (offset === undefined) {
+            offset = {x: 10, y: 10};
+        } else if (typeof offset === 'number') {
+            offset = {x: offset, y: offset};
+        }
+        seed = seed !== undefined ? seed : Math.random();
         rand = g.randomGenerator(seed);
 
         wigglePoints = function (shape) {
