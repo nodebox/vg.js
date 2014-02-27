@@ -191,10 +191,9 @@
     }
 
     function executeSelectedCell() {
-        var $cell = selectedCell,
-            $textarea = $cell.querySelector('textarea'),
+        var $textarea = selectedCell.querySelector('textarea'),
             source = $textarea.value,
-            $result = $cell.querySelector('.result'),
+            $result = selectedCell.querySelector('.result'),
             isError = false,
             result,
             bounds,
@@ -229,7 +228,7 @@
 
         // If I'm editing in the last cell, create a new cell.
         cells = document.querySelectorAll('.cell');
-        if (cells[cells.length - 1] === $cell) {
+        if (cells[cells.length - 1] === selectedCell) {
             createCell();
         }
     }
