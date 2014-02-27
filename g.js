@@ -1135,7 +1135,7 @@ if (typeof require !== 'undefined') {
     };
 
     g._cloneColor = function (c) {
-        if (c === null) {
+        if (c === null || c === undefined) {
             return null;
         } else if (typeof c === 'string') {
             return c;
@@ -1964,6 +1964,8 @@ if (typeof require !== 'undefined') {
             return true;
         } else if (o.x !== undefined && o.y !== undefined) {
             return true;
+        } else if (o.r !== undefined && o.g !== undefined && o.b !== undefined) {
+            return true;
         } else {
             return false;
         }
@@ -1981,6 +1983,18 @@ if (typeof require !== 'undefined') {
         ctx.fill();
     };
 
+    g.drawColors = function (ctx, colors) {
+        var i, c;
+        ctx.save();
+        for (i = 0; i < colors.length; i += 1) {
+            c = colors[i];
+            ctx.fillStyle = g._getColor(c);
+            ctx.fillRect(0, 0, 30, 30);
+            ctx.translate(30, 0);
+        }
+        ctx.restore();
+    };
+
     g.draw = function (ctx, o) {
         var i, n;
         if (!o) {
@@ -1989,10 +2003,14 @@ if (typeof require !== 'undefined') {
             o.draw(ctx);
         } else if (o.x !== undefined && o.y !== undefined) {
             g.drawPoints(ctx, [o]);
+        } else if (o.r !== undefined && o.g !== undefined && o.b !== undefined) {
+            g.drawColors(ctx, [o]);
         } else if (Array.isArray(o)) {
             n = o.length;
             if (n > 0 && o[0].x !== undefined && o[0].y !== undefined) {
                 g.drawPoints(ctx, o);
+            } else if (n > 0 && o[0].r !== undefined && o[0].g !== undefined && o[0].b !== undefined) {
+                g.drawColors(ctx, o);
             } else {
                 for (i = 0; i < n; i += 1) {
                     g.draw(ctx, o[i]);
@@ -2009,9 +2027,15 @@ if (typeof require !== 'undefined') {
             return o.bounds();
         } else if (o.x !== undefined && o.y !== undefined) {
             return new g.Rect(o.x, o.y, 0, 0);
+        } else if (o.r !== undefined && o.g !== undefined && o.b !== undefined) {
+            return new g.Rect(0, 0, 30, 30);
         } else if (Array.isArray(o)) {
             r = null;
             n = o.length;
+            // A color array is special since the colors have no inherent position.
+            if (n > 0 && o[0].r !== undefined && o[0].g !== undefined && o[0].b !== undefined) {
+                return new g.Rect(0, 0, o.length * 30, 30);
+            }
             for (i = 0; i < n; i += 1) {
                 if (!r) {
                     r = g.bounds(o[i]);
