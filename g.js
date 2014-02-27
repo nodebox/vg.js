@@ -2048,24 +2048,27 @@ if (typeof require !== 'undefined') {
     };
 
     g.draw = function (ctx, o) {
-        var i, n;
-        if (!o) {
-            return;
-        } else if (typeof o.draw === 'function') {
-            o.draw(ctx);
-        } else if (o.x !== undefined && o.y !== undefined) {
-            g.drawPoints(ctx, [o]);
-        } else if (o.r !== undefined && o.g !== undefined && o.b !== undefined) {
-            g.drawColors(ctx, [o]);
-        } else if (Array.isArray(o)) {
-            n = o.length;
-            if (n > 0 && o[0].x !== undefined && o[0].y !== undefined) {
-                g.drawPoints(ctx, o);
-            } else if (n > 0 && o[0].r !== undefined && o[0].g !== undefined && o[0].b !== undefined) {
-                g.drawColors(ctx, o);
-            } else {
-                for (i = 0; i < n; i += 1) {
-                    g.draw(ctx, o[i]);
+        var i, n, first;
+        if (o) {
+            if (typeof o.draw === 'function') {
+                o.draw(ctx);
+            } else if (o.x !== undefined && o.y !== undefined) {
+                g.drawPoints(ctx, [o]);
+            } else if (o.r !== undefined && o.g !== undefined && o.b !== undefined) {
+                g.drawColors(ctx, [o]);
+            } else if (Array.isArray(o)) {
+                n = o.length;
+                if (n > 0) {
+                    first = o[0];
+                    if (typeof first.draw === 'function') {
+                        for (i = 0; i < n; i += 1) {
+                            g.draw(ctx, o[i]);
+                        }
+                    } else if (first.x !== undefined && first.y !== undefined) {
+                        g.drawPoints(ctx, o);
+                    } else if (first.r !== undefined && first.g !== undefined && first.b !== undefined) {
+                        g.drawColors(ctx, o);
+                    }
                 }
             }
         }
