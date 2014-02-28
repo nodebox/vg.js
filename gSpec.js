@@ -225,6 +225,15 @@ describe('A text object', function () {
         expect(bounds.height).toEqual(24 * 1.2);
     });
 
+    it('supports alignment', function () {
+        var tLeft = new g.Text('Hello', 0, 0, {align: 'left'}),
+            tRight = new g.Text('Hello', 0, 0, {align: 'right'}),
+            tCenter = new g.Text('Hello', 0, 0, {align: 'center'});
+        expect(tLeft.bounds().x).toEqual(0);
+        expect(tRight.bounds().x).toEqual(-(tRight.text.length * tRight.fontSize * 0.6));
+        expect(tCenter.bounds().x).toEqual(-(tCenter.text.length * tRight.fontSize * 0.6) / 2);
+    });
+
 });
 
 describe('A color', function () {

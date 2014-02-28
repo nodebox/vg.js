@@ -1596,6 +1596,7 @@ if (typeof require !== 'undefined') {
         options = options || {};
         this.fontSize = options.fontSize || 24;
         this.fontFamily = options.fontFamily || options.fontName || options.font || 'sans-serif';
+        this.align = options.align || 'left';
     };
 
     // The `measureWidth` function requires a canvas, so we set up a dummy one
@@ -1624,17 +1625,26 @@ if (typeof require !== 'undefined') {
     };
 
     g.Text.prototype.draw = function (ctx) {
+        ctx.save();
         ctx.font = this._getFont();
+        ctx.textAlign = this.align;
         ctx.fillText(this.text, this.x, this.y);
+        ctx.restore();
     };
 
     g.Text.prototype.bounds = function () {
         var ctx = g.Text._getDummyContext(),
-            metrics;
+            metrics,
+            x = this.x;
         ctx.font = this._getFont();
         // FIXME: measureText returns a TextMetrics object that only contains width.
         metrics = ctx.measureText(this.text);
-        return new g.Rect(this.x, this.y - this.fontSize, metrics.width, this.fontSize * 1.2);
+        if (this.align === 'center') {
+            x = this.x - (metrics.width / 2);
+        } else if (this.align === 'right') {
+            x = this.x - metrics.width;
+        }
+        return new g.Rect(x, this.y - this.fontSize, metrics.width, this.fontSize * 1.2);
     };
 
     // COLOR ////////////////////////////////////////////////////////////////
