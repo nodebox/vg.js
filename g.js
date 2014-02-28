@@ -1589,15 +1589,77 @@ if (typeof require !== 'undefined') {
 
     g._dummyContext = null;
 
-    g.Text = function (text, x, y, options) {
+    // Generates a Text object.
+    // The function can take many possible argument forms, either by listing them in order
+    // (text, x, y, fontFamily, fontSize, align, fill), or by using an options object.
+    // The position can be specified as x, y; using a point {x: 10, y: 20} or using an array [10, 20].
+    // Here are a couple of ways to generate 'Hello' at position 0, 0 in 12pt Helvetica, centered.
+    //
+    //     new g.Text('Hello', {x: 0, y: 0}, 'Helvetica', 12, 'center');
+    //     new g.Text('Hello', [0, 0], {fontFamily: 'Helvetica', fontSize: 12, align: 'center'});
+    //     new g.Text('Hello', 0, 0, {fontFamily: 'Helvetica', fontSize: 12});  // align: center is the default.
+    //     new g.Text('Hello', {fontFamily: 'Helvetica', fontSize: 12}); // the position defaults to 0,0.
+    g.Text = function (text) {
+        var args = Array.prototype.slice.call(arguments, 1),
+            secondArg = arguments[1],
+            thirdArg = arguments[2],
+            lastArg = arguments[arguments.length - 1],
+            options;
+
+        // The text is required and always the first argument.
         this.text = text;
-        this.x = x;
-        this.y = y;
-        options = options || {};
-        this.fontSize = options.fontSize || 24;
-        this.fontFamily = options.fontFamily || options.fontName || options.font || 'sans-serif';
-        this.align = options.align || 'left';
-        this.fill = options.fill || 'black';
+
+        // Second argument is position (as object or array) or x (as number).
+        if (typeof secondArg === 'number') {
+            this.x = secondArg;
+            this.y = thirdArg;
+            args = args.slice(2);
+        } else if (Array.isArray(secondArg)) {
+            this.x = secondArg[0];
+            this.y = secondArg[1];
+            args = args.slice(1);
+        } else if (typeof secondArg === 'object') {
+            this.x = secondArg.x !== undefined ? secondArg.x : 0;
+            this.y = secondArg.y !== undefined ? secondArg.y : 0;
+            args = args.slice(1);
+        } else {
+            this.x = 0;
+            this.y = 0;
+        }
+
+        // The options object, if provided, is always the last argument.
+        if (typeof lastArg === 'object') {
+            options = lastArg;
+            if (secondArg !== lastArg) {
+                args = args.slice(0, args.length-1);
+            }
+        } else {
+            options = {};
+        }
+
+        if (args.length) {
+            this.fontFamily = args.shift();
+        } else {
+            this.fontFamily = options.fontFamily || options.fontName || options.font || 'sans-serif';
+        }
+
+        if (args.length) {
+            this.fontSize = args.shift();
+        } else {
+            this.fontSize = options.fontSize || 24;
+        }
+
+        if (args.length) {
+            this.align = args.shift();
+        } else {
+            this.align = options.align || 'left';
+        }
+
+        if (args.length) {
+            this.fill = args.shift();
+        } else {
+            this.fill = options.fill || 'black';
+        }
     };
 
     // The `measureWidth` function requires a canvas, so we set up a dummy one
@@ -1647,6 +1709,23 @@ if (typeof require !== 'undefined') {
             x = this.x - metrics.width;
         }
         return new g.Rect(x, this.y - this.fontSize, metrics.width, this.fontSize * 1.2);
+    };
+
+    // Generates a Text object.
+    // The function can take many possible argument forms, either by listing them in order
+    // (text, x, y, fontFamily, fontSize, align, fill), or by using an options object.
+    // The position can be specified as x, y; using a point {x: 10, y: 20} or using an array [10, 20].
+    // Here are a couple of ways to generate 'Hello' at position 0, 0 in 12pt Helvetica, centered.
+    //
+    //     g.text('Hello', {x: 0, y: 0}, 'Helvetica', 12, 'center');
+    //     g.text('Hello', [0, 0], {fontFamily: 'Helvetica', fontSize: 12, align: 'center'});
+    //     g.text('Hello', 0, 0, {fontFamily: 'Helvetica', fontSize: 12});  // align: center is the default.
+    //     g.text('Hello', {fontFamily: 'Helvetica', fontSize: 12}); // the position defaults to 0,0.
+    g.text = function () {
+        var t = Object.create(g.Text.prototype);
+        t.constructor = g.Text.prototype;
+        g.Text.apply(t, arguments);
+        return t;
     };
 
     // COLOR ////////////////////////////////////////////////////////////////

@@ -190,10 +190,47 @@ describe('A group', function () {
 
 describe('A text object', function () {
 
-    it('has a sane constructor', function () {
-        var t = new g.Text('Hello', 20, 20);
-        expect(t.fontSize).toBe(24);
+    function testArgs(t) {
+        expect(t.text).toBe('Hello');
+        expect(t.x).toBe(10);
+        expect(t.y).toBe(20);
+        expect(t.fontFamily).toBe('Helvetica');
+        expect(t.fontSize).toBe(12);
+        expect(t.align).toBe('right');
+    }
+
+    function testDefaultArgs(t) {
+        expect(t.text).toBe('Hello');
+        expect(t.x).toBe(0);
+        expect(t.y).toBe(0);
         expect(t.fontFamily).toBe('sans-serif');
+        expect(t.fontSize).toBe(24);
+        expect(t.align).toBe('left');
+    }
+
+    it('has many constructor options', function () {
+        testArgs(new g.Text('Hello', 10, 20, 'Helvetica', 12, 'right'));
+        testArgs(new g.Text('Hello', [10, 20], 'Helvetica', 12, 'right'));
+        testArgs(new g.Text('Hello', {x: 10, y: 20}, 'Helvetica', 12, 'right'));
+        testArgs(new g.Text('Hello', 10, 20, {fontFamily: 'Helvetica', fontSize: 12, align: 'right'}));
+        testArgs(new g.Text('Hello', [10, 20], {fontFamily: 'Helvetica', fontSize: 12, align: 'right'}));
+        testArgs(new g.Text('Hello', [10, 20], {fontFamily: 'Helvetica', fontSize: 12, align: 'right'}));
+        testArgs(new g.Text('Hello', {x: 10, y: 20, fontFamily: 'Helvetica', fontSize: 12, align: 'right'}));
+
+        testDefaultArgs(new g.Text('Hello'));
+        testDefaultArgs(new g.Text('Hello', 0, 0));
+        testDefaultArgs(new g.Text('Hello', [0, 0]));
+        testDefaultArgs(new g.Text('Hello', {x: 0, y: 0}));
+        testDefaultArgs(new g.Text('Hello', 0, 0, 'sans-serif'));
+        testDefaultArgs(new g.Text('Hello', {x: 0, y: 0}, 'sans-serif'));
+        testDefaultArgs(new g.Text('Hello', {fontFamily: 'sans-serif'}));
+    });
+
+    it('has a corresponding function', function () {
+        testArgs(g.text('Hello', 10, 20, 'Helvetica', 12, 'right'));
+        testArgs(g.text('Hello', [10, 20], {fontFamily: 'Helvetica', fontSize: 12, align: 'right'}));
+        testDefaultArgs(g.text('Hello'));
+        testDefaultArgs(g.text('Hello', [0, 0], 'sans-serif'));
     });
 
     it('can take options', function () {
