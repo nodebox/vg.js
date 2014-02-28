@@ -1597,6 +1597,7 @@ if (typeof require !== 'undefined') {
         this.fontSize = options.fontSize || 24;
         this.fontFamily = options.fontFamily || options.fontName || options.font || 'sans-serif';
         this.align = options.align || 'left';
+        this.fill = options.fill || 'black';
     };
 
     // The `measureWidth` function requires a canvas, so we set up a dummy one
@@ -1628,6 +1629,7 @@ if (typeof require !== 'undefined') {
         ctx.save();
         ctx.font = this._getFont();
         ctx.textAlign = this.align;
+        ctx.fillStyle = g._getColor(this.fill);
         ctx.fillText(this.text, this.x, this.y);
         ctx.restore();
     };
