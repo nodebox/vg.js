@@ -193,13 +193,14 @@ describe('A text object', function () {
     it('has a sane constructor', function () {
         var t = new g.Text('Hello', 20, 20);
         expect(t.fontSize).toBe(24);
-        expect(t.font).toBe('sans-serif');
+        expect(t.fontFamily).toBe('sans-serif');
     });
 
     it('can take options', function () {
+        // `font` and `fontName` are aliases of `fontFamily`.
         var t = new g.Text('Hello', 20, 20, {fontSize: 18, font: 'Arial'});
         expect(t.fontSize).toBe(18);
-        expect(t.font).toBe('Arial');
+        expect(t.fontFamily).toBe('Arial');
     });
 
     it('is drawable', function () {

@@ -26,7 +26,6 @@ if (typeof require !== 'undefined') {
 //        var Float32Array = Array;
 //    }
 
-
     if (Array.isArray === undefined) {
         Array.isArray = function (v) {
             return Object.prototype.toString.call(v) === '[object Array]';
@@ -1596,7 +1595,7 @@ if (typeof require !== 'undefined') {
         this.y = y;
         options = options || {};
         this.fontSize = options.fontSize || 24;
-        this.font = options.font || 'sans-serif';
+        this.fontFamily = options.fontFamily || options.fontName || options.font || 'sans-serif';
     };
 
     // The `measureWidth` function requires a canvas, so we set up a dummy one
@@ -1621,7 +1620,7 @@ if (typeof require !== 'undefined') {
     };
 
     g.Text.prototype._getFont = function () {
-        return this.fontSize + 'px ' + this.font;
+        return this.fontSize + 'px ' + this.fontFamily;
     };
 
     g.Text.prototype.draw = function (ctx) {
