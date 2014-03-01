@@ -260,8 +260,41 @@ describe('A color', function () {
 
 });
 
+describe('Drawables', function () {
+
+    it('can discover if something is drawable', function () {
+        expect(g.isDrawable(g.demoRect())).toBeTruthy();
+        expect(g.isDrawable(new g.Point())).toBeTruthy();
+
+        expect(g.isDrawable(null)).toBeFalsy();
+        expect(g.isDrawable(0)).toBeFalsy();
+        expect(g.isDrawable([])).toBeFalsy();
+        expect(g.isDrawable([0])).toBeFalsy();
+        expect(g.isDrawable(new g.Color(1, 0, 0))).toBeFalsy();
+    });
+
+    it('can get the bounds', function () {
+        expect(g.bounds(g._rect(10, 20, 30, 40)).xywh).toEqual([10, 20, 30, 40]);
+        expect(g.bounds([new g.Point(10, 20), new g.Point(30, 40)]).xywh).toEqual([10, 20, 20, 20]);
+
+        expect(g.bounds([]).xywh).toEqual([0, 0, 0, 0]);
+        expect(g.bounds(42).xywh).toEqual([0, 0, 0, 0]);
+    });
+
+});
+
+
+describe('The grid generator', function () {
+
+    it('generates grids', function () {
+        var grid = g.grid(3, 3, 100, 100);
+        expect(grid.length).toBe(3 * 3);
+    });
+
+});
+
 describe('The colorize filter', function () {
-    
+
     it('works on paths', function () {
         var p, p2;
         p = new g.Path()
@@ -271,7 +304,7 @@ describe('The colorize filter', function () {
         expect(p2.stroke).toBe('red');
         expect(p2.strokeWidth).toBe(5);
     });
-    
+
     it('works on groups', function () {
         var g1 = g.group(g.demoRect()),
             g2,
@@ -287,7 +320,7 @@ describe('The colorize filter', function () {
         expect(p2.stroke).toBe('red');
         expect(p2.strokeWidth).toBe(5);
     });
-    
+
 });
 
 xdescribe('Tagging', function () {

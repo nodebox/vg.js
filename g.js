@@ -1060,13 +1060,18 @@ if (typeof require !== 'undefined') {
     // RECT /////////////////////////////////////////////////////////////////
 
     g.Rect = function (x, y, width, height) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
+        this.x = x !== undefined ? x : 0;
+        this.y = y !== undefined ? y : 0;
+        this.width = width !== undefined ? width : 0;
+        this.height = height !== undefined ? height : 0;
         Object.freeze(this);
     };
 
+    Object.defineProperty(g.Rect.prototype, 'xywh', {
+        get: function () { return [this.x, this.y, this.width, this.height]; }
+    });
+
+    // Returns a new rectangle where width and height are guaranteed to be positive values.
     g.Rect.prototype.normalize = function () {
         var x = this.x,
             y = this.y,
@@ -2009,6 +2014,22 @@ if (typeof require !== 'undefined') {
         return new g.Color(c)._get();
     };
 
+    // Return true if an object can be drawn using the `g.draw` function.
+    g.isDrawable = function (o) {
+        if (Array.isArray(o)) {
+            o = o[0];
+        }
+        if (!o) {
+            return false;
+        } else if (typeof o.draw === 'function') {
+            return true;
+        } else if (o.x !== undefined && o.y !== undefined) {
+            return true;
+        } else {
+            return false;
+        }
+    };
+
     g.drawPoints = function (ctx, points) {
         var pt, i;
         ctx.fillStyle = 'blue';
@@ -2021,21 +2042,47 @@ if (typeof require !== 'undefined') {
         ctx.fill();
     };
 
-    g.draw = function (ctx, shape) {
-        try {
-            if (_.isArray(shape)) {
-                if (shape[0].x !== undefined && shape[0].y !== undefined) {
-                    g.drawPoints(ctx, shape);
-                } else {
-                    _.each(shape, _.partial(g.draw, ctx));
+    g.draw = function (ctx, o) {
+        var i, n;
+        if (!o) {
+            return;
+        } else if (typeof o.draw === 'function') {
+            o.draw(ctx);
+        } else if (o.x !== undefined && o.y !== undefined) {
+            g.drawPoints(ctx, [o]);
+        } else if (Array.isArray(o)) {
+            n = o.length;
+            if (n > 0 && o[0].x !== undefined && o[0].y !== undefined) {
+                g.drawPoints(ctx, o);
+            } else {
+                for (i = 0; i < n; i += 1) {
+                    g.draw(ctx, o[i]);
                 }
-            } else if (shape.shapes || shape.elements) {
-                shape.draw(ctx);
-            } else if (shape.x !== undefined && shape.y !== undefined) {
-                g.drawPoints(ctx, [shape]);
             }
-        } catch (err) {
-            console.log("Error while drawing:", err);
+        }
+    };
+
+    g.bounds = function (o) {
+        var r, i, n;
+        if (!o) {
+            return new g.Rect();
+        } else if (typeof o.bounds === 'function') {
+            return o.bounds();
+        } else if (o.x !== undefined && o.y !== undefined) {
+            return new g.Rect(o.x, o.y, 0, 0);
+        } else if (Array.isArray(o)) {
+            r = null;
+            n = o.length;
+            for (i = 0; i < n; i += 1) {
+                if (!r) {
+                    r = g.bounds(o[i]);
+                } else {
+                    r = r.unite(g.bounds(o[i]));
+                }
+            }
+            return r || new g.Rect();
+        } else {
+            return new g.Rect();
         }
     };
 
@@ -2911,7 +2958,7 @@ if (typeof require !== 'undefined') {
 
     // Create a grid of points.
     g.grid = function (columns, rows, width, height, position) {
-        var columnSize, left, rowSize, top, rowIndex, colIndex, x, y,
+        var columnSize, left, rowSize, top, rowIndex, colIndex, x, y, i,
             points = [];
         points.length = columns * rows;
         position = position !== undefined ? position : g.Point.ZERO;
@@ -2928,11 +2975,13 @@ if (typeof require !== 'undefined') {
             rowSize = top = position.y;
         }
 
+        i = 0;
         for (rowIndex = 0; rowIndex < rows; rowIndex += 1) {
             for (colIndex = 0; colIndex < columns; colIndex += 1) {
                 x = left + colIndex * columnSize;
                 y = top + rowIndex * rowSize;
-                points.push(g.makePoint(x, y));
+                points[i] = g.makePoint(x, y);
+                i += 1;
             }
         }
         return Object.freeze(points);

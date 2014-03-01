@@ -116,10 +116,6 @@
         createCell('// Press Ctrl-Enter to execute this expression.\n\ng._ellipse(0, 0, 100, 100)');
     });
 
-    function isDrawable(o) {
-        return o && typeof o.draw === 'function';
-    }
-
     function createCell(source) {
         var $cell = document.createElement('div'),
             $textarea;
@@ -212,19 +208,15 @@
             result = '' + e.stack;
             isError = true;
         }
-        if (isDrawable(result)) {
+        if (g.isDrawable(result)) {
             $canvas = document.createElement('canvas');
-            try {
-                bounds = result.bounds();
-                $canvas.width = bounds.x + bounds.width;
-                $canvas.height = bounds.y + bounds.height;
-            } catch (e) {
-                $canvas.width = 600;
-                $canvas.height = 300;
-            }
+            bounds = g.bounds(result);
+            $canvas.width = bounds.width + 10;
+            $canvas.height = bounds.height + 10;
             $result.appendChild($canvas);
             ctx = $canvas.getContext('2d');
-            result.draw(ctx);
+            ctx.translate(-bounds.x + 5, -bounds.y + 5);
+            g.draw(ctx, result);
         } else {
             $pre = document.createElement('pre');
             $pre.innerHTML = result;
