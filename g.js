@@ -40,6 +40,12 @@ if (typeof require !== 'undefined') {
         };
     }
 
+    if (Array.isArray === undefined) {
+        Array.isArray = function (v) {
+            return Object.prototype.toString.call(v) === '[object Array]';
+        };
+    }
+
     // RANDOM ///////////////////////////////////////////////////////////////
 
     var g = {};
