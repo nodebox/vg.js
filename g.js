@@ -2025,6 +2025,8 @@ if (typeof require !== 'undefined') {
             return true;
         } else if (o.x !== undefined && o.y !== undefined) {
             return true;
+        } else if (o.r !== undefined && o.g !== undefined && o.b !== undefined) {
+            return true;
         } else {
             return false;
         }
