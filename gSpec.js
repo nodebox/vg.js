@@ -265,12 +265,12 @@ describe('Drawables', function () {
     it('can discover if something is drawable', function () {
         expect(g.isDrawable(g.demoRect())).toBeTruthy();
         expect(g.isDrawable(new g.Point())).toBeTruthy();
+        expect(g.isDrawable(new g.Color(1, 0, 0))).toBeTruthy();
 
         expect(g.isDrawable(null)).toBeFalsy();
         expect(g.isDrawable(0)).toBeFalsy();
         expect(g.isDrawable([])).toBeFalsy();
         expect(g.isDrawable([0])).toBeFalsy();
-        expect(g.isDrawable(new g.Color(1, 0, 0))).toBeFalsy();
     });
 
     it('can get the bounds', function () {
