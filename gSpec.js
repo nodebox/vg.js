@@ -186,6 +186,17 @@ describe('A group', function () {
         expect(group.bounds()).toEqual(new g.Rect(10, 20, 100, 190));
     });
 
+    it('can merge shapes together', function () {
+        var group;
+
+        group = g.merge(g.demoRect());
+        expect(group.shapes.length).toBe(1);
+
+        // Skip nulls and undefineds
+        group = g.merge(null, g.demoRect(), undefined, g.demoRect());
+        expect(group.shapes.length).toBe(2);
+    });
+
 });
 
 describe('A text object', function () {
