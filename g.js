@@ -1562,7 +1562,7 @@ if (typeof require !== 'undefined') {
     // This function works like makeGroup, except that this can take any number
     // of arguments.
     g.merge = function () {
-        return g.makeGroup(_.reject(arguments, _.isEmpty));
+        return g.makeGroup(_.reject(_.flatten(arguments, true), _.isEmpty));
     };
 
     g.combinePaths = function (shape) {

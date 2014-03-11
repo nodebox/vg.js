@@ -195,6 +195,10 @@ describe('A group', function () {
         // Skip nulls and undefineds
         group = g.merge(null, g.demoRect(), undefined, g.demoRect());
         expect(group.shapes.length).toBe(2);
+
+        // Flatten lists (this is important for Maak)
+        group = g.merge([g.demoRect(), g.demoRect()], g.demoRect());
+        expect(group.shapes.length).toBe(3);
     });
 
 });
