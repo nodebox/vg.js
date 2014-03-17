@@ -2871,7 +2871,7 @@ if (typeof require !== 'undefined') {
             g.moveto(x1, y1),
             g.lineto(x2, y2)
         ];
-        return new g.Path(segments);
+        return new g.Path(segments, null, 'black');
     };
 
     g.quad = function (x1, y1, x2, y2, x3, y3, x4, y4) {
@@ -2972,8 +2972,9 @@ if (typeof require !== 'undefined') {
     };
 
     g.line = function (point1, point2, points) {
-        var line = g.makePath(g._line(point1.x, point1.y, point2.x, point2.y),
-                          null, {'r': 0, 'g': 0, 'b': 0, 'a': 1}, 1.0);
+        var line = g._line(point1.x, point1.y, point2.x, point2.y);
+        line.fill = null;
+        line.stroke = 'black';
         if (points !== null && points > 2) {
             line = line.resampleByAmount(10, false);
         }
