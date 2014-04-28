@@ -3118,17 +3118,26 @@ if (typeof require !== 'undefined') {
         return t.transformShape(shape);
     };
 
-    g.scale = function (shape, scale) {
-        var t = new g.Transform().scale(scale.x / 100, scale.y / 100);
+    g.scale = function (shape, scale, origin) {
+        if (origin === null) { origin = g.Point.ZERO; }
+        var t = new g.Transform();
+        t = t.translate(origin.x, origin.y);
+        t = t.scale(scale.x / 100, scale.y / 100);
+        t = t.translate(-origin.x, -origin.y);
         return t.transformShape(shape);
     };
 
-    g.rotate = function (shape, angle) {
-        var t = new g.Transform().rotate(angle);
+    g.rotate = function (shape, angle, origin) {
+        if (origin === null) { origin = g.Point.ZERO; }
+        var t = new g.Transform();
+        t = t.translate(origin.x, origin.y);
+        t = t.rotate(angle);
+        t = t.translate(-origin.x, -origin.y);
         return t.transformShape(shape);
     };
 
     g.skew = function (shape, skew, origin) {
+        if (origin === null) { origin = g.Point.ZERO; }
         var t = new g.Transform();
         t = t.translate(origin.x, origin.y);
         t = t.skew(skew.x, skew.y);
