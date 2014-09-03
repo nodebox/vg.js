@@ -2971,12 +2971,12 @@ if (typeof require !== 'undefined') {
         return g._ellipse(position.x - width / 2, position.y - height / 2, width, height);
     };
 
-    g.line = function (point1, point2, points) {
+    g.line = function (point1, point2, nPoints) {
         var line = g._line(point1.x, point1.y, point2.x, point2.y);
         line.fill = null;
         line.stroke = 'black';
-        if (points !== null && points > 2) {
-            line = line.resampleByAmount(10, false);
+        if (nPoints > 2) {
+            line = line.resampleByAmount(nPoints, false);
         }
         return line;
     };
