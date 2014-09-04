@@ -66,13 +66,13 @@ describe('The bezier module', function () {
     });
 
     it('can calculate segment lengths', function () {
-        var segments = [], segmentLengths;
-        segments.push(g.moveTo(0, 0));
-        segments.push(g.lineTo(100, 0));
-        segments.push(g.lineTo(100, 50));
-        segments.push(g.close());
-        segmentLengths = g.bezier.segmentLengths(segments);
-        expect(segmentLengths.length).toBe(segments.length - 1);
+        var commands = [], segmentLengths;
+        commands.push(g.moveTo(0, 0));
+        commands.push(g.lineTo(100, 0));
+        commands.push(g.lineTo(100, 50));
+        commands.push(g.close());
+        segmentLengths = g.bezier.segmentLengths(commands);
+        expect(segmentLengths.length).toBe(commands.length - 1);
         expect(segmentLengths[0]).toBe(100);
         expect(segmentLengths[1]).toBe(50);
         expect(Math.round(segmentLengths[2])).toBe(112);
@@ -109,7 +109,7 @@ describe('A path', function () {
         // p.tags = {'foo': true};
         p.moveTo(33, 66);
         newP = p.clone();
-        expect(newP.segments).toEqual([
+        expect(newP.commands).toEqual([
             {type: 'M', point: new g.Point(33, 66)}
         ]);
         expect(newP.fill).toBe('red');
@@ -122,7 +122,7 @@ describe('A path', function () {
             newPath;
         p.addRect(10, 20, 30, 40);
         newPath = p.resampleByAmount(100);
-        expect(newPath.segments.length).toBe(101); // 100 lines + 1 close segment
+        expect(newPath.commands.length).toBe(101); // 100 lines + 1 close command
     });
 
 });
