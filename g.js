@@ -1173,6 +1173,16 @@ if (typeof require !== 'undefined') {
         this.commands.push({type: g.CURVETO, x1: x1, y1: y1, x2: x2, y2: y2, x: x, y: y});
     };
 
+    g.Path.prototype.quadTo = function (x1, y1, x, y) {
+        var prevX = this.commands[this.commands.length - 1].x,
+            prevY = this.commands[this.commands.length - 1].y,
+            cp1x = prevX + 2 / 3 * (x1 - prevX),
+            cp1y = prevY + 2 / 3 * (y1 - prevY),
+            cp2x = cp1x + 1 / 3 * (x - prevX),
+            cp2y = cp1y + 1 / 3 * (y - prevY);
+        this.curveTo(cp1x, cp1y, cp2x, cp2y, x, y);
+    };
+
     g.Path.prototype.closePath = g.Path.prototype.close = function () {
         this.commands.push(g.CLOSE_COMMAND);
     };
