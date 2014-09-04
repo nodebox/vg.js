@@ -301,19 +301,19 @@ if (typeof require !== 'undefined') {
     // by adding up the length of n linear lines along the curve.
     g.bezier.curveLength = function (x0, y0, x1, y1, x2, y2, x3, y3, n) {
         if (n === undefined) { n = 20; }
-        var i, t, pe,
+        var i, t, cmd,
             length = 0,
             xi = x0,
             yi = y0;
         for (i = 0; i < n; i += 1) {
             t = (i + 1) / n;
-            pe = g.bezier.curvePoint(t, x0, y0, x1, y1, x2, y2, x3, y3);
+            cmd = g.bezier.curvePoint(t, x0, y0, x1, y1, x2, y2, x3, y3);
             length += Math.sqrt(
-                Math.pow(Math.abs(xi - pe.point.x), 2) +
-                    Math.pow(Math.abs(yi - pe.point.y), 2)
+                Math.pow(Math.abs(xi - cmd.x), 2) +
+                    Math.pow(Math.abs(yi - cmd.y), 2)
             );
-            xi = pe.point.x;
-            yi = pe.point.y;
+            xi = cmd.x;
+            yi = cmd.y;
         }
         return length;
     };
@@ -325,30 +325,29 @@ if (typeof require !== 'undefined') {
     g.bezier.segmentLengths = function (commands, relative, n) {
         relative = relative !== undefined ? relative : false;
         if (n === undefined) { n = 20; }
-        var i, el, type, pt, closeX, closeY, x0, y0, s, lengths;
+        var i, cmd, type, closeX, closeY, x0, y0, s, lengths;
         lengths = [];
         for (i = 0; i < commands.length; i += 1) {
-            el = commands[i];
-            type = el.type;
-            pt = el.point;
+            cmd = commands[i];
+            type = cmd.type;
 
             if (i === 0) {
-                closeX = pt.x;
-                closeY = pt.y;
+                closeX = cmd.x;
+                closeY = cmd.y;
             } else if (type === g.MOVETO) {
-                closeX = pt.x;
-                closeY = pt.y;
+                closeX = cmd.x;
+                closeY = cmd.y;
                 lengths.push(0.0);
             } else if (type === g.CLOSE) {
                 lengths.push(g.bezier.lineLength(x0, y0, closeX, closeY));
             } else if (type === g.LINETO) {
-                lengths.push(g.bezier.lineLength(x0, y0, pt.x, pt.y));
+                lengths.push(g.bezier.lineLength(x0, y0, cmd.x, cmd.y));
             } else if (type === g.CURVETO) {
-                lengths.push(g.bezier.curveLength(x0, y0, el.ctrl1.x, el.ctrl1.y, el.ctrl2.x, el.ctrl2.y, pt.x, pt.y, n));
+                lengths.push(g.bezier.curveLength(x0, y0, cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y, n));
             }
             if (type !== g.CLOSE) {
-                x0 = pt.x;
-                y0 = pt.y;
+                x0 = cmd.x;
+                y0 = cmd.y;
             }
         }
         if (relative === true) {
@@ -377,14 +376,14 @@ if (typeof require !== 'undefined') {
     // the last MOVETO or any subsequent CLOSE commands after i.
     // Note: during iteration, supplying segment lengths yourself is 30x faster.
     g.bezier._locate = function (path, t, segmentLengths) {
-        var i, el, closeTo;
+        var i, cmd, closeTo;
         if (segmentLengths === undefined) {
             segmentLengths = g.bezier.segmentLengths(path.commands, true);
         }
         for (i = 0; i < path.commands.length; i += 1) {
-            el = path.commands[i];
-            if (i === 0 || el.type === g.MOVETO) {
-                closeTo = g.makePoint(el.point.x, el.point.y);
+            cmd = path.commands[i];
+            if (i === 0 || cmd.type === g.MOVETO) {
+                closeTo = g.makePoint(cmd.x, cmd.y);
             }
             if (t <= segmentLengths[i] || i === segmentLengths.length - 1) {
                 break;
@@ -400,37 +399,29 @@ if (typeof require !== 'undefined') {
     // Note: in PathElement, ctrl1 is how the curve started, and ctrl2 how it arrives in this point.
     // Here, ctrl1 is how the curve arrives, and ctrl2 how it continues to the next point.
     g.bezier.point = function (path, t, segmentLengths) {
-        var loc, i, closeTo, x0, y0, pe;
+        var loc, i, closeTo, x0, y0, cmd;
         loc = g.bezier._locate(path, t, segmentLengths);
         i = loc[0];
         t = loc[1];
         closeTo = loc[2];
-        x0 = path.commands[i].point.x;
-        y0 = path.commands[i].point.y;
-        pe = path.commands[i + 1];
-        if (pe.type === g.LINETO || pe.type === g.CLOSE) {
-            pe = (pe.type === g.CLOSE) ?
+        x0 = path.commands[i].x;
+        y0 = path.commands[i].y;
+        cmd = path.commands[i + 1];
+        if (cmd.type === g.LINETO || cmd.type === g.CLOSE) {
+            cmd = (cmd.type === g.CLOSE) ?
                      g.bezier.linePoint(t, x0, y0, closeTo.x, closeTo.y) :
-                     g.bezier.linePoint(t, x0, y0, pe.point.x, pe.point.y);
-        } else if (pe.type === g.CURVETO) {
-            pe = g.bezier.curvePoint(t, x0, y0, pe.ctrl1.x, pe.ctrl1.y, pe.ctrl2.x, pe.ctrl2.y, pe.point.x, pe.point.y);
+                     g.bezier.linePoint(t, x0, y0, cmd.x, cmd.y);
+        } else if (cmd.type === g.CURVETO) {
+            cmd = g.bezier.curvePoint(t, x0, y0, cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y);
         }
-        return pe;
+        return cmd;
     };
 
-    g.bezier.extrema = function (p1, p2, p3, p4) {
+    g.bezier.extrema = function (x1, y1, x2, y2, x3, y3, x4, y4) {
         var minX, maxX, minY, maxY,
             ax, bx, cx, ay, by, cy,
-            temp, rcp, tx, ty,
+            temp, rcp, tx, ty;
 
-            x1 = p1.x,
-            y1 = p1.y,
-            x2 = p2.x,
-            y2 = p2.y,
-            x3 = p3.x,
-            y3 = p3.y,
-            x4 = p4.x,
-            y4 = p4.y;
 
         function fuzzyCompare(p1, p2) {
             return Math.abs(p1 - p2) <= (0.000000000001 * Math.min(Math.abs(p1), Math.abs(p2)));
@@ -782,18 +773,21 @@ if (typeof require !== 'undefined') {
 
     g.Matrix3.prototype.transformPath = function (path) {
         var _this = this,
+            point,
+            ctrl1,
+            ctrl2,
             commands = _.map(path.commands, function (cmd) {
                 if (cmd.type === g.MOVETO) {
-                    return { type: g.MOVETO,
-                        point: _this.transformPoint(cmd.point) };
+                    point = _this.transformPoint({x: cmd.x, y: cmd.y});
+                    return { type: g.MOVETO, x: point.x, y: point.y };
                 } else if (cmd.type === g.LINETO) {
-                    return { type: g.LINETO,
-                        point: _this.transformPoint(cmd.point) };
+                    point = _this.transformPoint({x: cmd.x, y: cmd.y});
+                    return { type: g.LINETO, x: point.x, y: point.y };
                 } else if (cmd.type === g.CURVETO) {
-                    return { type: g.CURVETO,
-                        point: _this.transformPoint(cmd.point),
-                        ctrl1: _this.transformPoint(cmd.ctrl1),
-                        ctrl2: _this.transformPoint(cmd.ctrl2) };
+                    point = _this.transformPoint({x: cmd.x, y: cmd.y});
+                    ctrl1 = _this.transformPoint({x: cmd.x1, y: cmd.y2});
+                    ctrl2 = _this.transformPoint({x: cmd.x2, y: cmd.y2});
+                    return { type: g.CURVETO, x1: ctrl1.x, y1: ctrl1.y, x2: ctrl2.x, y2: ctrl2.y, x: point.x, y: point.y };
                 } else {
                     return cmd;
                 }
@@ -1096,25 +1090,20 @@ if (typeof require !== 'undefined') {
     g.MOVETO  = 'M';
     g.LINETO  = 'L';
     g.CURVETO = 'C';
-    g.CLOSE   = 'z';
+    g.CLOSE   = 'Z';
 
     g.CLOSE_COMMAND = Object.freeze({ type: g.CLOSE });
 
     g.moveTo = g.moveto = function (x, y) {
-        return { type:   g.MOVETO,
-               point: g.makePoint(x, y) };
+        return { type: g.MOVETO, x: x, y: y };
     };
 
     g.lineTo = g.lineto = function (x, y) {
-        return { type:   g.LINETO,
-               point: g.makePoint(x, y) };
+        return { type: g.LINETO, x: x, y: y };
     };
 
-    g.curveTo = g.curveto = function (c1x, c1y, c2x, c2y, x, y) {
-        return { type:   g.CURVETO,
-               point: g.makePoint(x, y),
-               ctrl1: g.makePoint(c1x, c1y),
-               ctrl2: g.makePoint(c2x, c2y) };
+    g.curveTo = g.curveto = function (x1, y1, x2, y2, x, y) {
+        return { type: g.CURVETO, x1: x1, y1: y1, x2: x2, y2: y2, x: x, y: y };
     };
 
     g.closePath = g.closepath = g.close = function () {
@@ -1124,11 +1113,14 @@ if (typeof require !== 'undefined') {
     g._cloneCommand = function (cmd) {
         var newCmd = {type: cmd.type};
         if (newCmd.type !== g.CLOSE) {
-            newCmd.point = cmd.point.clone();
+            newCmd.x = cmd.x;
+            newCmd.y = cmd.y;
         }
         if (newCmd.type === g.CURVETO) {
-            newCmd.ctrl1 = cmd.ctrl1.clone();
-            newCmd.ctrl2 = cmd.ctrl2.clone();
+            newCmd.x1 = cmd.x1;
+            newCmd.y1 = cmd.y1;
+            newCmd.x2 = cmd.x2;
+            newCmd.y2 = cmd.y2;
         }
         return newCmd;
     };
@@ -1170,20 +1162,19 @@ if (typeof require !== 'undefined') {
     };
 
     g.Path.prototype.moveTo = function (x, y) {
-        this.commands.push({type: g.MOVETO, point: new g.Point(x, y)});
+        this.commands.push({type: g.MOVETO, x: x, y: y});
     };
 
     g.Path.prototype.lineTo = function (x, y) {
-        this.commands.push({type: g.LINETO, point: new g.Point(x, y)});
+        this.commands.push({type: g.LINETO, x: x, y: y});
     };
 
-    g.Path.prototype.curveTo = function (c1x, c1y, c2x, c2y, x, y) {
-        this.commands.push({type: g.LINETO, point: new g.Point(x, y),
-            ctrl1: new g.Point(c1x, c1y), ctrl2: new g.Point(c2x, c2y)});
+    g.Path.prototype.curveTo = function (x1, y1, x2, y2, x, y) {
+        this.commands.push({type: g.CURVETO, x1: x1, y1: y1, x2: x2, y2: y2, x: x, y: y});
     };
 
     g.Path.prototype.closePath = g.Path.prototype.close = function () {
-        this.commands.push({type: g.CLOSE});
+        this.commands.push(g.CLOSE_COMMAND);
     };
 
     g.Path.prototype.isClosed = function () {
@@ -1218,14 +1209,14 @@ if (typeof require !== 'undefined') {
     g.Path.prototype.contours = function () {
         var contours = [],
             currentContour = [];
-        _.each(this.commands, function (el) {
-            if (el.type === g.MOVETO) {
+        _.each(this.commands, function (cmd) {
+            if (cmd.type === g.MOVETO) {
                 if (currentContour.length !== 0) {
                     contours.push(currentContour);
                 }
-                currentContour = [el];
+                currentContour = [cmd];
             } else {
-                currentContour.push(el);
+                currentContour.push(cmd);
             }
         });
 
@@ -1246,24 +1237,24 @@ if (typeof require !== 'undefined') {
             maxX = -(Number.MAX_VALUE),
             maxY = -(Number.MAX_VALUE);
 
-        _.each(this.commands, function (el) {
-            if (el.type === g.MOVETO || el.type === g.LINETO) {
-                px = el.point.x;
-                py = el.point.y;
+        _.each(this.commands, function (cmd) {
+            if (cmd.type === g.MOVETO || cmd.type === g.LINETO) {
+                px = cmd.x;
+                py = cmd.y;
                 if (px < minX) { minX = px; }
                 if (py < minY) { minY = py; }
                 if (px > maxX) { maxX = px; }
                 if (py > maxY) { maxY = py; }
-                prev = el;
-            } else if (el.type === g.CURVETO) {
-                var r = g.bezier.extrema(prev.point, el.ctrl1, el.ctrl2, el.point);
+                prev = cmd;
+            } else if (cmd.type === g.CURVETO) {
+                var r = g.bezier.extrema(prev.x, prev.y, cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y);
                 right = r.x + r.width;
                 bottom = r.y + r.height;
                 if (r.x < minX) { minX = r.x; }
                 if (right > maxX) { maxX = right; }
                 if (r.y < minY) { minY = r.y; }
                 if (bottom > maxY) { maxY = bottom; }
-                prev = el;
+                prev = cmd;
             }
         });
 
@@ -1317,7 +1308,7 @@ if (typeof require !== 'undefined') {
             points = [];
         for (i = 0; i < polygon.length; i += 1) {
             if (polygon[i].type !== g.CLOSE) {
-                points.push(polygon[i].point);
+                points.push({x: polygon[i].x, y: polygon[i].y});
             }
         }
     //    if (this._polygon == null ||
@@ -1332,16 +1323,13 @@ if (typeof require !== 'undefined') {
             subPaths = perContour ? this.contours() : [this.commands],
             commands = [];
 
-        function getPoint(pe) {
-            return pe.point;
-        }
-
         for (j = 0; j < subPaths.length; j += 1) {
             subPath = g.makePath(subPaths[j]);
-            pts = _.map(subPath.points(points + 1), getPoint);
+            pts = subPath.points(points + 1);
             for (i = 0; i < pts.length - 1; i += 1) {
-                cmd = { type:   (i === 0) ? g.MOVETO : g.LINETO,
-                       point: pts[i] };
+                cmd = { type: (i === 0) ? g.MOVETO : g.LINETO,
+                        x: pts[i].x,
+                        y: pts[i].y };
                 commands.push(cmd);
             }
             commands.push(g.closePath());
@@ -1364,35 +1352,35 @@ if (typeof require !== 'undefined') {
     };
 
     g.Path.prototype.toPathData = function () {
-        var i, d, pe, x, y, x1, y1, x2, y2;
+        var i, d, cmd, x, y, x1, y1, x2, y2;
         d = '';
         for (i = 0; i < this.commands.length; i += 1) {
-            pe = this.commands[i];
-            if (pe.point) {
-                x = g.math.clamp(pe.point.x, -9999, 9999);
-                y = g.math.clamp(pe.point.y, -9999, 9999);
+            cmd = this.commands[i];
+            if (cmd.x !== undefined) {
+                x = g.math.clamp(cmd.x, -9999, 9999);
+                y = g.math.clamp(cmd.y, -9999, 9999);
             }
-            if (pe.ctrl1) {
-                x1 = g.math.clamp(pe.ctrl1.x, -9999, 9999);
-                y1 = g.math.clamp(pe.ctrl1.y, -9999, 9999);
+            if (cmd.x1 !== undefined) {
+                x1 = g.math.clamp(cmd.x1, -9999, 9999);
+                y1 = g.math.clamp(cmd.y1, -9999, 9999);
             }
-            if (pe.ctrl2) {
-                x2 = g.math.clamp(pe.ctrl2.x, -9999, 9999);
-                y2 = g.math.clamp(pe.ctrl2.y, -9999, 9999);
+            if (cmd.x2 !== undefined) {
+                x2 = g.math.clamp(cmd.x2, -9999, 9999);
+                y2 = g.math.clamp(cmd.y2, -9999, 9999);
             }
-            if (pe.type === g.MOVETO) {
+            if (cmd.type === g.MOVETO) {
                 if (!isNaN(x) && !isNaN(y)) {
                     d += 'M' + x + ' ' + y;
                 }
-            } else if (pe.type === g.LINETO) {
+            } else if (cmd.type === g.LINETO) {
                 if (!isNaN(x) && !isNaN(y)) {
                     d += 'L' + x + ' ' + y;
                 }
-            } else if (pe.type === g.CURVETO) {
+            } else if (cmd.type === g.CURVETO) {
                 if (!isNaN(x) && !isNaN(y) && !isNaN(x1) && !isNaN(y1) && !isNaN(x2) && !isNaN(y2)) {
                     d += 'C' + x1 + ' ' + y1 + ' ' + x2 + ' ' + y2 + ' ' + x + ' ' + y;
                 }
-            } else if (pe.type === g.CLOSE) {
+            } else if (cmd.type === g.CLOSE) {
                 d += 'Z';
             }
         }
@@ -1420,18 +1408,18 @@ if (typeof require !== 'undefined') {
 
     // Draw the path to a 2D context.
     g.Path.prototype.draw = function (ctx) {
-        var nCommands, i, pe;
+        var nCommands, i, cmd;
         ctx.beginPath();
         nCommands = this.commands.length;
         for (i = 0; i < nCommands; i += 1) {
-            pe = this.commands[i];
-            if (pe.type === g.MOVETO) {
-                ctx.moveTo(pe.point.x, pe.point.y);
-            } else if (pe.type === g.LINETO) {
-                ctx.lineTo(pe.point.x, pe.point.y);
-            } else if (pe.type === g.CURVETO) {
-                ctx.bezierCurveTo(pe.ctrl1.x, pe.ctrl1.y, pe.ctrl2.x, pe.ctrl2.y, pe.point.x, pe.point.y);
-            } else if (pe.type === g.CLOSE) {
+            cmd = this.commands[i];
+            if (cmd.type === g.MOVETO) {
+                ctx.moveTo(cmd.x, cmd.y);
+            } else if (cmd.type === g.LINETO) {
+                ctx.lineTo(cmd.x, cmd.y);
+            } else if (cmd.type === g.CURVETO) {
+                ctx.bezierCurveTo(cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y);
+            } else if (cmd.type === g.CLOSE) {
                 ctx.closePath();
             }
         }
@@ -1576,7 +1564,7 @@ if (typeof require !== 'undefined') {
 
     g.shapePoints = function (shape) {
         if (shape.commands) {
-            return _.map(_.filter(shape.commands, function (el) { if (el.point) { return true; } return false; }), function (el) { return el.point; });
+            return _.map(_.filter(shape.commands, function (cmd) { if (cmd.x !== undefined) { return true; } return false; }), function (cmd) { return {x: cmd.x, y: cmd.y}; });
         }
         var i, points = [];
         for (i = 0; i < shape.shapes.length; i += 1) {
@@ -3230,13 +3218,13 @@ if (typeof require !== 'undefined') {
 
         var f, reflectPath, reflectGroup, reflect, newShape;
 
-        f = function (point) {
-            var d = g.geometry.distance(point.x, point.y, position.x, position.y),
-                a = g.geometry.angle(point.x, point.y, position.x, position.y),
+        f = function (x, y) {
+            var d = g.geometry.distance(x, y, position.x, position.y),
+                a = g.geometry.angle(x, y, position.x, position.y),
                 pt = g.geometry.coordinates(position.x, position.y, d * Math.cos(g.math.radians(a - angle)), 180 + angle);
-            d = g.geometry.distance(point.x, point.y, pt.x, pt.y);
-            a = g.geometry.angle(point.x, point.y, pt.x, pt.y);
-            pt = g.geometry.coordinates(point.x, point.y, d * 2, a);
+            d = g.geometry.distance(x, y, pt.x, pt.y);
+            a = g.geometry.angle(x, y, pt.x, pt.y);
+            pt = g.geometry.coordinates(x, y, d * 2, a);
             return g.makePoint(pt.x, pt.y);
         };
 
@@ -3244,15 +3232,15 @@ if (typeof require !== 'undefined') {
             var commands = _.map(path.commands, function (cmd) {
                 var pt, ctrl1, ctrl2;
                 if (cmd.type === g.MOVETO) {
-                    pt = f(cmd.point);
+                    pt = f(cmd.x, cmd.y);
                     return g.moveto(pt.x, pt.y);
                 } else if (cmd.type === g.LINETO) {
-                    pt = f(cmd.point);
+                    pt = f(cmd.x, cmd.y);
                     return g.lineto(pt.x, pt.y);
                 } else if (cmd.type === g.CURVETO) {
-                    pt = f(cmd.point);
-                    ctrl1 = f(cmd.ctrl1);
-                    ctrl2 = f(cmd.ctrl2);
+                    pt = f(cmd.x, cmd.y);
+                    ctrl1 = f(cmd.x1, cmd.y1);
+                    ctrl2 = f(cmd.x2, cmd.y2);
                     return g.curveto(ctrl1.x, ctrl1.y, ctrl2.x, ctrl2.y, pt.x, pt.y);
                 } else {
                     return cmd;
@@ -3303,21 +3291,21 @@ if (typeof require !== 'undefined') {
 
         wigglePoints = function (shape) {
             if (shape.commands) {
-                var i, dx, dy, pe, commands = [];
+                var i, dx, dy, cmd, commands = [];
                 for (i = 0; i < shape.commands.length; i += 1) {
                     dx = (rand(0, 1) - 0.5) * offset.x * 2;
                     dy = (rand(0, 1) - 0.5) * offset.y * 2;
-                    pe = shape.commands[i];
-                    if (pe.type === g.CLOSE) {
-                        commands.push(pe);
-                    } else if (pe.type === g.MOVETO) {
-                        commands.push(g.moveto(pe.point.x + dx, pe.point.y + dy));
-                    } else if (pe.type === g.LINETO) {
-                        commands.push(g.lineto(pe.point.x + dx, pe.point.y + dy));
-                    } else if (pe.type === g.CURVETO) {
-                        commands.push(g.curveto(pe.ctrl1.x, pe.ctrl1.y,
-                                         pe.ctrl2.x, pe.ctrl2.y,
-                                         pe.point.x + dx, pe.point.y + dy));
+                    cmd = shape.commands[i];
+                    if (cmd.type === g.CLOSE) {
+                        commands.push(cmd);
+                    } else if (cmd.type === g.MOVETO) {
+                        commands.push(g.moveto(cmd.x + dx, cmd.y + dy));
+                    } else if (cmd.type === g.LINETO) {
+                        commands.push(g.lineto(cmd.x + dx, cmd.y + dy));
+                    } else if (cmd.type === g.CURVETO) {
+                        commands.push(g.curveto(cmd.x1, cmd.y1,
+                                         cmd.x2, cmd.y2,
+                                         cmd.x + dx, cmd.y + dy));
                     }
                 }
                 return g.makePath(commands, shape.fill, shape.stroke, shape.strokeWidth);
@@ -3458,20 +3446,20 @@ if (typeof require !== 'undefined') {
 
         var snapShape = function (shape) {
             if (shape.commands) {
-                var commands = _.map(shape.commands, function (pe) {
-                    if (pe.type === g.CLOSE) { return pe; }
+                var commands = _.map(shape.commands, function (cmd) {
+                    if (cmd.type === g.CLOSE) { return cmd; }
                     var x, y, ctrl1x, ctrl1y, ctrl2x, ctrl2y;
-                    x = g.math.snap(pe.point.x + position.x, distance, strength) - position.x;
-                    y = g.math.snap(pe.point.y + position.y, distance, strength) - position.y;
-                    if (pe.type === g.MOVETO) {
+                    x = g.math.snap(cmd.x + position.x, distance, strength) - position.x;
+                    y = g.math.snap(cmd.y + position.y, distance, strength) - position.y;
+                    if (cmd.type === g.MOVETO) {
                         return g.moveto(x, y);
-                    } else if (pe.type === g.LINETO) {
+                    } else if (cmd.type === g.LINETO) {
                         return g.lineto(x, y);
-                    } else if (pe.type === g.CURVETO) {
-                        ctrl1x = g.math.snap(pe.ctrl1.x + position.x, distance, strength) - position.x;
-                        ctrl1y = g.math.snap(pe.ctrl1.y + position.y, distance, strength) - position.y;
-                        ctrl2x = g.math.snap(pe.ctrl2.x + position.x, distance, strength) - position.x;
-                        ctrl2y = g.math.snap(pe.ctrl2.y + position.y, distance, strength) - position.y;
+                    } else if (cmd.type === g.CURVETO) {
+                        ctrl1x = g.math.snap(cmd.x1 + position.x, distance, strength) - position.x;
+                        ctrl1y = g.math.snap(cmd.y1 + position.y, distance, strength) - position.y;
+                        ctrl2x = g.math.snap(cmd.x2 + position.x, distance, strength) - position.x;
+                        ctrl2y = g.math.snap(cmd.y2 + position.y, distance, strength) - position.y;
                         return g.curveto(ctrl1x, ctrl1y, ctrl2x, ctrl2y, x, y);
                     } else {
                         throw new Error('Invalid command type.');
@@ -3494,9 +3482,9 @@ if (typeof require !== 'undefined') {
                 var i, cmd, commands = [];
                 for (i = 0; i < shape.commands.length; i += 1) {
                     cmd = shape.commands[i];
-                    if (cmd.point === undefined ||
-                            (deleteSelected && bounding.contains(cmd.point.x, cmd.point.y)) ||
-                            (!deleteSelected && !bounding.contains(cmd.point.x, cmd.point.y))) {
+                    if (cmd.x === undefined ||
+                            (deleteSelected && bounding.contains(cmd.x, cmd.y)) ||
+                            (!deleteSelected && !bounding.contains(cmd.x, cmd.y))) {
                         commands.push(cmd);
                     }
                 }
@@ -3523,7 +3511,7 @@ if (typeof require !== 'undefined') {
                         selected = false;
                         for (j = 0; j < s.commands.length; j += 1) {
                             cmd = s.commands[j];
-                            if (cmd.point && bounding.contains(cmd.point.x, cmd.point.y)) {
+                            if (cmd.x !== undefined && bounding.contains(cmd.x, cmd.y)) {
                                 selected = true;
                                 break;
                             }
@@ -3556,12 +3544,14 @@ if (typeof require !== 'undefined') {
     };
 
     g.pointOnPath = function (shape, t) {
+        var pt;
         if (shape === null) { return null; }
         if (shape.shapes) {
             shape = g.makePath(g.combinePaths(shape));
         }
         t = Math.abs(t % 100);
-        return shape.point(t / 100).point;
+        pt = shape.point(t / 100);
+        return {x: pt.x, y: pt.x};
     };
 
     g.shapeOnPath = function (shapes, path, amount, alignment, spacing, margin, baselineOffset) {
@@ -3593,8 +3583,8 @@ if (typeof require !== 'undefined') {
                 }
             }
 
-            p1 = path.point(pos).point;
-            p2 = path.point(pos + 0.0000001).point;
+            p1 = path.point(pos);
+            p2 = path.point(pos + 0.0000001);
             a = g.geometry.angle(p1.x, p1.y, p2.x, p2.y);
             if (baselineOffset) {
                 p1 = g.geometry.coordinates(p1.x, p1.y, baselineOffset, a - 90);
@@ -3697,15 +3687,13 @@ if (typeof require !== 'undefined') {
         if (shape === null) { return g.Point.ZERO; }
         var i, pt,
             commands = g.combinePaths(shape),
-            firstPoint = commands[0].point,
-            xs = firstPoint.x,
-            ys = firstPoint.y,
+            xs = commands[0].x,
+            ys = commands[0].y,
             count = 1;
         for (i = 1; i < commands.length; i += 1) {
-            if (commands[i].point) {
-                pt = commands[i].point;
-                xs += pt.x;
-                ys += pt.y;
+            if (commands[i].x !== undefined) {
+                xs += commands[i].x;
+                ys += commands[i].y;
                 count += 1;
             }
         }

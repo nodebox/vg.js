@@ -110,7 +110,7 @@ describe('A path', function () {
         p.moveTo(33, 66);
         newP = p.clone();
         expect(newP.commands).toEqual([
-            {type: 'M', point: new g.Point(33, 66)}
+            {type: 'M', x: 33, y: 66}
         ]);
         expect(newP.fill).toBe('red');
         expect(newP.stroke).toBe('green');
