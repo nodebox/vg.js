@@ -1721,6 +1721,30 @@ if (typeof require !== 'undefined') {
         return new g.Rect(x, this.y - this.fontSize, metrics.width, this.fontSize * 1.2);
     };
 
+    g.Text.prototype.toSVG = function () {
+        var svg = '<text';
+        svg += ' x="' + this.x + '"';
+        svg += ' y="' + this.y + '"';
+        svg += ' font-family="' + this.fontFamily + '"';
+        svg += ' font-size="' + this.fontSize + '"';
+        var textAnchor;
+        if (this.textAlign === 'left') {
+            textAnchor = 'start';
+        } else if (this.textAlign === 'center') {
+            textAnchor = 'middle';
+        } else if (this.textAlign === 'right') {
+            textAnchor = 'end';
+        }
+        svg += ' text-anchor="' + textAnchor + '"';
+        if (this.fill !== 'black') {
+            svg += ' fill="' + g.colorToCSS(this.fill) + '"';
+        }
+        svg += '>';
+        svg += this.text;
+        svg += '</text>';
+        return svg;
+    };
+
     // Generates a Text object.
     // The function can take many possible argument forms, either by listing them in order
     // (text, x, y, fontFamily, fontSize, align, fill), or by using an options object.
@@ -2076,6 +2100,10 @@ if (typeof require !== 'undefined') {
     };
 
     g.colorToCSS = function (c) {
+        if (typeof c === 'string') {
+            // We're going to assume the color is already a CSS string.
+            return c;
+        }
         var R = Math.round(c.r * 255),
             G = Math.round(c.g * 255),
             B = Math.round(c.b * 255);
