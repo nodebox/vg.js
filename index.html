@@ -224,7 +224,7 @@
             g.draw(ctx, result);
         } else {
             $pre = document.createElement('pre');
-            $pre.innerHTML = result;
+            $pre.textContent = result;
             $pre.className = isError ? 'error' : '';
             $result.appendChild($pre);
         }
