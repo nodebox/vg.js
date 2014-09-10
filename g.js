@@ -1402,15 +1402,27 @@ if (typeof require !== 'undefined') {
         var svg = '<path d="';
         svg += this.toPathData();
         svg += '"';
-        if (this.fill !== 'black') {
-            if (this.fill === null) {
+        var fill;
+        if (this.fill && this.fill.toCSS) {
+            fill = this.fill.toCSS();
+        } else {
+            fill = this.fill;
+        }
+        if (fill !== 'black') {
+            if (fill === null) {
                 svg += ' fill="none"';
             } else {
-                svg += ' fill="' + this.fill + '"';
+                svg += ' fill="' + fill + '"';
             }
         }
-        if (this.stroke) {
-            svg += ' stroke="' + this.stroke + '" stroke-width="' + this.strokeWidth + '"';
+        var stroke;
+        if (this.stroke && this.stroke.toCSS) {
+            stroke = this.stroke.toCSS();
+        } else {
+            stroke = this.stroke;
+        }
+        if (stroke) {
+            svg += ' stroke="' + stroke + '" stroke-width="' + this.strokeWidth + '"';
         }
         svg += '/>';
         return svg;
@@ -2065,6 +2077,8 @@ if (typeof require !== 'undefined') {
             B = Math.round(this.b * 255);
         return 'rgba(' + R + ', ' + G + ', ' + B + ', ' + this.a + ')';
     };
+
+    g.Color.prototype.toCSS = g.Color.prototype._get;
 
     g.makeColor = function (R, G, B, A, options) {
         return new g.Color(R, G, B, A, options);
