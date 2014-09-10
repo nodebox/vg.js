@@ -3021,7 +3021,7 @@ if (typeof require !== 'undefined') {
                 g.moveto(pt1.x, pt1.y),
                 g.curveto(c1x, c1y, c2x, c2y, pt2.x, pt2.y)
             ];
-        return g.makePath(commands, null, {'r': 0, 'g': 0, 'b': 0, 'a': 1}, 1.0);
+        return g.makePath(commands, null, g.Color.BLACK, 1.0);
     };
 
     g.polygon = function (position, radius, sides, align) {
@@ -3079,7 +3079,7 @@ if (typeof require !== 'undefined') {
             }
         }
 
-        return g.makePath(commands, null, {'r': 0, 'g': 0, 'b': 0, 'a': 1}, 1);
+        return g.makePath(commands, null, g.Color.BLACK, 1);
     };
 
     // Create a grid of points.
