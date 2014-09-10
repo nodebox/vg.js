@@ -3139,9 +3139,17 @@ if (typeof require !== 'undefined') {
 
     g.scale = function (shape, scale, origin) {
         if (!origin) { origin = g.Point.ZERO; }
+        var sx, sy;
+        if (typeof scale === 'number') {
+            sx = scale;
+            sy = scale;
+        } else {
+            sx = scale.x;
+            sy = scale.y;
+        }
         var t = new g.Transform();
         t = t.translate(origin.x, origin.y);
-        t = t.scale(scale.x / 100, scale.y / 100);
+        t = t.scale(sx / 100, sy / 100);
         t = t.translate(-origin.x, -origin.y);
         return t.transformShape(shape);
     };
