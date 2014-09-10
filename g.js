@@ -1402,7 +1402,7 @@ if (typeof require !== 'undefined') {
         var svg = '<path d="';
         svg += this.toPathData();
         svg += '"';
-    /*    if (this.fill !== 'black') {
+        if (this.fill !== 'black') {
             if (this.fill === null) {
                 svg += ' fill="none"';
             } else {
@@ -1411,7 +1411,7 @@ if (typeof require !== 'undefined') {
         }
         if (this.stroke) {
             svg += ' stroke="' + this.stroke + '" stroke-width="' + this.strokeWidth + '"';
-        } */
+        }
         svg += '/>';
         return svg;
     };
