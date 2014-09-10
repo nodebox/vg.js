@@ -785,7 +785,7 @@ if (typeof require !== 'undefined') {
                     return { type: g.LINETO, x: point.x, y: point.y };
                 } else if (cmd.type === g.CURVETO) {
                     point = _this.transformPoint({x: cmd.x, y: cmd.y});
-                    ctrl1 = _this.transformPoint({x: cmd.x1, y: cmd.y2});
+                    ctrl1 = _this.transformPoint({x: cmd.x1, y: cmd.y1});
                     ctrl2 = _this.transformPoint({x: cmd.x2, y: cmd.y2});
                     return { type: g.CURVETO, x1: ctrl1.x, y1: ctrl1.y, x2: ctrl2.x, y2: ctrl2.y, x: point.x, y: point.y };
                 } else {
