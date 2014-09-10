@@ -2974,10 +2974,14 @@ if (typeof require !== 'undefined') {
     };
 
     g.rect = function (position, width, height, roundness) {
-        if (!roundness || (roundness.x === 0 && roundness.y === 0)) {
+        if (roundness === undefined || roundness === 0 || (roundness.x === 0 && roundness.y === 0)) {
             return g._rect(position.x - width / 2, position.y - height / 2, width, height);
         } else {
-            return g.roundedRect(position.x - width / 2, position.y - height / 2, width, height, roundness.x, roundness.y);
+            if (typeof roundness === 'number') {
+                return g.roundedRect(position.x - width / 2, position.y - height / 2, width, height, roundness, roundness);
+            } else {
+                return g.roundedRect(position.x - width / 2, position.y - height / 2, width, height, roundness.x, roundness.y);
+            }
         }
     };
 
