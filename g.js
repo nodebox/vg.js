@@ -1606,7 +1606,7 @@ if (typeof require !== 'undefined') {
     // Here are a couple of ways to generate 'Hello' at position 0, 0 in 12pt Helvetica, centered.
     //
     //     new g.Text('Hello', {x: 0, y: 0}, 'Helvetica', 12, 'center');
-    //     new g.Text('Hello', [0, 0], {fontFamily: 'Helvetica', fontSize: 12, align: 'center'});
+    //     new g.Text('Hello', [0, 0], {fontFamily: 'Helvetica', fontSize: 12, textAlign: 'center'});
     //     new g.Text('Hello', 0, 0, {fontFamily: 'Helvetica', fontSize: 12});  // align: center is the default.
     //     new g.Text('Hello', {fontFamily: 'Helvetica', fontSize: 12}); // the position defaults to 0,0.
     g.Text = function (text) {
@@ -1660,9 +1660,9 @@ if (typeof require !== 'undefined') {
         }
 
         if (args.length) {
-            this.align = args.shift();
+            this.textAlign = args.shift();
         } else {
-            this.align = options.align || 'left';
+            this.textAlign = options.align || options.textAlign || 'left';
         }
 
         if (args.length) {
@@ -1700,7 +1700,7 @@ if (typeof require !== 'undefined') {
     g.Text.prototype.draw = function (ctx) {
         ctx.save();
         ctx.font = this._getFont();
-        ctx.textAlign = this.align;
+        ctx.textAlign = this.textAlign;
         ctx.fillStyle = g._getColor(this.fill);
         ctx.fillText(this.text, this.x, this.y);
         ctx.restore();
@@ -1713,9 +1713,9 @@ if (typeof require !== 'undefined') {
         ctx.font = this._getFont();
         // FIXME: measureText returns a TextMetrics object that only contains width.
         metrics = ctx.measureText(this.text);
-        if (this.align === 'center') {
+        if (this.textAlign === 'center') {
             x = this.x - (metrics.width / 2);
-        } else if (this.align === 'right') {
+        } else if (this.textAlign === 'right') {
             x = this.x - metrics.width;
         }
         return new g.Rect(x, this.y - this.fontSize, metrics.width, this.fontSize * 1.2);
