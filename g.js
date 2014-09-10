@@ -3132,12 +3132,13 @@ if (typeof require !== 'undefined') {
     };
 
     g.translate = function (shape, position) {
+        if (!position) { position = g.Point.ZERO; }
         var t = new g.Transform().translate(position.x, position.y);
         return t.transformShape(shape);
     };
 
     g.scale = function (shape, scale, origin) {
-        if (origin === null) { origin = g.Point.ZERO; }
+        if (!origin) { origin = g.Point.ZERO; }
         var t = new g.Transform();
         t = t.translate(origin.x, origin.y);
         t = t.scale(scale.x / 100, scale.y / 100);
@@ -3146,7 +3147,7 @@ if (typeof require !== 'undefined') {
     };
 
     g.rotate = function (shape, angle, origin) {
-        if (origin === null) { origin = g.Point.ZERO; }
+        if (!origin) { origin = g.Point.ZERO; }
         var t = new g.Transform();
         t = t.translate(origin.x, origin.y);
         t = t.rotate(angle);
@@ -3155,7 +3156,7 @@ if (typeof require !== 'undefined') {
     };
 
     g.skew = function (shape, skew, origin) {
-        if (origin === null) { origin = g.Point.ZERO; }
+        if (!origin) { origin = g.Point.ZERO; }
         var t = new g.Transform();
         t = t.translate(origin.x, origin.y);
         t = t.skew(skew.x, skew.y);
