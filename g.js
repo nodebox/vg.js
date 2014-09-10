@@ -1403,8 +1403,8 @@ if (typeof require !== 'undefined') {
         svg += this.toPathData();
         svg += '"';
         var fill;
-        if (this.fill && this.fill.toCSS) {
-            fill = this.fill.toCSS();
+        if (this.fill && this.fill.r !== undefined) {
+            fill = g.colorToCSS(this.fill);
         } else {
             fill = this.fill;
         }
@@ -1416,8 +1416,8 @@ if (typeof require !== 'undefined') {
             }
         }
         var stroke;
-        if (this.stroke && this.stroke.toCSS) {
-            stroke = this.stroke.toCSS();
+        if (this.stroke && this.stroke.r !== undefined) {
+            stroke = g.colorToCSS(this.stroke);
         } else {
             stroke = this.stroke;
         }
@@ -2072,13 +2072,15 @@ if (typeof require !== 'undefined') {
     };
 
     g.Color.prototype._get = function () {
-        var R = Math.round(this.r * 255),
-            G = Math.round(this.g * 255),
-            B = Math.round(this.b * 255);
-        return 'rgba(' + R + ', ' + G + ', ' + B + ', ' + this.a + ')';
+        return g.colorToCSS(this);
     };
 
-    g.Color.prototype.toCSS = g.Color.prototype._get;
+    g.colorToCSS = function (c) {
+        var R = Math.round(c.r * 255),
+            G = Math.round(c.g * 255),
+            B = Math.round(c.b * 255);
+        return 'rgba(' + R + ', ' + G + ', ' + B + ', ' + c.a + ')';
+    };
 
     g.makeColor = function (R, G, B, A, options) {
         return new g.Color(R, G, B, A, options);
