@@ -3429,7 +3429,7 @@ if (typeof require !== 'undefined') {
         if (closed) {
             commands.push(g.closePath());
         }
-        return g.makePath(commands, null, {'r': 0, 'g': 0, 'b': 0, 'a': 1}, 1);
+        return g.makePath(commands, null, g.Color.BLACK, 1);
     };
 
     g.align = function (shape, position, hAlign, vAlign) {
