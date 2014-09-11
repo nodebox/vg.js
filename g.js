@@ -3357,8 +3357,9 @@ if (typeof require !== 'undefined') {
         rand = g.randomGenerator(seed);
 
         wigglePoints = function (shape) {
+            var i, dx, dy;
             if (shape.commands) {
-                var i, dx, dy, cmd, commands = [];
+                var cmd, commands = [];
                 for (i = 0; i < shape.commands.length; i += 1) {
                     dx = (rand(0, 1) - 0.5) * offset.x * 2;
                     dy = (rand(0, 1) - 0.5) * offset.y * 2;
@@ -3378,6 +3379,14 @@ if (typeof require !== 'undefined') {
                 return g.makePath(commands, shape.fill, shape.stroke, shape.strokeWidth);
             } else if (shape.shapes) {
                 return g.makeGroup(_.map(shape.shapes, wigglePoints));
+            } else if (Array.isArray(shape) && shape.length > 0 && shape[0].x !== undefined && shape[0].y !== undefined){
+                var points = [];
+                for (i = 0; i < shape.length; i += 1) {
+                    dx = (rand(0, 1) - 0.5) * offset.x * 2;
+                    dy = (rand(0, 1) - 0.5) * offset.y * 2;
+                    points.push(new g.Point(shape[i].x + dx, shape[i].y + dy));
+                }
+                return points;
             } else {
                 return _.map(shape, wigglePoints);
             }
@@ -3752,7 +3761,7 @@ if (typeof require !== 'undefined') {
 
     g.centroid = function (shape) {
         if (shape === null) { return g.Point.ZERO; }
-        var i, pt,
+        var i,
             commands = g.combinePaths(shape),
             xs = commands[0].x,
             ys = commands[0].y,
