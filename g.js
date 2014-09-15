@@ -3752,7 +3752,7 @@ if (typeof require !== 'undefined') {
 
     g.centroid = function (shape) {
         if (shape === null) { return g.Point.ZERO; }
-        var i, pt,
+        var i,
             commands = g.combinePaths(shape),
             xs = commands[0].x,
             ys = commands[0].y,
