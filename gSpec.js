@@ -211,7 +211,7 @@ describe('A text object', function () {
         expect(t.y).toBe(20);
         expect(t.fontFamily).toBe('Helvetica');
         expect(t.fontSize).toBe(12);
-        expect(t.align).toBe('right');
+        expect(t.textAlign).toBe('right');
     }
 
     function testDefaultArgs(t) {
@@ -220,17 +220,17 @@ describe('A text object', function () {
         expect(t.y).toBe(0);
         expect(t.fontFamily).toBe('sans-serif');
         expect(t.fontSize).toBe(24);
-        expect(t.align).toBe('left');
+        expect(t.textAlign).toBe('left');
     }
 
     it('has many constructor options', function () {
         testArgs(new g.Text('Hello', 10, 20, 'Helvetica', 12, 'right'));
         testArgs(new g.Text('Hello', [10, 20], 'Helvetica', 12, 'right'));
         testArgs(new g.Text('Hello', {x: 10, y: 20}, 'Helvetica', 12, 'right'));
-        testArgs(new g.Text('Hello', 10, 20, {fontFamily: 'Helvetica', fontSize: 12, align: 'right'}));
-        testArgs(new g.Text('Hello', [10, 20], {fontFamily: 'Helvetica', fontSize: 12, align: 'right'}));
-        testArgs(new g.Text('Hello', [10, 20], {fontFamily: 'Helvetica', fontSize: 12, align: 'right'}));
-        testArgs(new g.Text('Hello', {x: 10, y: 20, fontFamily: 'Helvetica', fontSize: 12, align: 'right'}));
+        testArgs(new g.Text('Hello', 10, 20, {fontFamily: 'Helvetica', fontSize: 12, textAlign: 'right'}));
+        testArgs(new g.Text('Hello', [10, 20], {fontFamily: 'Helvetica', fontSize: 12, textAlign: 'right'}));
+        testArgs(new g.Text('Hello', [10, 20], {fontFamily: 'Helvetica', fontSize: 12, textAlign: 'right'}));
+        testArgs(new g.Text('Hello', {x: 10, y: 20, fontFamily: 'Helvetica', fontSize: 12, textAlign: 'right'}));
 
         testDefaultArgs(new g.Text('Hello'));
         testDefaultArgs(new g.Text('Hello', 0, 0));
@@ -243,7 +243,7 @@ describe('A text object', function () {
 
     it('has a corresponding function', function () {
         testArgs(g.text('Hello', 10, 20, 'Helvetica', 12, 'right'));
-        testArgs(g.text('Hello', [10, 20], {fontFamily: 'Helvetica', fontSize: 12, align: 'right'}));
+        testArgs(g.text('Hello', [10, 20], {fontFamily: 'Helvetica', fontSize: 12, textAlign: 'right'}));
         testDefaultArgs(g.text('Hello'));
         testDefaultArgs(g.text('Hello', [0, 0], 'sans-serif'));
     });
@@ -278,9 +278,9 @@ describe('A text object', function () {
     });
 
     it('supports alignment', function () {
-        var tLeft = new g.Text('Hello', 0, 0, {align: 'left'}),
-            tRight = new g.Text('Hello', 0, 0, {align: 'right'}),
-            tCenter = new g.Text('Hello', 0, 0, {align: 'center'});
+        var tLeft = new g.Text('Hello', 0, 0, {textAlign: 'left'}),
+            tRight = new g.Text('Hello', 0, 0, {textAlign: 'right'}),
+            tCenter = new g.Text('Hello', 0, 0, {textAlign: 'center'});
         expect(tLeft.bounds().x).toEqual(0);
         expect(tRight.bounds().x).toEqual(-(tRight.text.length * tRight.fontSize * 0.6));
         expect(tCenter.bounds().x).toEqual(-(tCenter.text.length * tRight.fontSize * 0.6) / 2);
