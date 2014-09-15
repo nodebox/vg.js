@@ -3767,6 +3767,13 @@ if (typeof require !== 'undefined') {
             ys = commands[0].y,
             count = 1;
         for (i = 1; i < commands.length; i += 1) {
+            if (commands[i].x1 !== undefined) {
+                xs += commands[i].x1;
+                ys += commands[i].y1;
+                xs += commands[i].x2;
+                ys += commands[i].y2;
+                count += 2;
+            }
             if (commands[i].x !== undefined) {
                 xs += commands[i].x;
                 ys += commands[i].y;
