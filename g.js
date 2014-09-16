@@ -3854,6 +3854,10 @@ if (typeof require !== 'undefined') {
     };
 
     g.colorLookup = function (color, comp) {
+        if (g._namedColors[color]) {
+            color = g._namedColors[color];
+            color = new g.Color(color[0], color[1], color[2]);
+        }
         var rgba = color.rgba();
         if (comp === 'r') { return rgba[0]; }
         else if (comp === 'g') { return rgba[1]; }
