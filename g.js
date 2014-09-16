@@ -3853,6 +3853,21 @@ if (typeof require !== 'undefined') {
         return newShapes;
     };
 
+    g.colorLookup = function (color, comp) {
+        var rgba = color.rgba();
+        if (comp === 'r') { return rgba[0]; }
+        else if (comp === 'g') { return rgba[1]; }
+        else if (comp === 'b') { return rgba[2]; }
+        else if (comp === 'a') { return rgba[3]; }
+        else if (comp === 'h' || comp === 's' || comp === 'v') {
+            var hsb = g._rgb2hsb(rgba[0], rgba[1], rgba[2]);
+            if (comp === 'h') { return hsb[0]; }
+            else if (comp === 's') { return hsb[1]; }
+            else if (comp === 'v') { return hsb[2]; }
+        }
+        return null;
+    };
+
     // MODULE SUPPORT ///////////////////////////////////////////////////////
 
     if (typeof module !== 'undefined') {
