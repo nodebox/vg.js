@@ -795,6 +795,12 @@ if (typeof require !== 'undefined') {
         return g.makePath(commands, path.fill, path.stroke, path.strokeWidth);
     };
 
+    g.Matrix3.prototype.transformText = function (text) {
+        var t = text.clone();
+        t.transform = this.append(t.transform);
+        return t;
+    };
+
     g.Matrix3.prototype.transformGroup = function (group) {
         var _this = this,
             shapes = _.map(group.shapes, function (shape) {
@@ -804,7 +810,14 @@ if (typeof require !== 'undefined') {
     };
 
     g.Matrix3.prototype.transformShape = function (shape) {
-        var fn = (shape.shapes) ? this.transformGroup : this.transformPath;
+        var fn;
+        if (shape.shapes) {
+            fn = this.transformGroup;
+        } else if (shape.text) {
+            fn = this.transformText;
+        } else {
+            fn = this.transformPath;
+        }
         return fn.call(this, shape);
     };
 
@@ -1670,6 +1683,21 @@ if (typeof require !== 'undefined') {
         } else {
             this.fill = options.fill || 'black';
         }
+
+        this.transform = g.Matrix3.IDENTITY;
+    };
+
+    g.Text.prototype.clone = function () {
+        var t = new g.Text();
+        t.text = this.text;
+        t.x = this.x;
+        t.y = this.y;
+        t.fontFamily = this.fontFamily;
+        t.fontSize = this.fontSize;
+        t.textAlign = this.textAlign;
+        t.fill = g._cloneColor(this.fill);
+        t.transform = this.transform;
+        return t;
     };
 
     // The `measureWidth` function requires a canvas, so we set up a dummy one
@@ -1697,10 +1725,18 @@ if (typeof require !== 'undefined') {
         return this.fontSize + 'px ' + this.fontFamily;
     };
 
+    g.Text.prototype.colorize = function (fill) {
+        var t = this.clone();
+        t.fill = g._cloneColor(fill);
+        return t;
+    };
+
     g.Text.prototype.draw = function (ctx) {
         ctx.save();
         ctx.font = this._getFont();
         ctx.textAlign = this.textAlign;
+        var m = this.transform.m;
+        ctx.transform(m[0], m[1], m[3], m[4], m[6], m[7]);
         ctx.fillStyle = g._getColor(this.fill);
         ctx.fillText(this.text, this.x, this.y);
         ctx.restore();
