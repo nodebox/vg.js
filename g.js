@@ -1364,6 +1364,7 @@ if (typeof require !== 'undefined') {
         var i, subPath, contourLength, amount,
             subPaths = this.contours(),
             commands = [];
+        segmentLength = Math.max(segmentLength, 0.01);
         for (i = 0; i < subPaths.length; i += 1) {
             subPath = g.makePath(subPaths[i]);
             contourLength = subPath.length();
