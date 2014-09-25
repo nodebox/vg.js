@@ -1599,6 +1599,9 @@ if (typeof require !== 'undefined') {
     };
 
     g.shapePoints = function (shape) {
+        if (!shape) {
+            return [];
+        }
         if (shape.commands) {
             return _.map(_.filter(shape.commands, function (cmd) { if (cmd.x !== undefined) { return true; } return false; }), function (cmd) { return {x: cmd.x, y: cmd.y}; });
         }
@@ -3193,6 +3196,9 @@ if (typeof require !== 'undefined') {
     // FILTERS //////////////////////////////////////////////////////////////
 
     g.colorize = function (shape, fill, stroke, strokeWidth) {
+        if (!shape) {
+            return;
+        }
         return shape.colorize(fill, stroke, strokeWidth);
     };
 
@@ -3269,7 +3275,9 @@ if (typeof require !== 'undefined') {
     };
 
     g.fit = function (shape, position, width, height, keepProportions) {
-        if (shape === null) { return null; }
+        if (!shape) {
+            return;
+        }
         keepProportions = keepProportions !== undefined ? keepProportions : true;
         var t, sx, sy,
             bounds = shape.bounds(),
@@ -3305,8 +3313,12 @@ if (typeof require !== 'undefined') {
     // Fit the given shape to the bounding shape.
     // If keepProportions = true, the shape will not be stretched.
     g.fitTo = function (shape, bounding, keepProportions) {
-        if (shape === null) { return null; }
-        if (bounding === null) { return shape; }
+        if (!shape) {
+            return;
+        }
+        if (!bounding) {
+            return;
+        }
 
         var bounds = bounding.bounds(),
             bx = bounds.x,
@@ -3318,7 +3330,9 @@ if (typeof require !== 'undefined') {
     };
 
     g.reflect = function (shape, position, angle, keepOriginal) {
-        if (shape === null) { return null; }
+        if (!shape) {
+            return;
+        }
 
         var f, reflectPath, reflectGroup, reflect, newShape;
 
@@ -3375,6 +3389,9 @@ if (typeof require !== 'undefined') {
     };
 
     g.resample = function (shape, method, length, points, perContour) {
+        if (!shape) {
+            return;
+        }
         if (method === 'length') {
             return shape.resampleByLength(length);
         } else {
@@ -3483,7 +3500,9 @@ if (typeof require !== 'undefined') {
 
     g.scatter = function (shape, amount, seed) {
         // Generate points within the boundaries of a shape.
-        if (shape === null) { return null; }
+        if (!shape) {
+            return;
+        }
         var i, tries, x, y,
             rand = g.randomGenerator(seed),
             bounds = shape.bounds(),
@@ -3509,7 +3528,9 @@ if (typeof require !== 'undefined') {
     };
 
     g.connect = function (points, closed) {
-        if (points === null) { return null; }
+        if (!points) {
+            return;
+        }
         var i, pt, commands = [];
         for (i = 0; i < points.length; i += 1) {
             pt = points[i];
@@ -3522,7 +3543,9 @@ if (typeof require !== 'undefined') {
     };
 
     g.align = function (shape, position, hAlign, vAlign) {
-        if (shape === null) { return null; }
+        if (!shape) {
+            return;
+        }
         var dx, dy, t,
             x = position.x,
             y = position.y,
@@ -3552,9 +3575,12 @@ if (typeof require !== 'undefined') {
 
     // Snap geometry to a grid.
     g.snap = function (shape, distance, strength, position) {
-
-        if (shape === null) { return null; }
-        if (position === null) { position = g.Point.ZERO; }
+        if (!shape) {
+            return;
+        }
+        if (!position) {
+            position = g.Point.ZERO;
+        }
         strength /= 100.0;
 
         var snapShape = function (shape) {
@@ -3658,7 +3684,9 @@ if (typeof require !== 'undefined') {
 
     g.pointOnPath = function (shape, t) {
         var pt;
-        if (shape === null) { return null; }
+        if (!shape) {
+            return;
+        }
         if (shape.shapes) {
             shape = g.makePath(g.combinePaths(shape));
         }
@@ -3754,7 +3782,9 @@ if (typeof require !== 'undefined') {
     };
 
     g.sort = function (shapes, orderBy, point) {
-        if (shapes === null) { return null; }
+        if (!shapes) {
+            return;
+        }
         var methods, sortMethod, newShapes;
         methods = {
             x: g._x,
@@ -3797,7 +3827,9 @@ if (typeof require !== 'undefined') {
     };
 
     g.centroid = function (shape) {
-        if (shape === null) { return g.Point.ZERO; }
+        if (!shape) {
+            return g.Point.ZERO;
+        }
         var i,
             commands = g.combinePaths(shape),
             xs = commands[0].x,
@@ -3821,7 +3853,9 @@ if (typeof require !== 'undefined') {
     };
 
     g.link = function (shape1, shape2, orientation) {
-        if (shape1 === null || shape2 === null) { return null; }
+        if (!shape1 || !shape2) {
+            return;
+        }
         var commands, hw, hh,
             a = shape1.bounds(),
             b = shape2.bounds();
@@ -3847,7 +3881,9 @@ if (typeof require !== 'undefined') {
     };
 
     g.stack = function (shapes, direction, margin) {
-        if (shapes === null) { return []; }
+        if (!shapes) {
+            return [];
+        }
         if (shapes.length <= 1) {
             return shapes;
         }
