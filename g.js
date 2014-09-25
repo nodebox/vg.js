@@ -1598,7 +1598,7 @@ if (typeof require !== 'undefined') {
         return commands;
     };
 
-    g.shapePoints = function (shape) {
+    g.shapePoints = g.toPoints = function (shape) {
         if (!shape) {
             return [];
         }
