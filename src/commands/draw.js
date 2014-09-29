@@ -2,7 +2,7 @@
 
 'use strict';
 
-var Color = require('../objects/color').Color;
+var Color = require('../objects/color');
 
 var g = {};
 

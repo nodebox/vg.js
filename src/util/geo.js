@@ -2,8 +2,9 @@
 
 'use strict';
 
-var math = require('./math');
-var Point = require('../objects/point').Point;
+var math = require('../util/math');
+
+var Point = require('../objects/point');
 
 var geo = {};
 

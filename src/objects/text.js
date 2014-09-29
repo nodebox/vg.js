@@ -2,11 +2,9 @@
 
 'use strict';
 
-var color = require('./color');
-var Rect = require('./rect').Rect;
-var Transform = require('./transform').Transform;
-
-var g = {};
+var Color = require('../objects/color');
+var Rect = require('../objects/rect');
+var Transform = require('../objects/transform');
 
 var _dummyContext = null;
 
@@ -20,7 +18,7 @@ var _dummyContext = null;
 //     new g.Text('Hello', [0, 0], {fontFamily: 'Helvetica', fontSize: 12, textAlign: 'center'});
 //     new g.Text('Hello', 0, 0, {fontFamily: 'Helvetica', fontSize: 12});  // align: center is the default.
 //     new g.Text('Hello', {fontFamily: 'Helvetica', fontSize: 12}); // the position defaults to 0,0.
-g.Text = function (text) {
+var Text = function (text) {
     var args = Array.prototype.slice.call(arguments, 1),
         secondArg = arguments[1],
         thirdArg = arguments[2],
@@ -85,22 +83,22 @@ g.Text = function (text) {
     this.transform = new Transform();
 };
 
-g.Text.prototype.clone = function () {
-    var t = new g.Text();
+Text.prototype.clone = function () {
+    var t = new Text();
     t.text = this.text;
     t.x = this.x;
     t.y = this.y;
     t.fontFamily = this.fontFamily;
     t.fontSize = this.fontSize;
     t.textAlign = this.textAlign;
-    t.fill = color.clone(this.fill);
+    t.fill = Color.clone(this.fill);
     t.transform = this.transform;
     return t;
 };
 
 // The `measureWidth` function requires a canvas, so we set up a dummy one
 // that we re-use for the duration of the page.
-g.Text._getDummyContext = function () {
+Text._getDummyContext = function () {
     if (!_dummyContext) {
         if (typeof document !== 'undefined') {
             _dummyContext = document.createElement('canvas').getContext('2d');
@@ -119,29 +117,29 @@ g.Text._getDummyContext = function () {
     return _dummyContext;
 };
 
-g.Text.prototype._getFont = function () {
+Text.prototype._getFont = function () {
     return this.fontSize + 'px ' + this.fontFamily;
 };
 
-g.Text.prototype.colorize = function (fill) {
+Text.prototype.colorize = function (fill) {
     var t = this.clone();
-    t.fill = color.clone(fill);
+    t.fill = Color.clone(fill);
     return t;
 };
 
-g.Text.prototype.draw = function (ctx) {
+Text.prototype.draw = function (ctx) {
     ctx.save();
     ctx.font = this._getFont();
     ctx.textAlign = this.textAlign;
     var m = this.transform.m;
     ctx.transform(m[0], m[1], m[3], m[4], m[6], m[7]);
-    ctx.fillStyle = color.get(this.fill);
+    ctx.fillStyle = Color.get(this.fill);
     ctx.fillText(this.text, this.x, this.y);
     ctx.restore();
 };
 
-g.Text.prototype.bounds = function () {
-    var ctx = g.Text._getDummyContext(),
+Text.prototype.bounds = function () {
+    var ctx = Text._getDummyContext(),
         metrics,
         x = this.x;
     ctx.font = this._getFont();
@@ -155,7 +153,7 @@ g.Text.prototype.bounds = function () {
     return new Rect(x, this.y - this.fontSize, metrics.width, this.fontSize * 1.2);
 };
 
-g.Text.prototype.toSVG = function () {
+Text.prototype.toSVG = function () {
     var svg = '<text';
     svg += ' x="' + this.x + '"';
     svg += ' y="' + this.y + '"';
@@ -171,7 +169,7 @@ g.Text.prototype.toSVG = function () {
     }
     svg += ' text-anchor="' + textAnchor + '"';
     if (this.fill !== 'black') {
-        svg += ' fill="' + color.toCSS(this.fill) + '"';
+        svg += ' fill="' + Color.toCSS(this.fill) + '"';
     }
     svg += '>';
     svg += this.text;
@@ -179,4 +177,4 @@ g.Text.prototype.toSVG = function () {
     return svg;
 };
 
-module.exports = g;
+module.exports = Text;

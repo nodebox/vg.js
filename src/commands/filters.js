@@ -4,17 +4,16 @@
 
 var _ = require('underscore');
 
-var color = require('../objects/color');
-var Color = color.Color;
+var color = require('../util/color');
 var geo = require('../util/geo');
-var group = require('../objects/group');
-var Group = group.Group;
-var path = require('../objects/path');
-var Path = path.Path;
-var Point = require('../objects/point').Point;
 var random = require('../util/random');
-var Rect = require('../objects/rect').Rect;
-var Transform = require('../objects/transform').Transform;
+
+var Color = require('../objects/color');
+var Group = require('../objects/group');
+var Path = require('../objects/path');
+var Point = require('../objects/point');
+var Rect = require('../objects/rect');
+var Transform = require('../objects/transform');
 
 var g = {};
 
@@ -826,17 +825,17 @@ g.stack = function (shapes, direction, margin) {
 };
 
 g.colorLookup = function (color, comp) {
-    if (color._namedColors[color]) {
-        color = color._namedColors[color];
+    if (color.namedColors[color]) {
+        color = color.namedColors[color];
         color = new Color(color[0], color[1], color[2]);
     }
-    var rgba = color.rgba();
+    var rgba = Color.rgba();
     if (comp === 'r') { return rgba[0]; }
     else if (comp === 'g') { return rgba[1]; }
     else if (comp === 'b') { return rgba[2]; }
     else if (comp === 'a') { return rgba[3]; }
     else if (comp === 'h' || comp === 's' || comp === 'v') {
-        var hsb = color._rgb2hsb(rgba[0], rgba[1], rgba[2]);
+        var hsb = color.rgb2hsb(rgba[0], rgba[1], rgba[2]);
         if (comp === 'h') { return hsb[0]; }
         else if (comp === 's') { return hsb[1]; }
         else if (comp === 'v') { return hsb[2]; }

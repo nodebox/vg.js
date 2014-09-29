@@ -5,11 +5,11 @@
 var _ = require('underscore');
 
 var geo = require('../util/geo');
-var Color = require('../objects/color').Color;
-var path = require('../objects/path');
-var Path = path.Path;
-var Point = require('../objects/point').Point;
-var Text = require('../objects/text').Text;
+
+var Color = require('../objects/color');
+var Path = require('../objects/path');
+var Point = require('../objects/point');
+var Text = require('../objects/text');
 
 var g = {};
 
@@ -96,12 +96,14 @@ g.quadCurve = function (pt1, pt2, t, distance) {
         c1x = pt1.x + 2 / 3.0 * (qx - pt1.x),
         c1y = pt1.y + 2 / 3.0 * (qy - pt1.y),
         c2x = pt2.x + 2 / 3.0 * (qx - pt2.x),
-        c2y = pt2.y + 2 / 3.0 * (qy - pt2.y),
-        commands = [
-            path.moveTo(pt1.x, pt1.y),
-            path.curveTo(c1x, c1y, c2x, c2y, pt2.x, pt2.y)
-        ];
-    return new Path(commands, null, g.Color.BLACK, 1.0);
+        c2y = pt2.y + 2 / 3.0 * (qy - pt2.y);
+
+    var p = new Path();
+    p.moveTo(pt1.x, pt1.y);
+    p.curveTo(c1x, c1y, c2x, c2y, pt2.x, pt2.y);
+    p.fill = null;
+    p.stroke = Color.BLACK;
+    return p;
 };
 
 g.polygon = function (position, radius, sides, align) {
@@ -118,48 +120,59 @@ g.polygon = function (position, radius, sides, align) {
         c1 = geo.coordinates(x, y, r, a);
         da = -geo.angle(c1.x, c1.y, c0.x, c0.y);
     }
+    var p = new Path();
     for (i = 0; i < sides; i += 1) {
         c = geo.coordinates(x, y, r, (a * i) + da);
-        commands.push(((i === 0) ? path.moveTo : path.lineTo)(c.x, c.y));
+        if (i === 0) {
+            p.moveTo(c.x, c.y);
+        } else {
+            p.lineTo(c.x, c.y);
+        }
     }
-    commands.push(path.close());
+    p.close();
     return new Path(commands);
 };
 
 g.star = function (position, points, outer, inner) {
-    var i, angle, radius, x, y,
-        commands = [path.moveTo(position.x, position.y + outer / 2)];
+    var i, angle, radius, x, y;
+    var p = new Path();
+    p.moveTo(position.x, position.y + outer / 2);
     // Calculate the points of the star.
     for (i = 1; i < points * 2; i += 1) {
         angle = i * Math.PI / points;
         radius = (i % 2 === 1) ? inner / 2 : outer / 2;
         x = position.x + radius * Math.sin(angle);
         y = position.y + radius * Math.cos(angle);
-        commands.push(path.lineTo(x, y));
+        p.lineTo(x, y);
     }
-    commands.push(path.close());
-    return new Path(commands);
+    p.close();
+    return p;
 };
 
 g.freehand = function (pathString) {
-    var i, j, values, type,
-        commands = [],
+    var i, j, values, 
         nonEmpty = function (s) { return s !== ''; },
         contours = _.filter(pathString.split('M'), nonEmpty);
 
     contours = _.map(contours, function (c) { return c.replace(/,/g, ' '); });
-
+    var p = new Path();
     for (j = 0; j < contours.length; j += 1) {
         values = _.filter(contours[j].split(' '), nonEmpty);
         for (i = 0; i < values.length; i += 2) {
             if (values[i + 1] !== undefined) {
-                type = (i === 0) ? path.moveTo : path.lineTo;
-                commands.push(type(parseFloat(values[i]), parseFloat(values[i + 1])));
+                var x = parseFloat(values[i]);
+                var y = parseFloat(values[i + 1]);
+                if (i === 0) {
+                    p.moveTo(x, y);
+                } else {
+                    p.lineTo(x, y);
+                }
             }
         }
     }
-
-    return new Path(commands, null, Color.BLACK, 1);
+    p.fill = null;
+    p.stroke = Color.BLACK;
+    return p;
 };
 
 // Create a grid of points.

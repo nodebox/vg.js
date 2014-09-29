@@ -5,9 +5,10 @@
 
 var _ = require('underscore');
 
-var math = require('./math');
-var Point = require('../objects/point').Point;
-var Rect = require('../objects/rect').Rect;
+var math = require('../util/math');
+
+var Point = require('../objects/point');
+var Rect = require('../objects/rect');
 
 var bezier = {};
 

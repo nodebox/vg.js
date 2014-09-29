@@ -10,8 +10,9 @@
 
 var g = {};
 
-// Sub-namespaces
+// Utility functions
 g.bezier = require('./util/bezier');
+g.color = require('./util/color');
 g.geo = require('./util/geo');
 g.math = require('./util/math');
 g.random = require('./util/random');
@@ -28,8 +29,6 @@ g.Text = require('./objects/text').Text;
 g.Transform = g.Matrix3 = require('./objects/transform').Transform;
 g.Vec3 = require('./objects/vec3').Vec3;
 
-
-
 // Commands
 function importCommands(module) {
     for (var k in module) {
@@ -37,11 +36,8 @@ function importCommands(module) {
     }
 }
 
-var drawModule = require('./commands/draw');
-importCommands(drawModule);
-var filterModule = require('./commands/filters');
-importCommands(filterModule);
-var shapesModule = require('./commands/shapes');
-importCommands(shapesModule);
+importCommands(require('./commands/draw'));
+importCommands(require('./commands/filters'));
+importCommands(require('./commands/shapes'));
 
 module.exports = g;

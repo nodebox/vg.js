@@ -9,14 +9,15 @@
 
 var _ = require('underscore');
 
-var color = require('../objects/color');
-var geo = require('./geo');
+var geo = require('../util/geo');
+
+var Color = require('../objects/color');
 var Group = require('../objects/group');
-var path = require('../objects/path');
-var Path = path.Path;
-var Point = require('../objects/point').Point;
-var shapes = require('../commands/shapes');
-var Transform = require('../objects/transform').Transform;
+var Path = require('../objects/path');
+var Point = require('../objects/point');
+var Transform = require('../objects/transform');
+
+//var shapes = require('../commands/shapes');
 
 var svg = {};
 
@@ -477,8 +478,8 @@ svg.applySvgAttributes = function (node, shape) {
         }
     });
 
-    fill = color.parse(fill);
-    stroke = color.parse(stroke);
+    fill = Color.parse(fill);
+    stroke = Color.parse(stroke);
 
     transform = new Transform();
     for (i = 0; i < transforms.length; i += 1) {

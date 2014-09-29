@@ -2,10 +2,10 @@
 
 'use strict';
 
-var g = {};
+var Vec3 = require('../objects/vec3');
 
 // Construct a 4x4 matrix.
-g.Matrix4 = function (m) {
+var Matrix4 = function (m) {
     if (m !== undefined) {
        // TODO Check for type and length
         this.m = m;
@@ -31,11 +31,11 @@ g.Matrix4 = function (m) {
     }
 };
 
-g.Matrix4.IDENTITY = new g.Matrix4();
+Matrix4.IDENTITY = new Matrix4();
 
 // Create a perspective matrix transformation.
-g.Matrix4.perspective = function (fov, aspect, zNear, zFar) {
-    var m = new Float32Array(g.Matrix4.IDENTITY.m),
+Matrix4.perspective = function (fov, aspect, zNear, zFar) {
+    var m = new Float32Array(Matrix4.IDENTITY.m),
         tan = 1.0 / (Math.tan(fov * 0.5));
 
     m[0] = tan / aspect;
@@ -48,19 +48,19 @@ g.Matrix4.perspective = function (fov, aspect, zNear, zFar) {
     m[12] = m[13] = m[15] = 0.0;
     m[14] = (zNear * zFar) / (zNear - zFar);
 
-    return new g.Matrix4(m);
+    return new Matrix4(m);
 };
 
-g.Matrix4.lookAt = function (eye, target, up) {
+Matrix4.lookAt = function (eye, target, up) {
     var m, zAxis, xAxis, yAxis, ex, ey, ez;
     m = new Float32Array(16);
     zAxis = target.subtract(eye).normalize();
-    xAxis = g.Vec3.cross(up, zAxis).normalize();
-    yAxis = g.Vec3.cross(zAxis, xAxis).normalize();
+    xAxis = Vec3.cross(up, zAxis).normalize();
+    yAxis = Vec3.cross(zAxis, xAxis).normalize();
 
-    ex = -g.Vec3.dot(xAxis, eye);
-    ey = -g.Vec3.dot(yAxis, eye);
-    ez = -g.Vec3.dot(zAxis, eye);
+    ex = -Vec3.dot(xAxis, eye);
+    ey = -Vec3.dot(yAxis, eye);
+    ez = -Vec3.dot(zAxis, eye);
 
     m[0] = xAxis.x;
     m[1] = yAxis.x;
@@ -79,11 +79,11 @@ g.Matrix4.lookAt = function (eye, target, up) {
     m[14] = ez;
     m[15] = 1;
 
-    return new g.Matrix4(m);
+    return new Matrix4(m);
 };
 
 // Return a new matrix with the inversion of this matrix.
-g.Matrix4.prototype.invert = function () {
+Matrix4.prototype.invert = function () {
     var l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16, l17, l18, l19, l20, l21, l22, l23, l24, l25, l26, l27, l28,
         l29, l30, l31, l32, l33, l34, l35, l36, l37, l38, l39, m;
     l1 = this.m[0];
@@ -143,10 +143,10 @@ g.Matrix4.prototype.invert = function () {
     m[7] = (((l1 * l34) - (l3 * l37)) + (l4 * l38)) * l27;
     m[11] = -(((l1 * l35) - (l2 * l37)) + (l4 * l39)) * l27;
     m[15] = (((l1 * l36) - (l2 * l38)) + (l3 * l39)) * l27;
-    return new g.Matrix4(m);
+    return new Matrix4(m);
 };
 
-g.Matrix4.prototype.multiply = function (other) {
+Matrix4.prototype.multiply = function (other) {
     var m = new Float32Array(16);
 
     m[0] = this.m[0] * other.m[0] + this.m[1] * other.m[4] + this.m[2] * other.m[8] + this.m[3] * other.m[12];
@@ -169,15 +169,15 @@ g.Matrix4.prototype.multiply = function (other) {
     m[14] = this.m[12] * other.m[2] + this.m[13] * other.m[6] + this.m[14] * other.m[10] + this.m[15] * other.m[14];
     m[15] = this.m[12] * other.m[3] + this.m[13] * other.m[7] + this.m[14] * other.m[11] + this.m[15] * other.m[15];
 
-    return new g.Matrix4(m);
+    return new Matrix4(m);
 };
 
-g.Matrix4.prototype.translate = function (tx, ty, tz) {
+Matrix4.prototype.translate = function (tx, ty, tz) {
     var m = new Float32Array(this.m);
     m[12] += tx;
     m[13] += ty;
     m[14] += tz;
-    return new g.Matrix4(m);
+    return new Matrix4(m);
 };
 
-module.exports = g;
+module.exports = Matrix4;

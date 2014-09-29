@@ -4,12 +4,10 @@
 
 var _ = require('underscore');
 
-var Path = require('./path').Path;
-var Rect = require('./rect').Rect;
+var Path = require('../objects/path').Path;
+var Rect = require('../objects/rect').Rect;
 
-var g = {};
-
-g.Group = function (shapes) {
+var Group = function (shapes) {
     if (!shapes) {
         this.shapes = [];
     } else if (shapes.shapes || shapes.commands) {
@@ -19,11 +17,11 @@ g.Group = function (shapes) {
     }
 };
 
-g.Group.prototype.add = function (shape) {
+Group.prototype.add = function (shape) {
     this.shapes.push(shape);
 };
 
-g.Group.prototype.clone = function () {
+Group.prototype.clone = function () {
     var newShapes = [],
         n = this.shapes.length,
         i;
@@ -31,17 +29,17 @@ g.Group.prototype.clone = function () {
     for (i = 0; i < n; i += 1) {
         newShapes[i] = this.shapes[i].clone();
     }
-    return new g.Group(newShapes);
+    return new Group(newShapes);
 };
 
-g.Group.prototype.colorize = function (fill, stroke, strokeWidth) {
+Group.prototype.colorize = function (fill, stroke, strokeWidth) {
     var shapes = _.map(this.shapes, function (shape) {
         return shape.colorize(fill, stroke, strokeWidth);
     });
-    return new g.Group(shapes);
+    return new Group(shapes);
 };
 
-g.Group.prototype.bounds = function () {
+Group.prototype.bounds = function () {
     if (this.shapes.length === 0) { return new Rect(0, 0, 0, 0); }
     var i, r, shape,
         shapes = this.shapes;
@@ -59,7 +57,7 @@ g.Group.prototype.bounds = function () {
 };
 
 // Returns true when point (x,y) falls within the contours of the group.
-g.Group.prototype.contains = function (x, y, precision) {
+Group.prototype.contains = function (x, y, precision) {
     if (precision === undefined) { precision = 100; }
     var i, shapes = this.shapes;
     for (i = 0; i < shapes.length; i += 1) {
@@ -70,7 +68,7 @@ g.Group.prototype.contains = function (x, y, precision) {
     return false;
 };
 
-g.Group.prototype.resampleByAmount = function (points, perContour) {
+Group.prototype.resampleByAmount = function (points, perContour) {
     var path, shapes;
     if (!perContour) {
         path = new Path(g.combinePaths(this));
@@ -80,17 +78,17 @@ g.Group.prototype.resampleByAmount = function (points, perContour) {
     shapes = _.map(this.shapes, function (shape) {
         return shape.resampleByAmount(points, perContour);
     });
-    return new g.Group(shapes);
+    return new Group(shapes);
 };
 
-g.Group.prototype.resampleByLength = function (length) {
+Group.prototype.resampleByLength = function (length) {
     var shapes = _.map(this.shapes, function (shape) {
         return shape.resampleByLength(length);
     });
-    return new g.Group(shapes);
+    return new Group(shapes);
 };
 
-g.Group.prototype.toSVG = function () {
+Group.prototype.toSVG = function () {
     var l;
     l = _.map(this.shapes, function (shape) {
         return shape.toSVG();
@@ -99,13 +97,11 @@ g.Group.prototype.toSVG = function () {
 };
 
 // Draw the group to a 2D context.
-g.Group.prototype.draw = function (ctx) {
+Group.prototype.draw = function (ctx) {
     var i, shapes = this.shapes, nShapes = shapes.length;
     for (i = 0; i < nShapes; i += 1) {
         shapes[i].draw(ctx);
     }
 };
 
-g.make = g.group = function (shapes) {
-    return new g.Group(shapes);
-};
+module.exports = Group;

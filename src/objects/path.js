@@ -5,10 +5,11 @@
 var _ = require('underscore');
 
 var bezier = require('../util/bezier');
-var Color = require('./color').Color;
 var geo = require('../util/geo');
 var math = require('../util/math');
-var Rect = require('./rect').Rect;
+
+var Color = require('../objects/color');
+var Rect = require('../objects/rect');
 
 var MOVETO  = 'M';
 var LINETO  = 'L';
@@ -485,4 +486,4 @@ Path.prototype.draw = function (ctx) {
     }
 };
 
-exports.Path = Path;
+module.exports = Path;
