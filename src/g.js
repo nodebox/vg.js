@@ -19,15 +19,15 @@ g.random = require('./util/random');
 g.svg = require('./util/svg');
 
 // Objects
-g.Color = require('./objects/color').Color;
-g.Group = require('./objects/group').Group;
-g.Matrix4 = require('./objects/matrix4').Matrix4;
-g.Path = require('./objects/path').Path;
-g.Point = g.Vec2 = require('./objects/point').Point;
-g.Rect = require('./objects/rect').Rect;
-g.Text = require('./objects/text').Text;
-g.Transform = g.Matrix3 = require('./objects/transform').Transform;
-g.Vec3 = require('./objects/vec3').Vec3;
+g.Color = require('./objects/color');
+g.Group = require('./objects/group');
+g.Matrix4 = require('./objects/matrix4');
+g.Path = require('./objects/path');
+g.Point = g.Vec2 = require('./objects/point');
+g.Rect = require('./objects/rect');
+g.Text = require('./objects/text');
+g.Transform = g.Matrix3 = require('./objects/transform');
+g.Vec3 = require('./objects/vec3');
 
 // Commands
 function importCommands(module) {
