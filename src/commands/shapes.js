@@ -150,7 +150,7 @@ g.star = function (position, points, outer, inner) {
 };
 
 g.freehand = function (pathString) {
-    var i, j, values, 
+    var i, j, values,
         nonEmpty = function (s) { return s !== ''; },
         contours = _.filter(pathString.split('M'), nonEmpty);
 
