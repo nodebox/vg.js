@@ -9,6 +9,7 @@ var Color = require('./color').Color;
 var path = require('./path');
 var Path = path.Path;
 var Point = require('./point').Point;
+var Text = require('./text').Text;
 
 var g = {};
 
@@ -315,6 +316,23 @@ g.grid = function (columns, rows, width, height, position) {
         }
     }
     return points;
+};
+
+// Generates a Text object.
+// The function can take many possible argument forms, either by listing them in order
+// (text, x, y, fontFamily, fontSize, align, fill), or by using an options object.
+// The position can be specified as x, y; using a point {x: 10, y: 20} or using an array [10, 20].
+// Here are a couple of ways to generate 'Hello' at position 0, 0 in 12pt Helvetica, centered.
+//
+//     g.text('Hello', {x: 0, y: 0}, 'Helvetica', 12, 'center');
+//     g.text('Hello', [0, 0], {fontFamily: 'Helvetica', fontSize: 12, align: 'center'});
+//     g.text('Hello', 0, 0, {fontFamily: 'Helvetica', fontSize: 12});  // align: center is the default.
+//     g.text('Hello', {fontFamily: 'Helvetica', fontSize: 12}); // the position defaults to 0,0.
+g.text = function () {
+    var t = Object.create(Text.prototype);
+    t.constructor = Text.prototype;
+    Text.apply(t, arguments);
+    return t;
 };
 
 g.demoRect = function () {
