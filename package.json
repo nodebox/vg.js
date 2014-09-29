@@ -22,7 +22,7 @@
     "jshint": "~2.4.4",
     "watchify": "^1.0.6"
   },
-  "main": "g.js",
+  "main": "./src/g.js",
   "files": [
     "g.js",
     "LICENSE"
