@@ -1,26 +1,36 @@
 {
-    "name": "g.js",
-    "description": "A JavaScript library for vector graphics.",
-    "keywords": ["vector", "graphics", "canvas", "2d"],
-    "version": "0.0.2",
-    "license": "MIT",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/nodebox/g.js.git"
-    },
-    "dependencies": {
-        "underscore": "1.6.0"
-    },
-    "devDependencies": {
-        "jasmine-node": "~1.13.1",
-        "jshint": "~2.4.4"
-    },
-    "main": "g.js",
-    "files": [
-        "g.js",
-        "LICENSE"
-    ],
-    "scripts": {
-        "test": "jasmine-node . && jshint *.js"
-    }
+  "name": "g.js",
+  "description": "A JavaScript library for vector graphics.",
+  "keywords": [
+    "vector",
+    "graphics",
+    "canvas",
+    "2d"
+  ],
+  "version": "0.0.2",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nodebox/g.js.git"
+  },
+  "dependencies": {
+    "underscore": "1.6.0"
+  },
+  "devDependencies": {
+    "browserify": "^5.12.1",
+    "jasmine-node": "~1.13.1",
+    "jshint": "~2.4.4",
+    "watchify": "^1.0.6"
+  },
+  "main": "g.js",
+  "files": [
+    "g.js",
+    "LICENSE"
+  ],
+  "scripts": {
+    "ensure-build-dir": "mkdir -p build",
+    "browserify": "npm run ensure-build-dir && browserify src/g.js --standalone g > build/g.js",
+    "watchify": "npm run ensure-build-dir && watchify src/g.js --standalone g --debug -o build/g.js -v",
+    "test": "jasmine-node . && jshint *.js"
+  }
 }
