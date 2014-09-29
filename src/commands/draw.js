@@ -2,7 +2,7 @@
 
 'use strict';
 
-var color = require('./color');
+var Color = require('../objects/color').Color;
 
 var g = {};
 
@@ -41,7 +41,7 @@ g.drawColors = function (ctx, colors) {
     ctx.save();
     for (i = 0; i < colors.length; i += 1) {
         c = colors[i];
-        ctx.fillStyle = color.get(c);
+        ctx.fillStyle = Color.get(c);
         ctx.fillRect(0, 0, 30, 30);
         ctx.translate(30, 0);
     }

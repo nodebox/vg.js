@@ -2,7 +2,7 @@
 
 'use strict';
 
-var Color = require('./color').Color;
+var Color = require('../objects/color').Color;
 
 exports.color = function (c) {
     if (c === null || c === undefined) {

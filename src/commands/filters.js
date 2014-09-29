@@ -4,17 +4,17 @@
 
 var _ = require('underscore');
 
-var color = require('./color');
+var color = require('../objects/color');
 var Color = color.Color;
-var geo = require('./geo');
-var group = require('./group');
+var geo = require('../util/geo');
+var group = require('../objects/group');
 var Group = group.Group;
-var path = require('./path');
+var path = require('../objects/path');
 var Path = path.Path;
-var Point = require('./point').Point;
-var random = require('./random');
-var Rect = require('./rect').Rect;
-var Transform = require('./transform').Transform;
+var Point = require('../objects/point').Point;
+var random = require('../util/random');
+var Rect = require('../objects/rect').Rect;
+var Transform = require('../objects/transform').Transform;
 
 var g = {};
 

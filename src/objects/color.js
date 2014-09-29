@@ -339,7 +339,7 @@ g.Color.prototype._get = function () {
     return g.colorToCSS(this);
 };
 
-g.clone = function (c) {
+g.Color.clone = function (c) {
     if (c === null || c === undefined) {
         return null;
     } else if (typeof c === 'string') {
@@ -349,7 +349,7 @@ g.clone = function (c) {
     }
 };
 
-g.get = function (c) {
+g.Color.get = function (c) {
     if (c === null) { return 'none'; }
     if (c === undefined) { return 'black'; }
     if (typeof c === 'string') { return c; }
@@ -357,7 +357,7 @@ g.get = function (c) {
     return new g.Color(c)._get();
 };
 
-g.toCSS = function (c) {
+g.Color.toCSS = function (c) {
     if (typeof c === 'string') {
         // We're going to assume the color is already a CSS string.
         return c;
@@ -368,11 +368,11 @@ g.toCSS = function (c) {
     return 'rgba(' + R + ', ' + G + ', ' + B + ', ' + c.a + ')';
 };
 
-g.make = function (R, G, B, A, options) {
+g.Color.make = function (R, G, B, A, options) {
     return new g.Color(R, G, B, A, options);
 };
 
-g.parse = function (s) {
+g.Color.parse = function (s) {
     if (g._namedColors[s]) {
         return g.make.apply(g, g._namedColors[s]);
     } else if (s[0] === '#') {
@@ -384,17 +384,17 @@ g.parse = function (s) {
     }
 };
 
-g.gray = function (gray, alpha, range) {
+g.Color.gray = function (gray, alpha, range) {
     range = Math.max(range, 1);
     return new g.Color(gray / range, gray / range, gray / range, alpha / range);
 };
 
-g.rgb = function (red, green, blue, alpha, range) {
+g.Color.rgb = function (red, green, blue, alpha, range) {
     range = Math.max(range, 1);
     return new g.Color(red / range, green / range, blue / range, alpha / range);
 };
 
-g.hsb = function (hue, saturation, brightness, alpha, range) {
+g.Color.hsb = function (hue, saturation, brightness, alpha, range) {
     range = Math.max(range, 1);
     return new g.Color(hue / range, saturation / range, brightness / range, alpha / range, { colorspace: g.HSB });
 };

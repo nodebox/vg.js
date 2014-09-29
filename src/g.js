@@ -11,40 +11,37 @@
 var g = {};
 
 // Sub-namespaces
-g.bezier = require('./bezier');
-g.geo = require('./geo');
-g.math = require('./math');
-g.random = require('./random');
-g.svg = require('./svg');
+g.bezier = require('./util/bezier');
+g.geo = require('./util/geo');
+g.math = require('./util/math');
+g.random = require('./util/random');
+g.svg = require('./util/svg');
 
 // Objects
-g.Color = require('./color').Color;
-g.Group = require('./group').Group;
-g.Matrix4 = require('./matrix4').Matrix4;
-g.Path = require('./path').Path;
-g.Point = g.Vec2 = require('./point').Point;
-g.Rect = require('./rect').Rect;
-g.Text = require('./text').Text;
-g.Transform = g.Matrix3 = require('./transform').Transform;
-g.Vec3 = require('./vec3').Vec3;
+g.Color = require('./objects/color').Color;
+g.Group = require('./objects/group').Group;
+g.Matrix4 = require('./objects/matrix4').Matrix4;
+g.Path = require('./objects/path').Path;
+g.Point = g.Vec2 = require('./objects/point').Point;
+g.Rect = require('./objects/rect').Rect;
+g.Text = require('./objects/text').Text;
+g.Transform = g.Matrix3 = require('./objects/transform').Transform;
+g.Vec3 = require('./objects/vec3').Vec3;
 
-var k;
-// Shape creation functions (e.g. rect, star)
-var shapes = require('./shapes');
-for (k in shapes) {
-    g[k] = shapes[k];
+
+
+// Commands
+function importCommands(module) {
+    for (var k in module) {
+        g[k] = module[k];
+    }
 }
 
-// Commands (e.g. snap, rotate)
-var commands = require('./commands');
-for (k in commands) {
-    g[k] = commands[k];
-}
-
-// Drawing commands (e.g. draw, isDrawable)
-var commands = require('./draw');
-for (k in commands) {
-    g[k] = commands[k];
-}
+var drawModule = require('./commands/draw');
+importCommands(drawModule);
+var filterModule = require('./commands/filters');
+importCommands(filterModule);
+var shapesModule = require('./commands/shapes');
+importCommands(shapesModule);
 
 module.exports = g;

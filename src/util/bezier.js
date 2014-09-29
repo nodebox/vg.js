@@ -6,12 +6,11 @@
 var _ = require('underscore');
 
 var math = require('./math');
-var Point = require('./point').Point;
-var Rect = require('./rect').Rect;
+var Point = require('../objects/point').Point;
+var Rect = require('../objects/rect').Rect;
 
 var bezier = {};
 
-var MOVETO  = 'M';
 var LINETO  = 'L';
 var CURVETO = 'C';
 var CLOSE   = 'Z';

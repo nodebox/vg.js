@@ -147,4 +147,4 @@ math.noise = function (x, y, z) {
                 _grad(p[BB + 1], x - 1, y - 1, z - 1), u), v), w));
 };
 
-exports.module = math;
+module.exports = math;

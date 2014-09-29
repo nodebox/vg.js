@@ -2,7 +2,6 @@
 
 'use strict';
 
-
 // Generate a random function that is seeded with the given value.
 exports.generator = function (seed) {
     // Based on random number generator from

@@ -3,7 +3,7 @@
 'use strict';
 
 var math = require('./math');
-var point = require('./point');
+var Point = require('../objects/point').Point;
 
 var geo = {};
 
@@ -21,7 +21,7 @@ geo.distance = function (x0, y0, x1, y1) {
 geo.coordinates = function (x0, y0, distance, angle) {
     var x = x0 + Math.cos(math.radians(angle)) * distance,
         y = y0 + Math.sin(math.radians(angle)) * distance;
-    return new point.Point(x, y);
+    return new Point(x, y);
 };
 
 

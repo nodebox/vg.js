@@ -9,14 +9,14 @@
 
 var _ = require('underscore');
 
-var color = require('./color');
+var color = require('../objects/color');
 var geo = require('./geo');
-var Group = require('./group');
-var path = require('./path');
+var Group = require('../objects/group');
+var path = require('../objects/path');
 var Path = path.Path;
-var Point = require('./point').Point;
-var shapes = require('./shapes');
-var Transform = require('./transform').Transform;
+var Point = require('../objects/point').Point;
+var shapes = require('../commands/shapes');
+var Transform = require('../objects/transform').Transform;
 
 var svg = {};
 

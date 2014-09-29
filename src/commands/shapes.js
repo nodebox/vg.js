@@ -4,174 +4,49 @@
 
 var _ = require('underscore');
 
-var geo = require('./geo');
-var Color = require('./color').Color;
-var path = require('./path');
+var geo = require('../util/geo');
+var Color = require('../objects/color').Color;
+var path = require('../objects/path');
 var Path = path.Path;
-var Point = require('./point').Point;
-var Text = require('./text').Text;
+var Point = require('../objects/point').Point;
+var Text = require('../objects/text').Text;
 
 var g = {};
 
 g._rect = function (x, y, width, height) {
-    var commands = [
-        path.moveTo(x, y),
-        path.lineTo(x + width, y),
-        path.lineTo(x + width, y + height),
-        path.lineTo(x, y + height),
-        path.close()
-    ];
-    return new Path(commands);
+    var p = new Path();
+    p.addRect(x, y, width, height);
+    return p;
 };
 
 g.roundedRect = function (cx, cy, width, height, rx, ry) {
-    var ONE_MINUS_QUARTER = 1.0 - 0.552,
-
-        commands = [],
-
-        dx = rx,
-        dy = ry,
-
-        left = cx,
-        right = cx + width,
-        top = cy,
-        bottom = cy + height;
-
-    // rx/ry cannot be greater than half of the width of the rectangle
-    // (required by SVG spec)
-    dx = Math.min(dx, width * 0.5);
-    dy = Math.min(dy, height * 0.5);
-    commands.push(path.moveTo(left + dx, top));
-    if (dx < width * 0.5) {
-        commands.push(path.lineTo(right - rx, top));
-    }
-    commands.push(path.curveTo(right - dx * ONE_MINUS_QUARTER, top, right, top + dy * ONE_MINUS_QUARTER, right, top + dy));
-    if (dy < height * 0.5) {
-        commands.push(path.lineTo(right, bottom - dy));
-    }
-    commands.push(path.curveTo(right, bottom - dy * ONE_MINUS_QUARTER, right - dx * ONE_MINUS_QUARTER, bottom, right - dx, bottom));
-    if (dx < width * 0.5) {
-        commands.push(path.lineTo(left + dx, bottom));
-    }
-    commands.push(path.curveTo(left + dx * ONE_MINUS_QUARTER, bottom, left, bottom - dy * ONE_MINUS_QUARTER, left, bottom - dy));
-    if (dy < height * 0.5) {
-        commands.push(path.lineTo(left, top + dy));
-    }
-    commands.push(path.curveTo(left, top + dy * ONE_MINUS_QUARTER, left + dx * ONE_MINUS_QUARTER, top, left + dx, top));
-    commands.push(path.close());
-    return new Path(commands);
+    var p = new Path();
+    p.addRoundedRect(cx, cy, width, height, rx, ry);
+    return p;
 };
 
 g._ellipse = function (x, y, width, height) {
-    var k = 0.55, // kappa = (-1 + sqrt(2)) / 3 * 4
-        dx = k * 0.5 * width,
-        dy = k * 0.5 * height,
-        x0 = x + 0.5 * width,
-        y0 = y + 0.5 * height,
-        x1 = x + width,
-        y1 = y + height,
-        commands = [
-            path.moveTo(x, y0),
-            path.curveTo(x, y0 - dy, x0 - dx, y, x0, y),
-            path.curveTo(x0 + dx, y, x1, y0 - dy, x1, y0),
-            path.curveTo(x1, y0 + dy, x0 + dx, y1, x0, y1),
-            path.curveTo(x0 - dx, y1, x, y0 + dy, x, y0),
-            path.close()
-        ];
-    return new Path(commands);
+    var p = new Path();
+    p.addEllipse(x, y, width, height);
+    return p;
 };
 
 g._line = function (x1, y1, x2, y2) {
-    var commands = [
-        path.moveTo(x1, y1),
-        path.lineTo(x2, y2)
-    ];
-    return new Path(commands, null, 'black');
+    var p = new Path();
+    p.addLine(x1, y1, x2, y2);
+    return p;
 };
 
 g.quad = function (x1, y1, x2, y2, x3, y3, x4, y4) {
-    var commands = [
-        path.moveTo(x1, y1),
-        path.lineTo(x2, y2),
-        path.lineTo(x3, y3),
-        path.lineTo(x4, y4),
-        path.close()
-    ];
-    return new Path(commands);
+    var p = new Path();
+    p.addQuad(x1, y1, x2, y2, x3, y3, x4, y4);
+    return p;
 };
 
 g._arc = function (x, y, width, height, startAngle, degrees, arcType) {
-    var w, h, angStRad, ext, arcSegs, increment, cv, lineSegs,
-        index, commands, angle, relX, relY, coords;
-    w = width / 2;
-    h = height / 2;
-    angStRad = g.math.radians(startAngle);
-    ext = degrees;
-
-    if (ext >= 360.0 || ext <= -360) {
-        arcSegs = 4;
-        increment = Math.PI / 2;
-        cv = 0.5522847498307933;
-        if (ext < 0) {
-            increment = -increment;
-            cv = -cv;
-        }
-    } else {
-        arcSegs = Math.ceil(Math.abs(ext) / 90.0);
-        increment = g.math.radians(ext / arcSegs);
-        cv = 4.0 / 3.0 * Math.sin(increment / 2.0) / (1.0 + Math.cos(increment / 2.0));
-        if (cv === 0) {
-            arcSegs = 0;
-        }
-    }
-
-    if (arcType === 'open') {
-        lineSegs = 0;
-    } else if (arcType === 'chord') {
-        lineSegs = 1;
-    } else if (arcType === 'pie') {
-        lineSegs = 2;
-    }
-
-    if (w < 0 || h < 0) {
-        arcSegs = lineSegs = -1;
-    }
-
-    index = 0;
-    commands = [];
-    while (index <= arcSegs + lineSegs) {
-        angle = angStRad;
-        if (index === 0) {
-            commands.push(
-                path.moveTo(x + Math.cos(angle) * w,
-                         y + Math.sin(angle) * h)
-            );
-        } else if (index > arcSegs) {
-            if (index === arcSegs + lineSegs) {
-                commands.push(path.close());
-            } else {
-                commands.push(path.lineTo(x, y));
-            }
-        } else {
-            angle += increment * (index - 1);
-            relX = Math.cos(angle);
-            relY = Math.sin(angle);
-            coords = [];
-            coords.push(x + (relX - cv * relY) * w);
-            coords.push(y + (relY + cv * relX) * h);
-            angle += increment;
-            relX = Math.cos(angle);
-            relY = Math.sin(angle);
-            coords.push(x + (relX + cv * relY) * w);
-            coords.push(y + (relY - cv * relX) * h);
-            coords.push(x + relX * w);
-            coords.push(y + relY * h);
-            commands.push(path.curveTo.apply(null, coords));
-        }
-        index += 1;
-    }
-
-    return new Path(commands);
+    var p = new Path();
+    p.addArc(x, y, width, height, startAngle, degrees, arcType);
+    return p;
 };
 
 g.rect = function (position, width, height, roundness) {
