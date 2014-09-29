@@ -18,7 +18,7 @@ g._rect = function (x, y, width, height) {
         path.lineTo(x + width, y),
         path.lineTo(x + width, y + height),
         path.lineTo(x, y + height),
-        g.close()
+        path.close()
     ];
     return new Path(commands);
 };
@@ -57,7 +57,7 @@ g.roundedRect = function (cx, cy, width, height, rx, ry) {
         commands.push(path.lineTo(left, top + dy));
     }
     commands.push(path.curveTo(left, top + dy * ONE_MINUS_QUARTER, left + dx * ONE_MINUS_QUARTER, top, left + dx, top));
-    commands.push(g.close());
+    commands.push(path.close());
     return new Path(commands);
 };
 
@@ -75,7 +75,7 @@ g._ellipse = function (x, y, width, height) {
             path.curveTo(x0 + dx, y, x1, y0 - dy, x1, y0),
             path.curveTo(x1, y0 + dy, x0 + dx, y1, x0, y1),
             path.curveTo(x0 - dx, y1, x, y0 + dy, x, y0),
-            g.close()
+            path.close()
         ];
     return new Path(commands);
 };
@@ -94,7 +94,7 @@ g.quad = function (x1, y1, x2, y2, x3, y3, x4, y4) {
         path.lineTo(x2, y2),
         path.lineTo(x3, y3),
         path.lineTo(x4, y4),
-        g.close()
+        path.close()
     ];
     return new Path(commands);
 };
@@ -147,7 +147,7 @@ g._arc = function (x, y, width, height, startAngle, degrees, arcType) {
             );
         } else if (index > arcSegs) {
             if (index === arcSegs + lineSegs) {
-                commands.push(g.close());
+                commands.push(path.close());
             } else {
                 commands.push(path.lineTo(x, y));
             }
@@ -246,7 +246,7 @@ g.polygon = function (position, radius, sides, align) {
         c = geo.coordinates(x, y, r, (a * i) + da);
         commands.push(((i === 0) ? path.moveTo : path.lineTo)(c.x, c.y));
     }
-    commands.push(g.close());
+    commands.push(path.close());
     return new Path(commands);
 };
 
@@ -261,7 +261,7 @@ g.star = function (position, points, outer, inner) {
         y = position.y + radius * Math.cos(angle);
         commands.push(path.lineTo(x, y));
     }
-    commands.push(g.close());
+    commands.push(path.close());
     return new Path(commands);
 };
 
@@ -291,7 +291,7 @@ g.grid = function (columns, rows, width, height, position) {
     var columnSize, left, rowSize, top, rowIndex, colIndex, x, y, i,
         points = [];
     points.length = columns * rows;
-    position = position !== undefined ? position : g.Point.ZERO;
+    position = position !== undefined ? position : Point.ZERO;
     if (columns > 1) {
         columnSize = width / (columns - 1);
         left = position.x - width / 2;

@@ -96,7 +96,7 @@ svg.read = {
             commands.push((commands.length === 0 ? path.moveTo : path.lineTo)(parseFloat(p1), parseFloat(p2)));
         });
         if (!open) {
-            commands.push(path.closePath());
+            commands.push(path.close());
         }
 
         poly = { commands: commands };
@@ -367,7 +367,7 @@ svg.read = {
                 break;
             case 'Z':
             case 'z':
-                commands.push(path.closePath());
+                commands.push(path.close());
                 pp.current = pp.start;
                 break;
             }

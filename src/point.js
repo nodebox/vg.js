@@ -11,7 +11,7 @@ g.Point = function (x, y) {
 
 g.Vec2 = g.Point;
 
-Object.defineProperty(exports.Point.prototype, 'xy', {
+Object.defineProperty(g.Point.prototype, 'xy', {
     get: function () { return [this.x, this.y]; }
 });
 

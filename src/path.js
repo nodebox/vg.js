@@ -267,7 +267,7 @@ g.Path.prototype.resampleByAmount = function (points, perContour) {
                     y: pts[i].y };
             commands.push(cmd);
         }
-        commands.push(g.closePath());
+        commands.push(g.close());
     }
     return new g.Path(commands, this.fill, this.stroke, this.strokeWidth);
 };

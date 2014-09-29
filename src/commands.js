@@ -436,7 +436,7 @@ g.connect = function (points, closed) {
         commands.push((i === 0 ? path.moveTo : path.lineTo)(pt.x, pt.y));
     }
     if (closed) {
-        commands.push(path.closePath());
+        commands.push(path.close());
     }
     return new Path(commands, null, Color.BLACK, 1);
 };

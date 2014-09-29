@@ -5,11 +5,16 @@
 
 var _ = require('underscore');
 
-var commands = require('./commands');
-var path = require('./path');
 var math = require('./math');
+var Point = require('./point').Point;
+var Rect = require('./rect').Rect;
 
 var bezier = {};
+
+var MOVETO  = 'M';
+var LINETO  = 'L';
+var CURVETO = 'C';
+var CLOSE   = 'Z';
 
 // BEZIER MATH:
 
@@ -17,7 +22,7 @@ var bezier = {};
 bezier.linePoint = function (t, x0, y0, x1, y1) {
     var x = x0 + t * (x1 - x0),
         y = y0 + t * (y1 - y0);
-    return commands.lineto(x, y);
+    return { type: LINETO, x: x, y: y };
 };
 
 // Returns the length of the line.
@@ -44,8 +49,7 @@ bezier.curvePoint = function (t, x0, y0, x1, y1, x2, y2, x3, y3) {
         h2y = y12 * dt + y23 * t,
         x = h1x * dt + h2x * t,
         y = h1y * dt + h2y * t;
-
-    return commands.curveto(h1x, h1y, h2x, h2y, x, y);
+    return { type: CURVETO, x1: h1x, y1: h1y, x2: h2x, y2: h2y, x: x, y: y };
 };
 
 // Returns the length of the curve.
@@ -86,18 +90,18 @@ bezier.segmentLengths = function (commands, relative, n) {
         if (i === 0) {
             closeX = cmd.x;
             closeY = cmd.y;
-        } else if (type === path.MOVETO) {
+        } else if (type === 'M') {
             closeX = cmd.x;
             closeY = cmd.y;
             lengths.push(0.0);
-        } else if (type === path.CLOSE) {
+        } else if (type === CLOSE) {
             lengths.push(bezier.lineLength(x0, y0, closeX, closeY));
-        } else if (type === path.LINETO) {
+        } else if (type === LINETO) {
             lengths.push(bezier.lineLength(x0, y0, cmd.x, cmd.y));
-        } else if (type === path.CURVETO) {
+        } else if (type === CURVETO) {
             lengths.push(bezier.curveLength(x0, y0, cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y, n));
         }
-        if (type !== path.CLOSE) {
+        if (type !== CLOSE) {
             x0 = cmd.x;
             y0 = cmd.y;
         }
@@ -135,7 +139,7 @@ bezier._locate = function (path, t, segmentLengths) {
     for (i = 0; i < path.commands.length; i += 1) {
         cmd = path.commands[i];
         if (i === 0 || cmd.type === path.MOVETO) {
-            closeTo = commands.makePoint(cmd.x, cmd.y);
+            closeTo =  new Point(cmd.x, cmd.y);
         }
         if (t <= segmentLengths[i] || i === segmentLengths.length - 1) {
             break;
@@ -269,7 +273,7 @@ bezier.extrema = function (x1, y1, x2, y2, x3, y3, x4, y4) {
         }
     }
 
-    return commands.makeRect(minX, minY, maxX - minX, maxY - minY);
+    return new Rect(minX, minY, maxX - minX, maxY - minY);
 };
 
 module.exports = bezier;
