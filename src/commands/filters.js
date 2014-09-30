@@ -735,26 +735,8 @@ g.centroid = function (shape) {
     if (!shape) {
         return Point.ZERO;
     }
-    var i,
-        commands = g.combinePaths(shape),
-        xs = commands[0].x,
-        ys = commands[0].y,
-        count = 1;
-    for (i = 1; i < commands.length; i += 1) {
-        if (commands[i].x1 !== undefined) {
-            xs += commands[i].x1;
-            ys += commands[i].y1;
-            xs += commands[i].x2;
-            ys += commands[i].y2;
-            count += 2;
-        }
-        if (commands[i].x !== undefined) {
-            xs += commands[i].x;
-            ys += commands[i].y;
-            count += 1;
-        }
-    }
-    return new Point(xs / count, ys / count);
+    var r = shape.bounds();
+    return new Point(r.x + r.width / 2, r.y + r.height / 2);
 };
 
 g.link = function (shape1, shape2, orientation) {

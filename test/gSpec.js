@@ -450,3 +450,12 @@ describe('The colorize filter', function () {
     });
 
 });
+
+describe('The centroid filter', function () {
+    it ('works on paths', function () {
+        var r = new g.rect(g.Point.ZERO, 100, 100);
+        assert.deepEqual(g.centroid(r).xy, [0, 0]);
+        var e = new g.ellipse(g.Point.ZERO, 100, 100);
+        assert.deepEqual(g.centroid(e).xy, [0, 0]);
+    });
+});
