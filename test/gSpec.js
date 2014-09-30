@@ -71,13 +71,12 @@ describe('The bezier module', function () {
 
     it('can calculate segment lengths', function () {
         var p = new g.Path();
-        var commands = [], segmentLengths;
         p.moveTo(0, 0);
         p.lineTo(100, 0);
         p.lineTo(100, 50);
         p.close();
-        segmentLengths = g.bezier.segmentLengths(p.commands);
-        assert.equal(segmentLengths.length, commands.length - 1);
+        var segmentLengths = g.bezier.segmentLengths(p.commands);
+        assert.equal(segmentLengths.length, p.commands.length - 1);
         assert.equal(segmentLengths[0], 100);
         assert.equal(segmentLengths[1], 50);
         assert.equal(Math.round(segmentLengths[2]), 112);
@@ -88,8 +87,8 @@ describe('The bezier module', function () {
 describe('A point', function () {
 
     it('has a sane constructor', function () {
-        assert.equal(new g.Point().xy).toEqual([0, 0]);
-        assert.equal(new g.Point(3, 5).xy).toEqual([3, 5]);
+        assert.deepEqual(new g.Point().xy, [0, 0]);
+        assert.deepEqual(new g.Point(3, 5).xy, [3, 5]);
     });
 
 });
@@ -111,15 +110,13 @@ describe('A path', function () {
         p.fill = 'red';
         p.stroke = 'green';
         p.strokeWidth = 5;
-        // p.tags = {'foo': true};
         p.moveTo(33, 66);
         newP = p.clone();
-        assert.equal(newP.commands).toEqual([
+        assert.deepEqual(newP.commands, [
             {type: 'M', x: 33, y: 66}
         ]);
         assert.equal(newP.fill, 'red');
         assert.equal(newP.stroke, 'green');
-        // assert.equal(newP.hasTag('foo')).toBeTruthy();
     });
 
     it('can be resampled', function () {
@@ -150,27 +147,22 @@ describe('A group', function () {
         var group, newGroup;
         group = new g.Group();
         group.add(g.demoRect());
-        // group.tag('foo', function () {
-        //     return true;
-        // });
         newGroup = group.clone();
         assert.equal(newGroup.shapes.length, 1);
-        // assert.equal(newGroup.paths[0].hasTag('foo')).toBeTruthy();
-        // assert.equal(newGroup.hasTag('foo')).toBeTruthy();
     });
 
     it('has bounds', function () {
         var group, p1, p2;
         group = new g.Group();
-        assert.equal(group.bounds()).toEqual(new g.Rect(0, 0, 0, 0));
+        assert.deepEqual(group.bounds(), new g.Rect(0, 0, 0, 0));
         p1 = new g.Path();
         p1.addRect(10, 20, 30, 40);
         group = g.group([p1]);
-        assert.equal(group.bounds()).toEqual(new g.Rect(10, 20, 30, 40));
+        assert.deepEqual(group.bounds(), new g.Rect(10, 20, 30, 40));
         p2 = new g.Path();
         p2.addRect(100, 200, 10, 10);
         group = g.group([p1, p2]);
-        assert.equal(group.bounds()).toEqual(new g.Rect(10, 20, 100, 190));
+        assert.deepEqual(group.bounds(), new g.Rect(10, 20, 100, 190));
     });
 
     it('can merge shapes together', function () {
@@ -244,7 +236,7 @@ describe('A text object', function () {
 
     it('is drawable', function () {
         var t = new g.Text('Hello', 20, 20);
-        assert.equal(g.isDrawable(t)).toBeTruthy();
+        assert(g.isDrawable(t));
         t.bounds();
     });
 
@@ -253,24 +245,24 @@ describe('A text object', function () {
             fontSize = 24,
             t = new g.Text('Hello', 20, 20, {fontSize: fontSize}),
             bounds = g.bounds(t);
-        assert.equal(bounds.x).toEqual(20);
-        assert.equal(bounds.y).toEqual(-4);
+        assert.equal(bounds.x, 20);
+        assert.equal(bounds.y, -4);
         // Because node.js doesn't have access to the canvas, we fake the width
         // measurement by taking the text.length and multiplying it by the font size,
         // then multiplying it by 0.6, which is the average character width across all
         // letters and font sizes.
-        assert.equal(bounds.width).toEqual(text.length * fontSize * 0.6);
+        assert.equal(bounds.width, text.length * fontSize * 0.6);
         // The line height is hard-coded.
-        assert.equal(bounds.height).toEqual(24 * 1.2);
+        assert.equal(bounds.height, 24 * 1.2);
     });
 
     it('supports alignment', function () {
         var tLeft = new g.Text('Hello', 0, 0, {textAlign: 'left'}),
             tRight = new g.Text('Hello', 0, 0, {textAlign: 'right'}),
             tCenter = new g.Text('Hello', 0, 0, {textAlign: 'center'});
-        assert.equal(tLeft.bounds().x).toEqual(0);
-        assert.equal(tRight.bounds().x).toEqual(-(tRight.text.length * tRight.fontSize * 0.6));
-        assert.equal(tCenter.bounds().x).toEqual(-(tCenter.text.length * tRight.fontSize * 0.6) / 2);
+        assert.equal(tLeft.bounds().x, 0);
+        assert.equal(tRight.bounds().x, -(tRight.text.length * tRight.fontSize * 0.6));
+        assert.equal(tCenter.bounds().x, -(tCenter.text.length * tRight.fontSize * 0.6) / 2);
     });
 
 });
@@ -279,93 +271,106 @@ describe('A color', function () {
 
     it('has a default constructor', function () {
         var c = new g.Color();
-        assert.equal(c.rgba()).toEqual([0, 0, 0, 1]);
+        assert.deepEqual(c.rgba(), [0, 0, 0, 1]);
     });
 
     it('can be constructed using numbers', function () {
         var c;
         c = new g.Color(0.1, 0.2, 0.3);
-        assert.equal(c.rgba()).toEqual([0.1, 0.2, 0.3, 1]);
+        assert.deepEqual(c.rgba(), [0.1, 0.2, 0.3, 1]);
         c = new g.Color(0.1, 0.2, 0.3, 0.4);
-        assert.equal(c.rgba()).toEqual([0.1, 0.2, 0.3, 0.4]);
+        assert.deepEqual(c.rgba(), [0.1, 0.2, 0.3, 0.4]);
     });
 
     it('can take a base', function () {
         var c;
         c = new g.Color(10, 20, 30, {base: 100});
-        assert.equal(c.rgba()).toEqual([0.1, 0.2, 0.3, 1]);
+        assert.deepEqual(c.rgba(), [0.1, 0.2, 0.3, 1]);
         c = new g.Color(10, 20, 30, 40, {base: 100});
-        assert.equal(c.rgba()).toEqual([0.1, 0.2, 0.3, 0.4]);
+        assert.deepEqual(c.rgba(), [0.1, 0.2, 0.3, 0.4]);
     });
 
     it('can be constructed using an array', function () {
         var c;
         c = new g.Color([0.1, 0.2, 0.3, 0.4]);
-        assert.equal(c.rgba()).toEqual([0.1, 0.2, 0.3, 0.4]);
+        assert.deepEqual(c.rgba(), [0.1, 0.2, 0.3, 0.4]);
         c = new g.Color([0, 0, 0, 0]);
-        assert.equal(c.rgba()).toEqual([0, 0, 0, 0]);
+        assert.deepEqual(c.rgba(), [0, 0, 0, 0]);
         c = new g.Color([10, 20, 30], {base: 100});
-        assert.equal(c.rgba()).toEqual([0.1, 0.2, 0.3, 1]);
+        assert.deepEqual(c.rgba(), [0.1, 0.2, 0.3, 1]);
         c = new g.Color([10, 20, 30, 40], {base: 100});
-        assert.equal(c.rgba()).toEqual([0.1, 0.2, 0.3, 0.4]);
+        assert.deepEqual(c.rgba(), [0.1, 0.2, 0.3, 0.4]);
     });
 
     it('can be constructed using a Color object', function () {
         var c;
         c = new g.Color({r: 0.1, g: 0.2, b: 0.3});
-        assert.equal(c.rgba()).toEqual([0.1, 0.2, 0.3, 1.0]);
+        assert.deepEqual(c.rgba(), [0.1, 0.2, 0.3, 1.0]);
         c = new g.Color({r: 0.1, g: 0.2, b: 0.3, a: 0.4});
-        assert.equal(c.rgba()).toEqual([0.1, 0.2, 0.3, 0.4]);
+        assert.deepEqual(c.rgba(), [0.1, 0.2, 0.3, 0.4]);
     });
 
     it('can be constructed using a string', function () {
         var c;
         c = new g.Color('#ff3366');
-        assert.equal(c.rgba()).toEqual([1, 0.2, 0.4, 1]);
+        assert.deepEqual(c.rgba(), [1, 0.2, 0.4, 1]);
     });
 
     it('can be constructed using a grayscale value', function () {
         var c;
         c = new g.Color(0.3);
-        assert.equal(c.rgba()).toEqual([0.3, 0.3, 0.3, 1]);
+        assert.deepEqual(c.rgba(), [0.3, 0.3, 0.3, 1]);
         c = new g.Color(30, {base: 100});
-        assert.equal(c.rgba()).toEqual([0.3, 0.3, 0.3, 1]);
+        assert.deepEqual(c.rgba(), [0.3, 0.3, 0.3, 1]);
         c = new g.Color(0.3, 0.5);
-        assert.equal(c.rgba()).toEqual([0.3, 0.3, 0.3, 0.5]);
+        assert.deepEqual(c.rgba(), [0.3, 0.3, 0.3, 0.5]);
         c = new g.Color(30, 50, {base: 100});
-        assert.equal(c.rgba()).toEqual([0.3, 0.3, 0.3, 0.5]);
+        assert.deepEqual(c.rgba(), [0.3, 0.3, 0.3, 0.5]);
     });
 
     it('can be converted to a hexadecimal value', function () {
-        assert.equal(g._rgb2hex(0, 0, 0)).toEqual('#000000');
-        assert.equal(g._rgb2hex(0.01, 0.01, 0.01)).toEqual('#030303');
-        assert.equal(g._rgb2hex(0.1, 0.5, 0.9)).toEqual('#1A80E6');
-        assert.equal(g._rgb2hex(0.99, 0.99, 0.99)).toEqual('#FCFCFC');
-        assert.equal(g._rgb2hex(1, 1, 1)).toEqual('#FFFFFF');
+        assert.equal(g.color.rgb2hex(0, 0, 0), '#000000');
+        assert.equal(g.color.rgb2hex(0.01, 0.01, 0.01), '#030303');
+        assert.equal(g.color.rgb2hex(0.1, 0.5, 0.9), '#1A80E6');
+        assert.equal(g.color.rgb2hex(0.99, 0.99, 0.99), '#FCFCFC');
+        assert.equal(g.color.rgb2hex(1, 1, 1), '#FFFFFF');
     });
 
 });
 
+describe('Color utilities', function () {
+
+    it('can convert a color to a hexadecimal value', function () {
+        assert.equal(g.color.rgb2hex(0, 0, 0), '#000000');
+        assert.equal(g.color.rgb2hex(0.01, 0.01, 0.01), '#030303');
+        assert.equal(g.color.rgb2hex(0.1, 0.5, 0.9), '#1A80E6');
+        assert.equal(g.color.rgb2hex(0.99, 0.99, 0.99), '#FCFCFC');
+        assert.equal(g.color.rgb2hex(1, 1, 1), '#FFFFFF');
+    });
+
+});
+
+
 describe('Drawables', function () {
 
     it('can discover if something is drawable', function () {
-        assert.equal(g.isDrawable(g.demoRect())).toBeTruthy();
-        assert.equal(g.isDrawable(new g.Point())).toBeTruthy();
-        assert.equal(g.isDrawable(new g.Color(1, 0, 0))).toBeTruthy();
-        assert.equal(g.isDrawable(new g.Text('Hello', 10, 10))).toBeTruthy();
+        assert(g.isDrawable(g.demoRect()));
+        assert(g.isDrawable(new g.Point()));
+        assert(g.isDrawable(new g.Color(1, 0, 0)));
+        assert(g.isDrawable(new g.Text('Hello', 10, 10)));
 
-        assert.equal(g.isDrawable(null)).toBeFalsy();
-        assert.equal(g.isDrawable(0)).toBeFalsy();
-        assert.equal(g.isDrawable([])).toBeFalsy();
-        assert.equal(g.isDrawable([0])).toBeFalsy();
+        assert(!g.isDrawable(null));
+        assert(!g.isDrawable(0));
+        assert(!g.isDrawable([]));
+        assert(!g.isDrawable([0]));
     });
 
     it('can get the bounds', function () {
-        assert.equal(g.bounds(g._rect(10, 20, 30, 40)).xywh).toEqual([10, 20, 30, 40]);
-        assert.equal(g.bounds([new g.Point(10, 20), new g.Point(30, 40)]).xywh).toEqual([10, 20, 20, 20]);
+        assert.deepEqual(g.bounds(g._rect(10, 20, 30, 40)).xywh, [10, 20, 30, 40]);
+        assert.deepEqual(g.bounds([new g.Point(10, 20), new g.Point(30, 40)]).xywh, [10, 20, 20, 20]);
 
-        assert.equal(g.bounds([]).xywh).toEqual([0, 0, 0, 0]);
-        assert.equal(g.bounds(42).xywh).toEqual([0, 0, 0, 0]);
+        assert.deepEqual(g.bounds([]).xywh, [0, 0, 0, 0]);
+        assert.deepEqual(g.bounds(42).xywh, [0, 0, 0, 0]);
     });
 
 });
@@ -400,7 +405,7 @@ describe('The colorize filter', function () {
         p1 = g1.shapes[0];
         p2 = g2.shapes[0];
         assert.equal(p1.fill, 'black');
-        assert.equal(p1.stroke).toBeNull();
+        assert(p1.stroke === null);
         assert.equal(p1.strokeWidth, 1);
         assert.equal(p2.fill, 'blue');
         assert.equal(p2.stroke, 'red');

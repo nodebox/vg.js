@@ -4,8 +4,8 @@
 
 var _ = require('underscore');
 
-var Path = require('../objects/path').Path;
-var Rect = require('../objects/rect').Rect;
+var Path = require('../objects/path');
+var Rect = require('../objects/rect');
 
 var Group = function (shapes) {
     if (!shapes) {

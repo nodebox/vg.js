@@ -703,6 +703,10 @@ g.sort = function (shapes, orderBy, point) {
     return newShapes;
 };
 
+g.group = function () {
+    return new Group(_.flatten(arguments));
+};
+
 g.ungroup = function (shape) {
     if (!shape) {
         return [];

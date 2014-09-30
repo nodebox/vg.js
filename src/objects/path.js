@@ -20,10 +20,6 @@ var CLOSE_COMMAND = Object.freeze({ type: CLOSE });
 
 var KAPPA = 0.5522847498307936; // (-1 + Math.sqrt(2)) / 3 * 4
 
-CLOSE = function () {
-    return CLOSE_COMMAND;
-};
-
 function _cloneCommand(cmd) {
     var newCmd = {type: cmd.type};
     if (newCmd.type !== CLOSE) {
@@ -54,8 +50,8 @@ Path.prototype.clone = function () {
     for (i = 0; i < n; i += 1) {
         p.commands[i] = _cloneCommand(this.commands[i]);
     }
-    p.fill = new Color(this.fill);
-    p.stroke =  new Color(this.stroke);
+    p.fill = Color.clone(this.fill);
+    p.stroke =  Color.clone(this.stroke);
     p.strokeWidth = this.strokeWidth;
     return p;
 };
@@ -239,8 +235,8 @@ Path.prototype.addArc = function (x, y, width, height, startAngle, degrees, arcT
 
 Path.prototype.colorize = function (fill, stroke, strokeWidth) {
     var p = this.clone();
-    p.fill = new Color(fill);
-    p.stroke = new Color(stroke);
+    p.fill = Color.clone(fill);
+    p.stroke = Color.clone(stroke);
     p.strokeWidth = strokeWidth;
     return p;
 };
@@ -371,7 +367,7 @@ Path.prototype.resampleByAmount = function (points, perContour) {
                     y: pts[i].y };
             commands.push(cmd);
         }
-        commands.push(CLOSE());
+        commands.push(CLOSE_COMMAND);
     }
     return new Path(commands, this.fill, this.stroke, this.strokeWidth);
 };
