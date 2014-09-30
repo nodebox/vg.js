@@ -139,7 +139,7 @@ bezier._locate = function (path, t, segmentLengths) {
     }
     for (i = 0; i < path.commands.length; i += 1) {
         cmd = path.commands[i];
-        if (i === 0 || cmd.type === path.MOVETO) {
+        if (i === 0 || cmd.type === MOVETO) {
             closeTo =  new Point(cmd.x, cmd.y);
         }
         if (t <= segmentLengths[i] || i === segmentLengths.length - 1) {
@@ -164,11 +164,11 @@ bezier.point = function (path, t, segmentLengths) {
     x0 = path.commands[i].x;
     y0 = path.commands[i].y;
     cmd = path.commands[i + 1];
-    if (cmd.type === path.LINETO || cmd.type === path.CLOSE) {
-        cmd = (cmd.type === path.CLOSE) ?
+    if (cmd.type === LINETO || cmd.type === CLOSE) {
+        cmd = (cmd.type === CLOSE) ?
                  bezier.linePoint(t, x0, y0, closeTo.x, closeTo.y) :
                  bezier.linePoint(t, x0, y0, cmd.x, cmd.y);
-    } else if (cmd.type === path.CURVETO) {
+    } else if (cmd.type === CURVETO) {
         cmd = bezier.curvePoint(t, x0, y0, cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y);
     }
     return cmd;
