@@ -118,12 +118,9 @@ bezier.segmentLengths = function (commands, relative, n) {
 
 // Returns the approximate length of the path.
 // Calculates the length of each curve in the path using n linear samples.
-// With segmented=true, returns an array with the relative length of each segment (sum=1.0).
-bezier.length = function (path, segmented, n) {
-    if (n === undefined) { n = 20; }
-    return (!segmented) ?
-            math.sum(bezier.segmentLengths(path.commands, false, n)) :
-            bezier.segmentLengths(path.commands, true, n);
+bezier.length = function (path, n) {
+    n = n || 20;
+    return math.sum(bezier.segmentLengths, false, n);
 };
 
 // BEZIER PATH POINT:
