@@ -297,20 +297,19 @@ Path.prototype.bounds = function () {
 };
 
 // Returns the DynamicPathElement at time t (0.0-1.0) on the path.
-Path.prototype.point = function (t, segments) {
-    if (segments === undefined) {
+Path.prototype.point = function (t, segmentLengths) {
+    if (segmentLengths === undefined) {
         // Cache the segment lengths for performance.
-        segments = bezier.length(this, true, 10);
+        segmentLengths = bezier.segmentLengths(this.commands, true, 10);
     }
-    return bezier.point(this, t, segments);
+    return bezier.point(this, t, segmentLengths);
 };
 
 // Returns an array of DynamicPathElements along the path.
 // To omit the last point on closed paths: {end: 1-1.0/amount}
 Path.prototype.points = function (amount, options) {
-    var d, a, i, segments,
-        start = (options && options.start !== undefined) ? options.start : 0.0,
-        end = (options && options.end !== undefined) ? options.end : 1.0;
+    var start = (options && options.start !== undefined) ? options.start : 0.0;
+    var end = (options && options.end !== undefined) ? options.end : 1.0;
     if (this.commands.length === 0) {
         // Otherwise bezier.point() will raise an error for empty paths.
         return [];
@@ -320,20 +319,20 @@ Path.prototype.points = function (amount, options) {
     // If we don't use amount-1, we fall one point short of the end.
     // If amount=4, we want the point at t 0.0, 0.33, 0.66 and 1.0.
     // If amount=2, we want the point at t 0.0 and 1.0.
-    d = (amount > 1) ? (end - start) / (amount - 1) : (end - start);
-    a = [];
-    segments = bezier.length(this, true, 10);
+    var d = (amount > 1) ? (end - start) / (amount - 1) : (end - start);
+    var pts = [];
+    var segmentLengths = bezier.segmentLengths(this.commands, true, 10);
 
-    for (i = 0; i < amount; i += 1) {
-        a.push(this.point(start + d * i, segments));
+    for (var i = 0; i < amount; i += 1) {
+        pts.push(this.point(start + d * i, segmentLengths));
     }
-    return a;
+    return pts;
 };
 
 // Returns an approximation of the total length of the path.
 Path.prototype.length = function (precision) {
     if (precision === undefined) { precision = 10; }
-    return bezier.length(this, false, precision);
+    return bezier.length(this, precision);
 };
 
 // Returns true when point (x,y) falls within the contours of the path.
@@ -354,22 +353,22 @@ Path.prototype.contains = function (x, y, precision) {
 };
 
 Path.prototype.resampleByAmount = function (points, perContour) {
-    var i, j, subPath, pts, cmd,
-        subPaths = perContour ? this.contours() : [this.commands],
-        commands = [];
-
-    for (j = 0; j < subPaths.length; j += 1) {
-        subPath = new Path(subPaths[j]);
-        pts = subPath.points(points + 1);
-        for (i = 0; i < pts.length - 1; i += 1) {
-            cmd = { type: (i === 0) ? MOVETO : LINETO,
-                    x: pts[i].x,
-                    y: pts[i].y };
-            commands.push(cmd);
+    var subPaths = perContour ? this.contours() : [this.commands];
+    var p = new Path([], this.fill, this.stroke, this.strokeWidth);
+    for (var j = 0; j < subPaths.length; j += 1) {
+        var subPath = new Path(subPaths[j]);
+        var pts = subPath.points(points + 1);
+        for (var i = 0; i < pts.length - 1; i += 1) {
+            console.log(pts[i].x, pts[i].y);
+            if (i === 0) {
+                p.moveTo(pts[i].x, pts[i].y);
+            } else {
+                p.lineTo(pts[i].x, pts[i].y);
+            }
         }
-        commands.push(CLOSE_COMMAND);
+        p.close();
     }
-    return new Path(commands, this.fill, this.stroke, this.strokeWidth);
+    return p;
 };
 
 Path.prototype.resampleByLength = function (segmentLength) {
