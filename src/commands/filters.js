@@ -6,6 +6,7 @@ var _ = require('underscore');
 
 var bezier = require('../util/bezier');
 var geo = require('../util/geo');
+var math = require('../util/math');
 var random = require('../util/random');
 
 var Color = require('../objects/color');
@@ -226,53 +227,57 @@ g.reflect = function (shape, position, angle, keepOriginal) {
     if (!shape) {
         return;
     }
+    position = position || new Point();
+    angle = angle || 0;
 
-    var f, reflectPath, reflectGroup, reflect, newShape;
-
-    f = function (x, y) {
+    var f = function (x, y) {
         var d = geo.distance(x, y, position.x, position.y),
             a = geo.angle(x, y, position.x, position.y),
-            pt = geo.coordinates(position.x, position.y, d * Math.cos(g.math.radians(a - angle)), 180 + angle);
+            pt = geo.coordinates(position.x, position.y, d * Math.cos(math.radians(a - angle)), 180 + angle);
         d = geo.distance(x, y, pt.x, pt.y);
         a = geo.angle(x, y, pt.x, pt.y);
         pt = geo.coordinates(x, y, d * 2, a);
         return new Point(pt.x, pt.y);
     };
 
-    reflectPath = function (path) {
-        var commands = _.map(path.commands, function (cmd) {
-            var pt, ctrl1, ctrl2;
-            if (cmd.type === bezier.MOVETO) {
+    var reflectPath = function (path) {
+        var pt, ctrl1, ctrl2;
+        var p = new Path([], path.fill, path.stroke, path.strokeWidth);
+        for (var i = 0; i < path.commands.length; i += 1) {
+            var cmd = path.commands[i];
+             if (cmd.type === bezier.MOVETO) {
                 pt = f(cmd.x, cmd.y);
-                return path.moveTo(pt.x, pt.y);
+                p.moveTo(pt.x, pt.y);
             } else if (cmd.type === bezier.LINETO) {
                 pt = f(cmd.x, cmd.y);
-                return path.lineTo(pt.x, pt.y);
+                p.lineTo(pt.x, pt.y);
             } else if (cmd.type === bezier.CURVETO) {
                 pt = f(cmd.x, cmd.y);
                 ctrl1 = f(cmd.x1, cmd.y1);
                 ctrl2 = f(cmd.x2, cmd.y2);
-                return path.curveTo(ctrl1.x, ctrl1.y, ctrl2.x, ctrl2.y, pt.x, pt.y);
+                p.curveTo(ctrl1.x, ctrl1.y, ctrl2.x, ctrl2.y, pt.x, pt.y);
+            } else if (cmd.type === bezier.CLOSE) {
+                p.close();
             } else {
-                return cmd;
+                throw new Error('Unknown command ' + cmd);
             }
-        });
-        return new Path(commands, path.fill, path.stroke, path.strokeWidth);
+        }
+        return p;
     };
 
-    reflectGroup = function (group) {
+    var reflectGroup = function (group) {
         var shapes = _.map(group.shapes, function (shape) {
             return reflect(shape);
         });
         return new Group(shapes);
     };
 
-    reflect = function (shape) {
+    var reflect = function (shape) {
         var fn = (shape.shapes) ? reflectGroup : reflectPath;
         return fn(shape);
     };
 
-    newShape = reflect(shape);
+    var newShape = reflect(shape);
 
     if (keepOriginal) {
         return new Group([shape, newShape]);

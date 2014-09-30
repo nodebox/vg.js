@@ -7,6 +7,18 @@ var it = mocha.it;
 
 var g = require('../src/g');
 
+function assertAlmostEqual(v1, v2, delta) {
+    delta = delta !== undefined ? delta : 0.0001;
+    assert(Math.abs(v1 - v2) < delta);
+}
+
+function assertRectsAlmostEqual(r1, r2) {
+    assertAlmostEqual(r1.x, r2.x);
+    assertAlmostEqual(r1.y, r2.y);
+    assertAlmostEqual(r1.width, r2.width);
+    assertAlmostEqual(r1.height, r2.height);
+}
+
 describe('The math module', function () {
 
     it('can sum numbers', function () {
@@ -457,5 +469,13 @@ describe('The centroid filter', function () {
         assert.deepEqual(g.centroid(r).xy, [0, 0]);
         var e = new g.ellipse(g.Point.ZERO, 100, 100);
         assert.deepEqual(g.centroid(e).xy, [0, 0]);
+    });
+});
+
+describe('The reflect filter', function () {
+    it('works on paths', function () {
+        var r = new g._rect(0, 0, 100, 100);
+        var rr = g.reflect(r);
+        assertRectsAlmostEqual(rr.bounds(), new g.Rect(0, -100, 100, 100));
     });
 });
