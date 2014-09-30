@@ -148,8 +148,9 @@ var applySvgAttributes = function (node, shape) {
         }
     });
 
-    fill = Color.parse(fill);
-    stroke = Color.parse(stroke);
+    
+    fill = fill === undefined ? fill : Color.parse(fill);
+    stroke = stroke === undefined ? stroke : Color.parse(stroke);
 
     transform = new Transform();
     for (i = 0; i < transforms.length; i += 1) {

@@ -513,4 +513,11 @@ describe('The SVG module', function () {
         assert.deepEqual(p.commands[3], {type: g.bezier.CLOSE});
         assert.deepEqual(p.fill.rgba, [1, 0, 0, 1]);
     });
+
+    it('can parse groups', function () {
+        var p = g.svg.parseString('<g><rect x="10" y="20" width="30" height="40" fill="blue"/></g>');
+        assert.equal(p.shapes.length, 1);
+        var r = p.shapes[0];
+        assert.deepEqual(r.fill.rgba, [0, 0, 1, 1]);
+    });
 });
