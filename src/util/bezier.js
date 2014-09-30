@@ -12,9 +12,10 @@ var Rect = require('../objects/rect');
 
 var bezier = {};
 
-var LINETO  = 'L';
-var CURVETO = 'C';
-var CLOSE   = 'Z';
+var MOVETO = bezier.MOVETO = 'M';
+var LINETO = bezier.LINETO = 'L';
+var CURVETO = bezier.CURVETO = 'C';
+var CLOSE = bezier.CLOSE = 'Z';
 
 // BEZIER MATH:
 
@@ -90,7 +91,7 @@ bezier.segmentLengths = function (commands, relative, n) {
         if (i === 0) {
             closeX = cmd.x;
             closeY = cmd.y;
-        } else if (type === 'M') {
+        } else if (type === MOVETO) {
             closeX = cmd.x;
             closeY = cmd.y;
             lengths.push(0.0);

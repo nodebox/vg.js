@@ -71,7 +71,7 @@ Group.prototype.contains = function (x, y, precision) {
 Group.prototype.resampleByAmount = function (points, perContour) {
     var path, shapes;
     if (!perContour) {
-        path = new Path(g.combinePaths(this));
+        path = new Path.combine(this);
         return path.resampleByAmount(points, perContour);
     }
 

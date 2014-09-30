@@ -4,7 +4,7 @@
 
 var _ = require('underscore');
 
-var color = require('../util/color');
+var bezier = require('../util/bezier');
 var geo = require('../util/geo');
 var random = require('../util/random');
 
@@ -69,12 +69,7 @@ g.merge = function () {
 };
 
 g.combinePaths = function (shape) {
-    if (shape.commands) { return shape.commands; }
-    var i, commands = [];
-    for (i = 0; i < shape.shapes.length; i += 1) {
-        commands = commands.concat(g.combinePaths(shape.shapes[i]));
-    }
-    return commands;
+    return Path.combine(shape);
 };
 
 g.shapePoints = g.toPoints = function (shape) {
@@ -247,13 +242,13 @@ g.reflect = function (shape, position, angle, keepOriginal) {
     reflectPath = function (path) {
         var commands = _.map(path.commands, function (cmd) {
             var pt, ctrl1, ctrl2;
-            if (cmd.type === path.MOVETO) {
+            if (cmd.type === bezier.MOVETO) {
                 pt = f(cmd.x, cmd.y);
                 return path.moveTo(pt.x, pt.y);
-            } else if (cmd.type === path.LINETO) {
+            } else if (cmd.type === bezier.LINETO) {
                 pt = f(cmd.x, cmd.y);
                 return path.lineTo(pt.x, pt.y);
-            } else if (cmd.type === path.CURVETO) {
+            } else if (cmd.type === bezier.CURVETO) {
                 pt = f(cmd.x, cmd.y);
                 ctrl1 = f(cmd.x1, cmd.y1);
                 ctrl2 = f(cmd.x2, cmd.y2);
@@ -311,24 +306,22 @@ g.wiggle = function (shape, scope, offset, seed) {
     wigglePoints = function (shape) {
         var i, dx, dy;
         if (shape.commands) {
-            var cmd, commands = [];
+            var p = new Path([], shape.fill, shape.stroke, shape.strokeWidth);
             for (i = 0; i < shape.commands.length; i += 1) {
                 dx = (rand(0, 1) - 0.5) * offset.x * 2;
                 dy = (rand(0, 1) - 0.5) * offset.y * 2;
-                cmd = shape.commands[i];
-                if (cmd.type === path.CLOSE) {
-                    commands.push(cmd);
-                } else if (cmd.type === path.MOVETO) {
-                    commands.push(path.moveTo(cmd.x + dx, cmd.y + dy));
-                } else if (cmd.type === path.LINETO) {
-                    commands.push(path.lineTo(cmd.x + dx, cmd.y + dy));
-                } else if (cmd.type === path.CURVETO) {
-                    commands.push(path.curveTo(cmd.x1, cmd.y1,
-                                     cmd.x2, cmd.y2,
-                                     cmd.x + dx, cmd.y + dy));
+                var cmd = shape.commands[i];
+                if (cmd.type === bezier.MOVETO) {
+                    p.moveTo(cmd.x + dx, cmd.y + dy);
+                } else if (cmd.type === bezier.LINETO) {
+                    p.lineTo(cmd.x + dx, cmd.y + dy);
+                } else if (cmd.type === bezier.CURVETO) {
+                    p.curveTo(cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x + dx, cmd.y + dy);
+                } else if (cmd.type === bezier.CLOSE) {
+                    p.close();
                 }
             }
-            return new Path(commands, shape.fill, shape.stroke, shape.strokeWidth);
+            return p;
         } else if (shape.shapes) {
             return new Group(_.map(shape.shapes, wigglePoints));
         } else if (Array.isArray(shape) && shape.length > 0 && shape[0].x !== undefined && shape[0].y !== undefined){
@@ -429,15 +422,21 @@ g.connect = function (points, closed) {
     if (!points) {
         return;
     }
-    var i, pt, commands = [];
-    for (i = 0; i < points.length; i += 1) {
-        pt = points[i];
-        commands.push((i === 0 ? path.moveTo : path.lineTo)(pt.x, pt.y));
+    var p = new Path();
+    for (var i = 0; i < points.length; i += 1) {
+        var pt = points[i];
+        if (i === 0) {
+            p.moveTo(pt.x, pt.y);
+        } else {
+            p.lineTo(pt.x, pt.y);
+        }
     }
     if (closed) {
-        commands.push(path.close());
+        p.close();
     }
-    return new Path(commands, null, Color.BLACK, 1);
+    p.fill = null;
+    p.stroke = Color.BLACK;
+    return p;
 };
 
 g.align = function (shape, position, hAlign, vAlign) {
@@ -483,26 +482,30 @@ g.snap = function (shape, distance, strength, position) {
 
     var snapShape = function (shape) {
         if (shape.commands) {
-            var commands = _.map(shape.commands, function (cmd) {
-                if (cmd.type === path.CLOSE) { return cmd; }
-                var x, y, ctrl1x, ctrl1y, ctrl2x, ctrl2y;
-                x = g.math.snap(cmd.x + position.x, distance, strength) - position.x;
-                y = g.math.snap(cmd.y + position.y, distance, strength) - position.y;
-                if (cmd.type === path.MOVETO) {
-                    return path.moveTo(x, y);
-                } else if (cmd.type === path.LINETO) {
-                    return path.lineTo(x, y);
-                } else if (cmd.type === path.CURVETO) {
-                    ctrl1x = g.math.snap(cmd.x1 + position.x, distance, strength) - position.x;
-                    ctrl1y = g.math.snap(cmd.y1 + position.y, distance, strength) - position.y;
-                    ctrl2x = g.math.snap(cmd.x2 + position.x, distance, strength) - position.x;
-                    ctrl2y = g.math.snap(cmd.y2 + position.y, distance, strength) - position.y;
-                    return path.curveTo(ctrl1x, ctrl1y, ctrl2x, ctrl2y, x, y);
+            var p = new Path([], shape.fill, shape.stroke, shape.strokeWidth);
+            for (var i = 0; i < shape.commands.length; i += 1) {
+                var cmd = shape.commands[i];
+                if (cmd.type === bezier.MOVETO || cmd.type === bezier.LINETO || cmd.type === bezier.CURVETO) {
+                    var x = g.math.snap(cmd.x + position.x, distance, strength) - position.x;
+                    var y = g.math.snap(cmd.y + position.y, distance, strength) - position.y;
+                    if (cmd.type === bezier.MOVETO) {
+                        p.moveTo(x, y);
+                    } else if (cmd.type === bezier.LINETO) {
+                        p.lineTo(x, y);
+                    } else if (cmd.type === bezier.CURVETO) {
+                        var x1 = g.math.snap(cmd.x1 + position.x, distance, strength) - position.x;
+                        var y1 = g.math.snap(cmd.y1 + position.y, distance, strength) - position.y;
+                        var x2 = g.math.snap(cmd.x2 + position.x, distance, strength) - position.x;
+                        var y2= g.math.snap(cmd.y2 + position.y, distance, strength) - position.y;
+                        p.curveTo(x1, y1, x2, y2, x, y);
+                    }
+                } else if (cmd.type === bezier.CLOSE) {
+                    p.close();
                 } else {
-                    throw new Error('Invalid command type.');
+                    throw new Error('Invalid path command ' + cmd);
                 }
-            });
-            return new Path(commands, shape.fill, shape.stroke, shape.strokeWidth);
+            }
+            return p;
         } else if (shape.shapes) {
             return new Group(_.map(shape.shapes, snapShape));
         } else {
@@ -758,28 +761,26 @@ g.link = function (shape1, shape2, orientation) {
     if (!shape1 || !shape2) {
         return;
     }
-    var commands, hw, hh,
-        a = shape1.bounds(),
-        b = shape2.bounds();
-
+    
+    var p = new Path();
+    var a = shape1.bounds();
+    var b = shape2.bounds();
     if (orientation === 'horizontal') {
-        hw = (b.x - (a.x + a.width)) / 2;
-        commands = [
-            path.moveTo(a.x + a.width, a.y),
-            path.curveTo(a.x + a.width + hw, a.y, b.x - hw, b.y, b.x, b.y),
-            path.lineTo(b.x, b.y + b.height),
-            path.curveTo(b.x - hw, b.y + b.height, a.x + a.width + hw, a.y + a.height, a.x + a.width, a.y + a.height)
-        ];
+        var hw = (b.x - (a.x + a.width)) / 2;
+        p.moveTo(a.x + a.width, a.y);
+        p.curveTo(a.x + a.width + hw, a.y, b.x - hw, b.y, b.x, b.y);
+        p.lineTo(b.x, b.y + b.height);
+        p.curveTo(b.x - hw, b.y + b.height, a.x + a.width + hw, a.y + a.height, a.x + a.width, a.y + a.height);
+        p.close();
     } else {
-        hh = (b.y - (a.y + a.height)) / 2;
-        commands = [
-            path.moveTo(a.x, a.y + a.height),
-            path.curveTo(a.x, a.y + a.height + hh, b.x, b.y - hh, b.x, b.y),
-            path.lineTo(b.x + b.width, b.y),
-            path.curveTo(b.x + b.width, b.y - hh, a.x + a.width, a.y + a.height + hh, a.x + a.width, a.y + a.height)
-        ];
+        var hh = (b.y - (a.y + a.height)) / 2;
+        p.moveTo(a.x, a.y + a.height);
+        p.curveTo(a.x, a.y + a.height + hh, b.x, b.y - hh, b.x, b.y);
+        p.lineTo(b.x + b.width, b.y);
+        p.curveTo(b.x + b.width, b.y - hh, a.x + a.width, a.y + a.height + hh, a.x + a.width, a.y + a.height);
+        p.close();
     }
-    return new Path(commands);
+    return p;
 };
 
 g.stack = function (shapes, direction, margin) {
@@ -828,23 +829,26 @@ g.stack = function (shapes, direction, margin) {
     return newShapes;
 };
 
-g.colorLookup = function (color, comp) {
-    if (color.namedColors[color]) {
-        color = color.namedColors[color];
-        color = new Color(color[0], color[1], color[2]);
+g.colorLookup = function (c, comp) {
+    c = Color.parse(c);
+    switch(comp) {
+        case 'r':
+            return c.r;
+        case 'g':
+            return c.g;
+        case 'b':
+            return c.b;
+        case 'a':
+            return c.a;
+        case 'h':
+            return c.h;
+        case 's':
+            return c.s;
+        case 'v':
+            return c.v;
+        default:
+            throw new Error('Unknown component ' + comp);
     }
-    var rgba = Color.rgba();
-    if (comp === 'r') { return rgba[0]; }
-    else if (comp === 'g') { return rgba[1]; }
-    else if (comp === 'b') { return rgba[2]; }
-    else if (comp === 'a') { return rgba[3]; }
-    else if (comp === 'h' || comp === 's' || comp === 'v') {
-        var hsb = color.rgb2hsb(rgba[0], rgba[1], rgba[2]);
-        if (comp === 'h') { return hsb[0]; }
-        else if (comp === 's') { return hsb[1]; }
-        else if (comp === 'v') { return hsb[2]; }
-    }
-    return null;
 };
 
 module.exports = g;

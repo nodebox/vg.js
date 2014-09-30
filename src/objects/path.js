@@ -11,10 +11,10 @@ var math = require('../util/math');
 var Color = require('../objects/color');
 var Rect = require('../objects/rect');
 
-var MOVETO  = 'M';
-var LINETO  = 'L';
-var CURVETO = 'C';
-var CLOSE   = 'Z';
+var MOVETO  = bezier.MOVETO;
+var LINETO  = bezier.LINETO;
+var CURVETO = bezier.CURVETO;
+var CLOSE   = bezier.CLOSE;
 
 var CLOSE_COMMAND = Object.freeze({ type: CLOSE });
 
@@ -480,6 +480,20 @@ Path.prototype.draw = function (ctx) {
         ctx.lineWidth = this.strokeWidth;
         ctx.stroke();
     }
+};
+
+Path.combine = function () {
+    var shapes = _.flatten(arguments);
+    var commands = [];
+    for (var i = 0; i < shapes.length; i += 1) {
+        var shape = shapes[i];
+        if (shape.commands) {
+            commands = commands.concat(shape.commands);
+        } else if (shape.shapes) {
+            commands = commands.concat(Path.combine(shape.shapes));
+        }
+    }
+    return new Path(commands);
 };
 
 module.exports = Path;

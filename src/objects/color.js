@@ -116,6 +116,24 @@ Color.prototype._get = function () {
     return Color.toCSS(this);
 };
 
+Object.defineProperty(Color.prototype, 'h', {
+    get: function () {
+        return color.rgb2hsb(this.r, this.g, this.b)[0];
+    }
+});
+
+Object.defineProperty(Color.prototype, 's', {
+    get: function () {
+        return color.rgb2hsb(this.r, this.g, this.b)[1];
+    }
+});
+
+Object.defineProperty(Color.prototype, 'v', {
+    get: function () {
+        return color.rgb2hsb(this.r, this.g, this.b)[2];
+    }
+});
+
 Color.clone = function (c) {
     if (c === null || c === undefined) {
         return null;
@@ -150,7 +168,9 @@ Color.make = function (r, g, b, a, options) {
 };
 
 Color.parse = function (s) {
-    if (color.namedColors[s]) {
+    if (s instanceof Color) {
+        return s;
+    } else if (color.namedColors[s]) {
         return Color.make.apply(null, color.namedColors[s]);
     } else if (s[0] === '#') {
         return new Color(s, 0, 0, 0, {colorspace: HEX});
