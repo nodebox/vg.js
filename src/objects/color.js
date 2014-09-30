@@ -83,12 +83,12 @@ var Color = function (v1, v2, v3, v4, v5) {
         _a /= options.range;
     }
     // Convert HSB colors to RGB
-    if (options.colorspace === HSB) {
+    if (options.mode === HSB) {
         rgb = color.hsb2rgb(v1, v2, v3);
         _r = rgb[0];
         _g = rgb[1];
         _b = rgb[2];
-    } else if (options.colorspace === HEX) {
+    } else if (options.mode === HEX) {
         rgb = color.hex2rgb(v1);
         _r = rgb[0];
         _g = rgb[1];
@@ -202,7 +202,7 @@ Color.parse = function (s) {
     } else if (color.namedColors[s]) {
         return Color.make.apply(null, color.namedColors[s]);
     } else if (s[0] === '#') {
-        return new Color(s, 0, 0, 0, {colorspace: HEX});
+        return new Color(s, 0, 0, 0, { mode: HEX });
     } else if (s === 'none') {
         return new Color(0, 0, 0, 0);
     } else {
@@ -222,7 +222,7 @@ Color.rgb = function (red, green, blue, alpha, range) {
 
 Color.hsb = function (hue, saturation, brightness, alpha, range) {
     range = Math.max(range, 1);
-    return new Color(hue / range, saturation / range, brightness / range, alpha / range, { colorspace: HSB });
+    return new Color(hue / range, saturation / range, brightness / range, alpha / range, { mode: HSB });
 };
 
 module.exports = Color;
