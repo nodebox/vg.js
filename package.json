@@ -31,6 +31,6 @@
     "ensure-build-dir": "mkdir -p build",
     "browserify": "npm run ensure-build-dir && browserify src/g.js --standalone g > build/g.js",
     "watchify": "npm run ensure-build-dir && watchify src/g.js --standalone g --debug -o build/g.js -v",
-    "test": "mocha --recursive && jshint ."
+    "test": "mocha --recursive & jshint ."
   }
 }
