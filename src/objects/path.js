@@ -371,16 +371,15 @@ Path.prototype.resampleByAmount = function (points, perContour) {
 };
 
 Path.prototype.resampleByLength = function (segmentLength) {
-    var i, subPath, contourLength, amount,
-        subPaths = this.contours(),
-        commands = [];
+    var subPaths = this.contours();
+    var commands = [];
     segmentLength = Math.max(segmentLength, 0.01);
-    for (i = 0; i < subPaths.length; i += 1) {
-        subPath = new Path(subPaths[i]);
-        contourLength = subPath.length();
-        amount = Math.ceil(contourLength / segmentLength);
+    for (var i = 0; i < subPaths.length; i += 1) {
+        var subPath = new Path(subPaths[i]);
+        var contourLength = subPath.length();
+        var amount = Math.ceil(contourLength / segmentLength);
         if (!subPath.isClosed()) { amount += 1; }
-        commands = commands.concat(subPath.resampleByAmount(amount, false).commands);
+        commands = commands.concat(subPath.resampleByAmount(amount).commands);
     }
     return new Path(commands, this.fill, this.stroke, this.strokeWidth);
 };
