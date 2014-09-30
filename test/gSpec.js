@@ -19,6 +19,11 @@ function assertRectsAlmostEqual(r1, r2) {
     assertAlmostEqual(r1.height, r2.height);
 }
 
+function assertXYEqual(pt, x, y) {
+    assert.equal(pt.x, x);
+    assert.equal(pt.y, y);
+}
+
 describe('The math module', function () {
 
     it('can sum numbers', function () {
@@ -479,3 +484,18 @@ describe('The reflect filter', function () {
         assertRectsAlmostEqual(rr.bounds(), new g.Rect(0, -100, 100, 100));
     });
 });
+
+describe('The snap filter', function () {
+    it('works on paths', function () {
+        var p1 = new g._ellipse(0, 0, 100, 100);
+        var p2 = g.snap(p1, 50);
+        assert.equal(p2.commands.length, p1.commands.length);
+        assertXYEqual(p2.commands[0], 0, 50);
+        assertXYEqual(p2.commands[1], 50, 0);
+        assertXYEqual(p2.commands[2], 100, 50);
+        assertXYEqual(p2.commands[3], 50, 100);
+        assertXYEqual(p2.commands[4], 0, 50);
+    });
+});
+
+

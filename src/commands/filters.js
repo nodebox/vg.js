@@ -245,7 +245,7 @@ g.reflect = function (shape, position, angle, keepOriginal) {
         var p = new Path([], path.fill, path.stroke, path.strokeWidth);
         for (var i = 0; i < path.commands.length; i += 1) {
             var cmd = path.commands[i];
-             if (cmd.type === bezier.MOVETO) {
+            if (cmd.type === bezier.MOVETO) {
                 pt = f(cmd.x, cmd.y);
                 p.moveTo(pt.x, pt.y);
             } else if (cmd.type === bezier.LINETO) {
@@ -480,10 +480,9 @@ g.snap = function (shape, distance, strength, position) {
     if (!shape) {
         return;
     }
-    if (!position) {
-        position = Point.ZERO;
-    }
-    strength /= 100.0;
+    strength = strength !== undefined ? strength : 100;
+    strength /= 100;
+    position = position || Point.ZERO;
 
     var snapShape = function (shape) {
         if (shape.commands) {
@@ -491,17 +490,17 @@ g.snap = function (shape, distance, strength, position) {
             for (var i = 0; i < shape.commands.length; i += 1) {
                 var cmd = shape.commands[i];
                 if (cmd.type === bezier.MOVETO || cmd.type === bezier.LINETO || cmd.type === bezier.CURVETO) {
-                    var x = g.math.snap(cmd.x + position.x, distance, strength) - position.x;
-                    var y = g.math.snap(cmd.y + position.y, distance, strength) - position.y;
+                    var x = math.snap(cmd.x + position.x, distance, strength) - position.x;
+                    var y = math.snap(cmd.y + position.y, distance, strength) - position.y;
                     if (cmd.type === bezier.MOVETO) {
                         p.moveTo(x, y);
                     } else if (cmd.type === bezier.LINETO) {
                         p.lineTo(x, y);
                     } else if (cmd.type === bezier.CURVETO) {
-                        var x1 = g.math.snap(cmd.x1 + position.x, distance, strength) - position.x;
-                        var y1 = g.math.snap(cmd.y1 + position.y, distance, strength) - position.y;
-                        var x2 = g.math.snap(cmd.x2 + position.x, distance, strength) - position.x;
-                        var y2= g.math.snap(cmd.y2 + position.y, distance, strength) - position.y;
+                        var x1 = math.snap(cmd.x1 + position.x, distance, strength) - position.x;
+                        var y1 = math.snap(cmd.y1 + position.y, distance, strength) - position.y;
+                        var x2 = math.snap(cmd.x2 + position.x, distance, strength) - position.x;
+                        var y2 = math.snap(cmd.y2 + position.y, distance, strength) - position.y;
                         p.curveTo(x1, y1, x2, y2, x, y);
                     }
                 } else if (cmd.type === bezier.CLOSE) {
