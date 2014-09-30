@@ -8,6 +8,7 @@
 'use strict';
 
 var _ = require('underscore');
+var xmldom = require('xmldom');
 
 var Color = require('../objects/color');
 var Group = require('../objects/group');
@@ -354,7 +355,7 @@ var read = {
     },
 
     path: function (node) {
-        var d, PathParser, commands, pp,
+        var d, PathParser, pp,
             pt, newP, curr, p1, cntrl, cp, cp1x, cp1y, cp2x, cp2y,
             rx, ry, rot, large, sweep, ex, ey, segs, i, bez;
         // TODO: convert to real lexer based on http://www.w3.org/TR/SVG11/paths.html#PathDataBNF
@@ -576,7 +577,7 @@ var read = {
                 break;
             }
         }
-        return applySvgAttributes(node, new Path(commands));
+        return applySvgAttributes(node, p);
     }
 };
 
@@ -589,4 +590,9 @@ exports.interpret = function (svgNode) {
 
     node = read[tag].call(this, svgNode);
     return node;
+};
+
+exports.parseString = function (s) {
+    var doc = new xmldom.DOMParser().parseFromString(s);
+    return exports.interpret(doc.documentElement);
 };

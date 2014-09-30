@@ -498,4 +498,18 @@ describe('The snap filter', function () {
     });
 });
 
+describe('The SVG module', function () {
+    it('can parse rects', function () {
+        var r = g.svg.parseString('<rect x="10" y="20" width="30" height="40" fill="blue"/>');
+        assert.deepEqual(r.bounds().xywh, [10, 20, 30, 40]);
+        assert.deepEqual(r.fill.rgba, [0, 0, 1, 1]);
+    });
 
+    it('can parse paths', function () {
+        var p = g.svg.parseString('<path d="M10,20 L30,40 L50,60 Z"/>');
+        assert.deepEqual(p.commands[0], {type: g.bezier.MOVETO, x: 10, y: 20});
+        assert.deepEqual(p.commands[1], {type: g.bezier.LINETO, x: 30, y: 40});
+        assert.deepEqual(p.commands[2], {type: g.bezier.LINETO, x: 50, y: 60});
+        assert.deepEqual(p.commands[3], {type: g.bezier.CLOSE});
+    });
+});
