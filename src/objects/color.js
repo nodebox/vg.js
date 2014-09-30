@@ -19,13 +19,13 @@ var Color = function (v1, v2, v3, v4, v5) {
         _r = v1[0] !== undefined ? v1[0] : 0;
         _g = v1[1] !== undefined ? v1[1] : 0;
         _b = v1[2] !== undefined ? v1[2] : 0;
-        _a = v1[3] !== undefined ? v1[3] : options.base || 1;
+        _a = v1[3] !== undefined ? v1[3] : options.range || 1;
     } else if (v1.r !== undefined) {
         options = v2 || {};
         _r = v1.r;
         _g = v1.g;
         _b = v1.b;
-        _a = v1.a !== undefined ? v1.a : options.base || 1;
+        _a = v1.a !== undefined ? v1.a : options.range || 1;
     } else if (typeof v1 === 'string') {
         rgb = color.hex2rgb(v1);
         _r = rgb[0];
@@ -42,7 +42,7 @@ var Color = function (v1, v2, v3, v4, v5) {
                 _a = v2;
             } else {
                 options = v2;
-                _a = options.base || 1;
+                _a = options.range || 1;
             }
         } else if (arguments.length === 3) { // RGB or gray, alpha and options
             if (typeof v3 === 'number') {
@@ -63,7 +63,7 @@ var Color = function (v1, v2, v3, v4, v5) {
                 _a = v4;
             } else {
                 options = v4;
-                _a = options.base || 1;
+                _a = options.range || 1;
             }
         } else { // RGBA + options
             _r = v1;
@@ -75,12 +75,12 @@ var Color = function (v1, v2, v3, v4, v5) {
     }
     options = options || {};
 
-    // The base option allows you to specify values in a different range.
-    if (options.base !== undefined) {
-        _r /= options.base;
-        _g /= options.base;
-        _b /= options.base;
-        _a /= options.base;
+    // The range option allows you to specify values in a different range.
+    if (options.range !== undefined) {
+        _r /= options.range;
+        _g /= options.range;
+        _b /= options.range;
+        _a /= options.range;
     }
     // Convert HSB colors to RGB
     if (options.colorspace === HSB) {

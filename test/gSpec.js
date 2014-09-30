@@ -281,11 +281,11 @@ describe('A color', function () {
         assert.deepEqual(c.rgba, [0.1, 0.2, 0.3, 0.4]);
     });
 
-    it('can take a base', function () {
+    it('can take a value range', function () {
         var c;
-        c = new g.Color(10, 20, 30, {base: 100});
+        c = new g.Color(10, 20, 30, {range: 100});
         assert.deepEqual(c.rgba, [0.1, 0.2, 0.3, 1]);
-        c = new g.Color(10, 20, 30, 40, {base: 100});
+        c = new g.Color(10, 20, 30, 40, {range: 100});
         assert.deepEqual(c.rgba, [0.1, 0.2, 0.3, 0.4]);
     });
 
@@ -295,9 +295,9 @@ describe('A color', function () {
         assert.deepEqual(c.rgba, [0.1, 0.2, 0.3, 0.4]);
         c = new g.Color([0, 0, 0, 0]);
         assert.deepEqual(c.rgba, [0, 0, 0, 0]);
-        c = new g.Color([10, 20, 30], {base: 100});
+        c = new g.Color([10, 20, 30], {range: 100});
         assert.deepEqual(c.rgba, [0.1, 0.2, 0.3, 1]);
-        c = new g.Color([10, 20, 30, 40], {base: 100});
+        c = new g.Color([10, 20, 30, 40], {range: 100});
         assert.deepEqual(c.rgba, [0.1, 0.2, 0.3, 0.4]);
     });
 
@@ -319,11 +319,11 @@ describe('A color', function () {
         var c;
         c = new g.Color(0.3);
         assert.deepEqual(c.rgba, [0.3, 0.3, 0.3, 1]);
-        c = new g.Color(30, {base: 100});
+        c = new g.Color(30, {range: 100});
         assert.deepEqual(c.rgba, [0.3, 0.3, 0.3, 1]);
         c = new g.Color(0.3, 0.5);
         assert.deepEqual(c.rgba, [0.3, 0.3, 0.3, 0.5]);
-        c = new g.Color(30, 50, {base: 100});
+        c = new g.Color(30, 50, {range: 100});
         assert.deepEqual(c.rgba, [0.3, 0.3, 0.3, 0.5]);
     });
 
