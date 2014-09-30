@@ -24,10 +24,6 @@
     "watchify": "^1.0.6"
   },
   "main": "./src/g.js",
-  "files": [
-    "g.js",
-    "LICENSE"
-  ],
   "scripts": {
     "ensure-build-dir": "mkdir -p build",
     "browserify": "npm run ensure-build-dir && browserify src/g.js --standalone g > build/g.js",
