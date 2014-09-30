@@ -270,61 +270,61 @@ describe('A color', function () {
 
     it('has a default constructor', function () {
         var c = new g.Color();
-        assert.deepEqual(c.rgba(), [0, 0, 0, 1]);
+        assert.deepEqual(c.rgba, [0, 0, 0, 1]);
     });
 
     it('can be constructed using numbers', function () {
         var c;
         c = new g.Color(0.1, 0.2, 0.3);
-        assert.deepEqual(c.rgba(), [0.1, 0.2, 0.3, 1]);
+        assert.deepEqual(c.rgba, [0.1, 0.2, 0.3, 1]);
         c = new g.Color(0.1, 0.2, 0.3, 0.4);
-        assert.deepEqual(c.rgba(), [0.1, 0.2, 0.3, 0.4]);
+        assert.deepEqual(c.rgba, [0.1, 0.2, 0.3, 0.4]);
     });
 
     it('can take a base', function () {
         var c;
         c = new g.Color(10, 20, 30, {base: 100});
-        assert.deepEqual(c.rgba(), [0.1, 0.2, 0.3, 1]);
+        assert.deepEqual(c.rgba, [0.1, 0.2, 0.3, 1]);
         c = new g.Color(10, 20, 30, 40, {base: 100});
-        assert.deepEqual(c.rgba(), [0.1, 0.2, 0.3, 0.4]);
+        assert.deepEqual(c.rgba, [0.1, 0.2, 0.3, 0.4]);
     });
 
     it('can be constructed using an array', function () {
         var c;
         c = new g.Color([0.1, 0.2, 0.3, 0.4]);
-        assert.deepEqual(c.rgba(), [0.1, 0.2, 0.3, 0.4]);
+        assert.deepEqual(c.rgba, [0.1, 0.2, 0.3, 0.4]);
         c = new g.Color([0, 0, 0, 0]);
-        assert.deepEqual(c.rgba(), [0, 0, 0, 0]);
+        assert.deepEqual(c.rgba, [0, 0, 0, 0]);
         c = new g.Color([10, 20, 30], {base: 100});
-        assert.deepEqual(c.rgba(), [0.1, 0.2, 0.3, 1]);
+        assert.deepEqual(c.rgba, [0.1, 0.2, 0.3, 1]);
         c = new g.Color([10, 20, 30, 40], {base: 100});
-        assert.deepEqual(c.rgba(), [0.1, 0.2, 0.3, 0.4]);
+        assert.deepEqual(c.rgba, [0.1, 0.2, 0.3, 0.4]);
     });
 
     it('can be constructed using a Color object', function () {
         var c;
         c = new g.Color({r: 0.1, g: 0.2, b: 0.3});
-        assert.deepEqual(c.rgba(), [0.1, 0.2, 0.3, 1.0]);
+        assert.deepEqual(c.rgba, [0.1, 0.2, 0.3, 1.0]);
         c = new g.Color({r: 0.1, g: 0.2, b: 0.3, a: 0.4});
-        assert.deepEqual(c.rgba(), [0.1, 0.2, 0.3, 0.4]);
+        assert.deepEqual(c.rgba, [0.1, 0.2, 0.3, 0.4]);
     });
 
     it('can be constructed using a string', function () {
         var c;
         c = new g.Color('#ff3366');
-        assert.deepEqual(c.rgba(), [1, 0.2, 0.4, 1]);
+        assert.deepEqual(c.rgba, [1, 0.2, 0.4, 1]);
     });
 
     it('can be constructed using a grayscale value', function () {
         var c;
         c = new g.Color(0.3);
-        assert.deepEqual(c.rgba(), [0.3, 0.3, 0.3, 1]);
+        assert.deepEqual(c.rgba, [0.3, 0.3, 0.3, 1]);
         c = new g.Color(30, {base: 100});
-        assert.deepEqual(c.rgba(), [0.3, 0.3, 0.3, 1]);
+        assert.deepEqual(c.rgba, [0.3, 0.3, 0.3, 1]);
         c = new g.Color(0.3, 0.5);
-        assert.deepEqual(c.rgba(), [0.3, 0.3, 0.3, 0.5]);
+        assert.deepEqual(c.rgba, [0.3, 0.3, 0.3, 0.5]);
         c = new g.Color(30, 50, {base: 100});
-        assert.deepEqual(c.rgba(), [0.3, 0.3, 0.3, 0.5]);
+        assert.deepEqual(c.rgba, [0.3, 0.3, 0.3, 0.5]);
     });
 
     it('can be converted to a hexadecimal value', function () {
@@ -333,6 +333,25 @@ describe('A color', function () {
         assert.equal(g.color.rgb2hex(0.1, 0.5, 0.9), '#1A80E6');
         assert.equal(g.color.rgb2hex(0.99, 0.99, 0.99), '#FCFCFC');
         assert.equal(g.color.rgb2hex(1, 1, 1), '#FFFFFF');
+    });
+
+    it('has aliased properties', function () {
+        var c = new g.Color(0.1, 0.2, 0.3, 0.4);
+        assert.equal(c.red, c.r);
+        assert.equal(c.green, c.g);
+        assert.equal(c.blue, c.b);
+        assert.equal(c.alpha, c.a);
+        assert.deepEqual(c.rgb, [c.r, c.g, c.b]);
+        assert.deepEqual(c.rgba, [c.r, c.g, c.b, c.a]);
+
+        var hsb = g.color.rgb2hsb(c.r, c.g, c.b);
+        assert.equal(c.h, hsb[0]);
+        assert.equal(c.hue, hsb[0]);
+        assert.equal(c.s, hsb[1]);
+        assert.equal(c.saturation, hsb[1]);
+        assert.equal(c.v, hsb[2]);
+        assert.equal(c.value, hsb[2]);
+        assert.equal(c.brightness, hsb[2]);
     });
 
 });

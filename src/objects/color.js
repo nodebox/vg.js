@@ -3,6 +3,7 @@
 'use strict';
 
 var color = require('../util/color');
+var js = require('../util/js');
 
 // var RGB = 'RGB';
 var HSB = 'HSB';
@@ -104,34 +105,43 @@ var Color = function (v1, v2, v3, v4, v5) {
 Color.BLACK = new Color(0);
 Color.WHITE = new Color(1);
 
-Color.prototype.rgb = function () {
+js.defineAlias(Color, 'r', 'red');
+js.defineAlias(Color, 'g', 'green');
+js.defineAlias(Color, 'b', 'blue');
+js.defineAlias(Color, 'a', 'alpha');
+
+js.defineGetter(Color, 'h', function () {
+    return color.rgb2hsb(this.r, this.g, this.b)[0];
+});
+
+js.defineGetter(Color, 's', function () {
+    return color.rgb2hsb(this.r, this.g, this.b)[1];
+});
+
+js.defineGetter(Color, 'v', function () {
+    return color.rgb2hsb(this.r, this.g, this.b)[2];
+});
+
+js.defineAlias(Color, 'h', 'hue');
+js.defineAlias(Color, 's', 'saturation');
+js.defineAlias(Color, 'v', 'value');
+js.defineAlias(Color, 'v', 'brightness');
+
+
+js.defineGetter(Color, 'rgb', function () {
     return [this.r, this.g, this.b];
-};
+});
 
-Color.prototype.rgba = function () {
+js.defineGetter(Color, 'rgba', function () {
     return [this.r, this.g, this.b, this.a];
-};
-
-Color.prototype._get = function () {
-    return Color.toCSS(this);
-};
-
-Object.defineProperty(Color.prototype, 'h', {
-    get: function () {
-        return color.rgb2hsb(this.r, this.g, this.b)[0];
-    }
 });
 
-Object.defineProperty(Color.prototype, 's', {
-    get: function () {
-        return color.rgb2hsb(this.r, this.g, this.b)[1];
-    }
+js.defineGetter(Color, 'hsb', function () {
+    return color.rgb2hsb(this.r, this.g, this.b);
 });
 
-Object.defineProperty(Color.prototype, 'v', {
-    get: function () {
-        return color.rgb2hsb(this.r, this.g, this.b)[2];
-    }
+js.defineGetter(Color, 'hsba', function () {
+    return color.rgb2hsb(this.r, this.g, this.b).concat([this.a]);
 });
 
 Color.clone = function (c) {
