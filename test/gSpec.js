@@ -330,7 +330,8 @@ describe('A color', function () {
     it('can be parsed', function () {
         assert.deepEqual(g.Color.parse(null).rgba, [0.0, 0.0, 0.0, 0.0]);
         assert.deepEqual(g.Color.parse(undefined).rgba, [0.0, 0.0, 0.0, 0.0]);
-        assert.deepEqual(g.Color.parse('blue').rgba, [0.0, 0.0, 1.0, 1.0]);
+        assert.deepEqual(g.Color.parse('cornflowerblue').rgba, [0.39, 0.58, 0.93, 1.0]);
+        assert.deepEqual(g.Color.parse('none').rgba, [0.0, 0.0, 0.0, 0.0]);
         assert.deepEqual(g.Color.parse(new g.Color(0.1, 0.2, 0.3, 0.4)).rgba, [0.1, 0.2, 0.3, 0.4]);
         assert.throws(function() { g.Color.parse(true); });
     });
