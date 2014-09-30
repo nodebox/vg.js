@@ -472,11 +472,11 @@ Path.prototype.draw = function (ctx) {
         }
     }
     if (this.fill !== null) {
-        ctx.fillStyle = Color.get(this.fill);
+        ctx.fillStyle = Color.toCSS(this.fill);
         ctx.fill();
     }
     if (this.stroke !== null && this.strokeWidth !== null && this.strokeWidth > 0) {
-        ctx.strokeStyle = Color.get(this.stroke);
+        ctx.strokeStyle = Color.toCSS(this.stroke);
         ctx.lineWidth = this.strokeWidth;
         ctx.stroke();
     }

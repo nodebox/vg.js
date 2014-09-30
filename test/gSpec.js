@@ -354,6 +354,15 @@ describe('A color', function () {
         assert.equal(c.brightness, hsb[2]);
     });
 
+    it('can be converted to CSS', function () {
+        var c = new g.Color(0.1, 0.2, 0.3, 0.4);
+        assert.equal(g.Color.toCSS(), 'black', 'Empty color is black');
+        assert.equal(g.Color.toCSS(null), 'none', 'null is none, meaning no color');
+        assert.equal(g.Color.toCSS('red'), 'red', 'strings are kept as-is');
+        assert.equal(g.Color.toCSS(c), 'rgba(26, 51, 77, 0.4)', 'color objects are converted');
+        assert.throws(function() { g.Color.toCSS(new g.Point()); });
+    });
+
 });
 
 describe('Color utilities', function () {

@@ -41,7 +41,7 @@ g.drawColors = function (ctx, colors) {
     ctx.save();
     for (i = 0; i < colors.length; i += 1) {
         c = colors[i];
-        ctx.fillStyle = Color.get(c);
+        ctx.fillStyle = Color.toCSS(c);
         ctx.fillRect(0, 0, 30, 30);
         ctx.translate(30, 0);
     }

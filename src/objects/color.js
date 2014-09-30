@@ -144,6 +144,10 @@ js.defineGetter(Color, 'hsba', function () {
     return color.rgb2hsb(this.r, this.g, this.b).concat([this.a]);
 });
 
+Color.prototype.toCSS = function () {
+    return Color.toCSS(this);
+};
+
 Color.clone = function (c) {
     if (c === null || c === undefined) {
         return null;
@@ -154,23 +158,21 @@ Color.clone = function (c) {
     }
 };
 
-Color.get = function (c) {
-    if (c === null) { return 'none'; }
-    if (c === undefined) { return 'black'; }
-    if (typeof c === 'string') { return c; }
-    if (c instanceof Color) { return c._get(); }
-    return new Color(c)._get();
-};
-
 Color.toCSS = function (c) {
-    if (typeof c === 'string') {
-        // We're going to assume the color is already a CSS string.
+    if (c === null) {
+        return 'none';
+    } else if (c === undefined) {
+        return 'black';
+    } else if (typeof c === 'string') {
         return c;
+    } else if (c instanceof Color) {
+        var r255 = Math.round(c.r * 255),
+            g255 = Math.round(c.g * 255),
+            b255 = Math.round(c.b * 255);
+        return 'rgba(' + r255 + ', ' + g255 + ', ' + b255 + ', ' + c.a + ')';
+    } else {
+        throw new Error('Don\'t know how to convert ' + c + ' to CSS.');
     }
-    var R = Math.round(c.r * 255),
-        G = Math.round(c.g * 255),
-        B = Math.round(c.b * 255);
-    return 'rgba(' + R + ', ' + G + ', ' + B + ', ' + c.a + ')';
 };
 
 Color.make = function (r, g, b, a, options) {

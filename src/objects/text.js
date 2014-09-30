@@ -133,7 +133,7 @@ Text.prototype.draw = function (ctx) {
     ctx.textAlign = this.textAlign;
     var m = this.transform.m;
     ctx.transform(m[0], m[1], m[3], m[4], m[6], m[7]);
-    ctx.fillStyle = Color.get(this.fill);
+    ctx.fillStyle = Color.toCSS(this.fill);
     ctx.fillText(this.text, this.x, this.y);
     ctx.restore();
 };
