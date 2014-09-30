@@ -328,11 +328,12 @@ describe('A color', function () {
     });
 
     it('can be converted to a hexadecimal value', function () {
-        assert.equal(g.color.rgb2hex(0, 0, 0), '#000000');
-        assert.equal(g.color.rgb2hex(0.01, 0.01, 0.01), '#030303');
-        assert.equal(g.color.rgb2hex(0.1, 0.5, 0.9), '#1A80E6');
-        assert.equal(g.color.rgb2hex(0.99, 0.99, 0.99), '#FCFCFC');
-        assert.equal(g.color.rgb2hex(1, 1, 1), '#FFFFFF');
+        assert.equal(new g.Color(0, 0, 0).toHex(), '#000000');
+        assert.equal(new g.Color(0.01, 0.01, 0.01).toHex(), '#030303');
+        assert.equal(new g.Color(0.1, 0.5, 0.9).toHex(), '#1A80E6');
+        assert.equal(new g.Color(0.99, 0.99, 0.99).toHex(), '#FCFCFC');
+        assert.equal(new g.Color(1, 1, 1).toHex(), '#FFFFFF');
+        assert.equal(new g.Color(1, 1, 1, 0.5).toHex(), '#FFFFFF80');
     });
 
     it('has aliased properties', function () {

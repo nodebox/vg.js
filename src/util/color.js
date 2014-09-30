@@ -151,25 +151,34 @@ color.namedColors = {
     'bark'                 : [0.25, 0.19, 0.13]
 };
 
+function toHex(i) {
+    var s;
+    if (i === 0) {
+        return '00';
+    } else {
+        s = i.toString(16).toUpperCase();
+        if (s.length < 2) {
+            s = '0' + s;
+        }
+        return s;
+    }
+}
 
 // Converts the given R,G,B values to a hexadecimal color string.
 color.rgb2hex = function (r, g, b) {
-    function toHex(i) {
-        var s;
-        if (i === 0) {
-            return '00';
-        } else {
-            s = i.toString(16).toUpperCase();
-            if (s.length < 2) {
-                s = '0' + s;
-            }
-            return s;
-        }
-    }
     return '#' +
         toHex(Math.round(r * 255)) +
         toHex(Math.round(g * 255)) +
         toHex(Math.round(b * 255));
+};
+
+// Converts the given R,G,B,A values to a hexadecimal color string.
+color.rgba2hex = function (r, g, b, a) {
+    return '#' +
+        toHex(Math.round(r * 255)) +
+        toHex(Math.round(g * 255)) +
+        toHex(Math.round(b * 255)) +
+        toHex(Math.round(a * 255));
 };
 
 // Converts the given hexadecimal color string to R,G,B (between 0.0-1.0).

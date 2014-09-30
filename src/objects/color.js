@@ -148,6 +148,14 @@ Color.prototype.toCSS = function () {
     return Color.toCSS(this);
 };
 
+Color.prototype.toHex = function () {
+    if (this.a >= 1) {
+        return color.rgb2hex(this.r, this.g, this.b);
+    } else {
+        return color.rgba2hex(this.r, this.g, this.b, this.a);
+    }
+};
+
 Color.clone = function (c) {
     if (c === null || c === undefined) {
         return null;
@@ -173,6 +181,10 @@ Color.toCSS = function (c) {
     } else {
         throw new Error('Don\'t know how to convert ' + c + ' to CSS.');
     }
+};
+
+Color.toHex = function (c) {
+    return Color.parse(c).toHex();
 };
 
 Color.make = function (r, g, b, a, options) {
