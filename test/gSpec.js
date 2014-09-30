@@ -327,6 +327,14 @@ describe('A color', function () {
         assert.deepEqual(c.rgba, [0.3, 0.3, 0.3, 0.5]);
     });
 
+    it('can be parsed', function () {
+        assert.deepEqual(g.Color.parse(null).rgba, [0.0, 0.0, 0.0, 0.0]);
+        assert.deepEqual(g.Color.parse(undefined).rgba, [0.0, 0.0, 0.0, 0.0]);
+        assert.deepEqual(g.Color.parse('blue').rgba, [0.0, 0.0, 1.0, 1.0]);
+        assert.deepEqual(g.Color.parse(new g.Color(0.1, 0.2, 0.3, 0.4)).rgba, [0.1, 0.2, 0.3, 0.4]);
+        assert.throws(function() { g.Color.parse(true); });
+    });
+
     it('can be converted to a hexadecimal value', function () {
         assert.equal(new g.Color(0, 0, 0).toHex(), '#000000');
         assert.equal(new g.Color(0.01, 0.01, 0.01).toHex(), '#030303');

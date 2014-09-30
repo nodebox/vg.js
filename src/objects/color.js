@@ -187,21 +187,26 @@ Color.toHex = function (c) {
     return Color.parse(c).toHex();
 };
 
-Color.make = function (r, g, b, a, options) {
-    return new Color(r, g, b, a, options);
+Color.make = function () {
+    var c = Object.create(Color.prototype);
+    c.constructor = Color.prototype;
+    Color.apply(c, arguments);
+    return c;
 };
 
 Color.parse = function (s) {
-    if (s instanceof Color) {
+    if (s === undefined || s === null) {
+        return new Color(0, 0, 0, 0);
+    } else if (s instanceof Color) {
         return s;
     } else if (color.namedColors[s]) {
         return Color.make.apply(null, color.namedColors[s]);
     } else if (s[0] === '#') {
         return new Color(s, 0, 0, 0, {colorspace: HEX});
     } else if (s === 'none') {
-        return null;
+        return new Color(0, 0, 0, 0);
     } else {
-        return undefined;
+        throw new Error('Color ' + s + 'can not be parsed');
     }
 };
 
