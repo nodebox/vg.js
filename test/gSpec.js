@@ -506,10 +506,11 @@ describe('The SVG module', function () {
     });
 
     it('can parse paths', function () {
-        var p = g.svg.parseString('<path d="M10,20 L30,40 L50,60 Z"/>');
+        var p = g.svg.parseString('<path d="M10,20 L30,40 L100,0 Z" fill="red"/>');
         assert.deepEqual(p.commands[0], {type: g.bezier.MOVETO, x: 10, y: 20});
         assert.deepEqual(p.commands[1], {type: g.bezier.LINETO, x: 30, y: 40});
-        assert.deepEqual(p.commands[2], {type: g.bezier.LINETO, x: 50, y: 60});
+        assert.deepEqual(p.commands[2], {type: g.bezier.LINETO, x: 100, y: 0});
         assert.deepEqual(p.commands[3], {type: g.bezier.CLOSE});
+        assert.deepEqual(p.fill.rgba, [1, 0, 0, 1]);
     });
 });
