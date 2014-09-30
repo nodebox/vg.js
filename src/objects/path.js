@@ -359,7 +359,6 @@ Path.prototype.resampleByAmount = function (points, perContour) {
         var subPath = new Path(subPaths[j]);
         var pts = subPath.points(points + 1);
         for (var i = 0; i < pts.length - 1; i += 1) {
-            console.log(pts[i].x, pts[i].y);
             if (i === 0) {
                 p.moveTo(pts[i].x, pts[i].y);
             } else {
