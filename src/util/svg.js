@@ -595,5 +595,7 @@ exports.interpret = function (svgNode) {
 
 exports.parseString = function (s) {
     var doc = new xmldom.DOMParser().parseFromString(s);
-    return exports.interpret(doc.documentElement);
+    if (doc) {
+        return exports.interpret(doc.documentElement);
+    }
 };
