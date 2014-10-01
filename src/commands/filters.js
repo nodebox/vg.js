@@ -649,7 +649,7 @@ g.shapeOnPath = function (shapes, path, amount, alignment, spacing, margin, base
 };
 
 g._x = function (shape) {
-    if (shape.x) {
+    if (shape.x !== undefined) {
         return shape.x;
     } else {
         return shape.bounds().x;
@@ -657,7 +657,7 @@ g._x = function (shape) {
 };
 
 g._y = function (shape) {
-    if (shape.y) {
+    if (shape.y !== undefined) {
         return shape.y;
     } else {
         return shape.bounds().y;
@@ -666,7 +666,7 @@ g._y = function (shape) {
 
 g._angleToPoint = function (point) {
     return function (shape) {
-        if (shape.x && shape.y) {
+        if (shape.x !== undefined && shape.y !== undefined) {
             return geo.angle(shape.x, shape.y, point.x, point.y);
         } else {
             var centroid = shape.bounds().centroid();
@@ -677,7 +677,7 @@ g._angleToPoint = function (point) {
 
 g._distanceToPoint = function (point) {
     return function (shape) {
-        if (shape.x && shape.y) {
+        if (shape.x !== undefined && shape.y !== undefined) {
             return geo.distance(shape.x, shape.y, point.x, point.y);
         } else {
             var centroid = shape.bounds().centroid();
