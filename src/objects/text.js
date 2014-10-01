@@ -26,7 +26,7 @@ var Text = function (text) {
         options;
 
     // The text is required and always the first argument.
-    this.text = text;
+    this.text = String(text);
 
     // Second argument is position (as object or array) or x (as number).
     if (typeof secondArg === 'number') {
