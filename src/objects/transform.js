@@ -102,6 +102,13 @@ Transform.prototype.transformPoint = function (point) {
     );
 };
 
+Transform.prototype.transformPoints = function (points) {
+    var _this = this;
+    return _.map(points, function (pt) {
+        return _this.transformPoint(pt);
+    });
+};
+
 Transform.prototype.transformPath = function (path) {
     var _this = this,
         point,
@@ -148,6 +155,8 @@ Transform.prototype.transformShape = function (shape) {
         fn = this.transformGroup;
     } else if (shape.text) {
         fn = this.transformText;
+    } else if (Array.isArray(shape) && shape.length > 0 && shape[0].x !== undefined && shape[0].y !== undefined) {
+        fn = this.transformPoints;
     } else {
         fn = this.transformPath;
     }
