@@ -579,9 +579,8 @@ g.deletePaths = function (shape, bounding, deleteSelected) {
     return deletePaths(shape);
 };
 
-g['delete'] = function (shape, bounding, scope, operation) {
+g['delete'] = function (shape, bounding, scope, deleteSelected) {
     if (shape === null || bounding === null) { return null; }
-    var deleteSelected = operation === 'selected';
     if (scope === 'points') { return g.deletePoints(shape, bounding, deleteSelected); }
     if (scope === 'paths') { return g.deletePaths(shape, bounding, deleteSelected); }
     throw new Error('Invalid scope.');
