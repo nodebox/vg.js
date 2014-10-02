@@ -113,8 +113,7 @@ g.polygon = function (position, radius, sides, align) {
         y = position.y,
         r = radius,
         a = 360.0 / sides,
-        da = 0,
-        commands = [];
+        da = 0;
     if (align === true) {
         c0 = geo.coordinates(x, y, r, 0);
         c1 = geo.coordinates(x, y, r, a);
@@ -130,7 +129,7 @@ g.polygon = function (position, radius, sides, align) {
         }
     }
     p.close();
-    return new Path(commands);
+    return p;
 };
 
 g.star = function (position, points, outer, inner) {

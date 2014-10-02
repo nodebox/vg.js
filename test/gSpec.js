@@ -438,6 +438,17 @@ describe('The grid generator', function () {
 
 });
 
+describe('The polygon command', function () {
+
+    it('generates polygons', function () {
+        var p3 = g.polygon(g.Point.ZERO, 100, 3);
+        assert.equal(p3.commands.length, 3 + 1); // Extra close command
+        var p5 = g.polygon(g.Point.ZERO, 100, 5);
+        assert.equal(p5.commands.length, 5 + 1);
+    });
+
+});
+
 describe('The colorize filter', function () {
 
     it('works on paths', function () {
