@@ -2,7 +2,7 @@
 
 'use strict';
 
-var _ = require('underscore');
+var _ = require('lodash');
 
 var Path = require('../objects/path');
 var Rect = require('../objects/rect');

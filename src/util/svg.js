@@ -7,7 +7,7 @@
 
 'use strict';
 
-var _ = require('underscore');
+var _ = require('lodash');
 var xmldom = require('xmldom');
 
 var Color = require('../objects/color');
@@ -148,7 +148,7 @@ var applySvgAttributes = function (node, shape) {
         }
     });
 
-    
+
     fill = fill === undefined ? fill : Color.parse(fill);
     stroke = stroke === undefined ? stroke : Color.parse(stroke);
 

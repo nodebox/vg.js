@@ -2,7 +2,7 @@
 
 'use strict';
 
-var _ = require('underscore');
+var _ = require('lodash');
 
 var bezier = require('../util/bezier');
 var geo = require('../util/geo');
@@ -746,7 +746,7 @@ g.link = function (shape1, shape2, orientation) {
     if (!shape1 || !shape2) {
         return;
     }
-    
+
     var p = new Path();
     var a = shape1.bounds();
     var b = shape2.bounds();

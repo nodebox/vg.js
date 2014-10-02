@@ -2,7 +2,7 @@
 
 'use strict';
 
-var _ = require('underscore');
+var _ = require('lodash');
 
 var math = require('../util/math');
 
