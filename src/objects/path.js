@@ -322,7 +322,6 @@ Path.prototype.points = function (amount, options) {
     var d = (amount > 1) ? (end - start) / (amount - 1) : (end - start);
     var pts = [];
     var segmentLengths = bezier.segmentLengths(this.commands, true, 10);
-
     for (var i = 0; i < amount; i += 1) {
         pts.push(this.point(start + d * i, segmentLengths));
     }
@@ -357,8 +356,9 @@ Path.prototype.resampleByAmount = function (points, perContour) {
     var p = new Path([], this.fill, this.stroke, this.strokeWidth);
     for (var j = 0; j < subPaths.length; j += 1) {
         var subPath = new Path(subPaths[j]);
-        var pts = subPath.points(points + 1);
-        for (var i = 0; i < pts.length - 1; i += 1) {
+        if (subPath.isClosed()) { points += 1; }
+        var pts = subPath.points(points);
+        for (var i = 0; i < pts.length; i += 1) {
             if (i === 0) {
                 p.moveTo(pts[i].x, pts[i].y);
             } else {
@@ -378,7 +378,6 @@ Path.prototype.resampleByLength = function (segmentLength) {
         var subPath = new Path(subPaths[i]);
         var contourLength = subPath.length();
         var amount = Math.ceil(contourLength / segmentLength);
-        if (!subPath.isClosed()) { amount += 1; }
         commands = commands.concat(subPath.resampleByAmount(amount).commands);
     }
     return new Path(commands, this.fill, this.stroke, this.strokeWidth);
