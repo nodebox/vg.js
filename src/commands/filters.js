@@ -522,8 +522,9 @@ g.snap = function (shape, distance, strength, position) {
 
 g.deletePoints = function (shape, bounding, deleteSelected) {
     var deletePoints = function (shape) {
+        var i, cmd, commands = [];
+        var pt, points = [];
         if (shape.commands) {
-            var i, cmd, commands = [];
             for (i = 0; i < shape.commands.length; i += 1) {
                 cmd = shape.commands[i];
                 if (cmd.x === undefined ||
@@ -535,6 +536,15 @@ g.deletePoints = function (shape, bounding, deleteSelected) {
             return new Path(commands, shape.fill, shape.stroke, shape.strokeWidth);
         } else if (shape.shapes) {
             return new Group(_.map(shape.shapes, deletePoints));
+        } else if (Array.isArray(shape) && shape.length > 0 && shape[0].x !== undefined && shape[0].y !== undefined){
+            for (i = 0; i < shape.length; i += 1) {
+                pt = shape[i];
+                if ((deleteSelected && bounding.contains(pt.x, pt.y)) ||
+                   (!deleteSelected && !bounding.contains(pt.x, pt.y))) {
+                    points.push(pt);
+                }
+            }
+            return points;
         } else {
             return _.map(shape, deletePoints);
         }
