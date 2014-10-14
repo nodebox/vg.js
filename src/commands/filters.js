@@ -528,8 +528,8 @@ g.deletePoints = function (shape, bounding, deleteSelected) {
             for (i = 0; i < shape.commands.length; i += 1) {
                 cmd = shape.commands[i];
                 if (cmd.x === undefined ||
-                        (deleteSelected && bounding.contains(cmd.x, cmd.y)) ||
-                        (!deleteSelected && !bounding.contains(cmd.x, cmd.y))) {
+                        (!deleteSelected && bounding.contains(cmd.x, cmd.y)) ||
+                        (deleteSelected && !bounding.contains(cmd.x, cmd.y))) {
                     commands.push(cmd);
                 }
             }
@@ -539,8 +539,8 @@ g.deletePoints = function (shape, bounding, deleteSelected) {
         } else if (Array.isArray(shape) && shape.length > 0 && shape[0].x !== undefined && shape[0].y !== undefined){
             for (i = 0; i < shape.length; i += 1) {
                 pt = shape[i];
-                if ((deleteSelected && bounding.contains(pt.x, pt.y)) ||
-                   (!deleteSelected && !bounding.contains(pt.x, pt.y))) {
+                if ((!deleteSelected && bounding.contains(pt.x, pt.y)) ||
+                   (deleteSelected && !bounding.contains(pt.x, pt.y))) {
                     points.push(pt);
                 }
             }
