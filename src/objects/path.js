@@ -315,11 +315,17 @@ Path.prototype.points = function (amount, options) {
         return [];
     }
     amount = Math.round(amount);
-    // The delta value is divided by amount-1, because we also want the last point (t=1.0)
-    // If we don't use amount-1, we fall one point short of the end.
-    // If amount=4, we want the point at t 0.0, 0.33, 0.66 and 1.0.
-    // If amount=2, we want the point at t 0.0 and 1.0.
-    var d = (amount > 1) ? (end - start) / (amount - 1) : (end - start);
+    // "d" is the delta value for each point.
+    // For closed paths (e.g. a circle), we don't want the last point, because it will equal the first point.
+    // For open paths (e.g. a line) we do want the last point, so we use amount - 1.
+    // E.g. If amount=4, and path is open, we want the point at t 0.0, 0.33, 0.66 and 1.0.
+    // E.g. If amount=2, and path is open, we want the point at t 0.0 and 1.0.
+    var d;
+    if (options.closed) {
+        d = (amount > 1) ? (end - start) / amount : (end - start);
+    } else {
+        d = (amount > 1) ? (end - start) / (amount - 1) : (end - start);
+    }
     var pts = [];
     var segmentLengths = bezier.segmentLengths(this.commands, true, 10);
     for (var i = 0; i < amount; i += 1) {
@@ -356,8 +362,11 @@ Path.prototype.resampleByAmount = function (points, perContour) {
     var p = new Path([], this.fill, this.stroke, this.strokeWidth);
     for (var j = 0; j < subPaths.length; j += 1) {
         var subPath = new Path(subPaths[j]);
-        if (subPath.isClosed()) { points += 1; }
-        var pts = subPath.points(points);
+        var options = {};
+        if (subPath.isClosed()) {
+            options.closed = true;
+        }
+        var pts = subPath.points(points, options);
         for (var i = 0; i < pts.length; i += 1) {
             if (i === 0) {
                 p.moveTo(pts[i].x, pts[i].y);
@@ -365,7 +374,9 @@ Path.prototype.resampleByAmount = function (points, perContour) {
                 p.lineTo(pts[i].x, pts[i].y);
             }
         }
-        p.close();
+        if (subPath.isClosed()) {
+            p.close();
+        }
     }
     return p;
 };

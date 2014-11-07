@@ -143,6 +143,12 @@ describe('A path', function () {
         assert.equal(newPath.commands.length, 101); // 100 lines + 1 close command
     });
 
+    it('can resample open shapes', function () {
+        var p = new g.Path();
+        p.addLine(10, 20, 30, 40);
+        var newPath = p.resampleByAmount(100);
+        assert.equal(newPath.commands.length, 100);
+    });
 });
 
 describe('A group', function () {
