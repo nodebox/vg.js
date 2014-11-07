@@ -1,0 +1,20 @@
+{
+  "name": "g.js",
+  "version": "0.3.3",
+  "main": "dist/g.js",
+  "keywords": [
+    "vector",
+    "graphics",
+    "canvas",
+    "2d"
+  ],
+  "ignore": [
+    "build",
+    "g",
+    "src",
+    "test"
+  ],
+  "dependencies": {
+    "lodash": "^2.4.1"
+  }
+}
