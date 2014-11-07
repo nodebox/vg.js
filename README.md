@@ -14,7 +14,25 @@ g.js is a JavaScript library for vector graphics.
 
 Installation
 ------------
-We currently support [Browserify](http://browserify.org/). To install, go to your project folder and type:
+
+### Directly
+
+[Download the latest ZIP](https://github.com/nodebox/g.js/archive/master.zip) and grab the files in the `dist` folder.
+These are compiled.
+
+### Using Bower
+
+To install using [Bower](http://bower.io/), enter the following command in your project directory:
+
+    bower install g.js
+
+You can then include them in your scripts using:
+
+    <script src="/bower_components/g.js/dist/g.js"></script>
+
+### Using Browserify
+
+To install using [Browserify](http://browserify.org/), enter the following command in your project directory:
 
     npm install --save g.js
 
@@ -35,9 +53,8 @@ Running `npm run dist` will build a complete and minified version of g.js in the
 
 1. Update the version number in `package.json` and `bower.json`.
 2. Run `npm run dist` to update the files in the `dist` folder.
-3. Commit (`git commit -a`) and create a tag (e.g. `git tag 1.2.1`). Push and push tags (`git push` && `git push --tags`).
-4. Run `npm publish` to publish the package to npm.
-5. Run `bower register g.js git://github.com/nodebox/g.js.git` to register the package on Bower.
+3. Commit (`git commit -a`) and create a tag (e.g. `git tag 1.2.1`). Push and push tags (`git push && git push --tags`).
+4. Run `npm publish` to publish the package to npm. You don't have to do anything for Bower.
 
 Credits
 -------
