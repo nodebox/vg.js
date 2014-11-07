@@ -21,13 +21,15 @@
     "browserify": "^5.12.1",
     "jshint": "~2.4.4",
     "mocha": "^1.21.4",
+    "uglifyify": "^2.6.0",
     "watchify": "^1.0.6"
   },
   "main": "./src/g.js",
   "scripts": {
-    "ensure-build-dir": "mkdir -p build",
-    "browserify": "npm run ensure-build-dir && browserify src/g.js --standalone g > build/g.js",
-    "watchify": "npm run ensure-build-dir && watchify src/g.js --standalone g --debug -o build/g.js -v",
-    "test": "mocha --recursive & jshint ."
+    "test": "mocha --recursive & jshint .",
+    "watchify": "mkdir -p build && watchify src/g.js --standalone g --debug -o build/g.js -v",
+    "browserify": "browserify src/g.js --standalone g > dist/g.js",
+    "uglify": "browserify src/g.js --standalone g -g uglifyify > dist/g.min.js",
+    "dist": "npm run test && npm run browserify && npm run uglify"
   }
 }
