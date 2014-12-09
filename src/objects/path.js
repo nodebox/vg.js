@@ -342,18 +342,7 @@ Path.prototype.length = function (precision) {
 
 // Returns true when point (x,y) falls within the contours of the path.
 Path.prototype.contains = function (x, y, precision) {
-    if (precision === undefined) { precision = 100; }
-    var i, polygon = this.points(precision),
-        points = [];
-    for (i = 0; i < polygon.length; i += 1) {
-        if (polygon[i].type !== CLOSE) {
-            points.push({x: polygon[i].x, y: polygon[i].y});
-        }
-    }
-//    if (this._polygon == null ||
-//        this._polygon[1] != precision) {
-//        this._polygon = [this.points(precision), precision];
-//    }
+    var points = this.points(precision !== undefined ? precision : 100);
     return geo.pointInPolygon(points, x, y);
 };
 
