@@ -399,6 +399,7 @@ g.scatter = function (shape, amount, seed) {
     if (!shape) {
         return;
     }
+    seed = seed !== undefined ? seed : Math.random();
     var i, tries, x, y,
         rand = random.generator(seed),
         bounds = shape.bounds(),
