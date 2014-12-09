@@ -406,6 +406,7 @@ g.scatter = function (shape, amount, seed) {
         by = bounds.y,
         bw = bounds.width,
         bh = bounds.height,
+        polygon = shape.points(100),
         points = [];
 
     for (i = 0; i < amount; i += 1) {
@@ -413,7 +414,7 @@ g.scatter = function (shape, amount, seed) {
         while (tries > 0) {
             x = bx + rand(0, 1) * bw;
             y = by + rand(0, 1) * bh;
-            if (shape.contains(x, y)) {
+            if (geo.pointInPolygon(polygon, x, y)) {
                 points.push(new Point(x, y));
                 break;
             }
