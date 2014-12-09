@@ -321,7 +321,7 @@ Path.prototype.points = function (amount, options) {
     // E.g. If amount=4, and path is open, we want the point at t 0.0, 0.33, 0.66 and 1.0.
     // E.g. If amount=2, and path is open, we want the point at t 0.0 and 1.0.
     var d;
-    if (options.closed) {
+    if (options && options.closed) {
         d = (amount > 1) ? (end - start) / amount : (end - start);
     } else {
         d = (amount > 1) ? (end - start) / (amount - 1) : (end - start);
