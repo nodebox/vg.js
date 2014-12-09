@@ -9251,6 +9251,7 @@ g.scatter = function (shape, amount, seed) {
     if (!shape) {
         return;
     }
+    seed = seed !== undefined ? seed : Math.random();
     var i, tries, x, y,
         rand = random.generator(seed),
         bounds = shape.bounds(),
@@ -9258,6 +9259,7 @@ g.scatter = function (shape, amount, seed) {
         by = bounds.y,
         bw = bounds.width,
         bh = bounds.height,
+        polygon = shape.points(100),
         points = [];
 
     for (i = 0; i < amount; i += 1) {
@@ -9265,7 +9267,7 @@ g.scatter = function (shape, amount, seed) {
         while (tries > 0) {
             x = bx + rand(0, 1) * bw;
             y = by + rand(0, 1) * bh;
-            if (shape.contains(x, y)) {
+            if (geo.pointInPolygon(polygon, x, y)) {
                 points.push(new Point(x, y));
                 break;
             }
@@ -10826,7 +10828,7 @@ Path.prototype.points = function (amount, options) {
     // E.g. If amount=4, and path is open, we want the point at t 0.0, 0.33, 0.66 and 1.0.
     // E.g. If amount=2, and path is open, we want the point at t 0.0 and 1.0.
     var d;
-    if (options.closed) {
+    if (options && options.closed) {
         d = (amount > 1) ? (end - start) / amount : (end - start);
     } else {
         d = (amount > 1) ? (end - start) / (amount - 1) : (end - start);
@@ -10847,18 +10849,7 @@ Path.prototype.length = function (precision) {
 
 // Returns true when point (x,y) falls within the contours of the path.
 Path.prototype.contains = function (x, y, precision) {
-    if (precision === undefined) { precision = 100; }
-    var i, polygon = this.points(precision),
-        points = [];
-    for (i = 0; i < polygon.length; i += 1) {
-        if (polygon[i].type !== CLOSE) {
-            points.push({x: polygon[i].x, y: polygon[i].y});
-        }
-    }
-//    if (this._polygon == null ||
-//        this._polygon[1] != precision) {
-//        this._polygon = [this.points(precision), precision];
-//    }
+    var points = this.points(precision !== undefined ? precision : 100);
     return geo.pointInPolygon(points, x, y);
 };
 
