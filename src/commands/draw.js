@@ -75,4 +75,34 @@ g.draw = function (ctx, o) {
     }
 };
 
+g.toSVG = function (o, options) {
+    options = options || {};
+    var includeHeader = options.header === true;
+    var x = options.x !== undefined ? options.x : 0;
+    var y = options.y !== undefined ? options.y : 0;
+    var width = options.width !== undefined ? options.width : 500;
+    var height = options.height !== undefined ? options.height : 500;
+    var svg = '';
+    if (o) {
+        if (typeof o.toSVG === 'function') {
+            svg = o.toSVG();
+        } else if (Array.isArray(o)) {
+            svg = '<g>\n';
+            for (var i = 0, n = o.length; i < n; i += 1) {
+                svg += g.toSVG(o[i]) + '\n';
+            }
+            svg += '</g>\n';
+        }
+    }
+    if (includeHeader) {
+        svg = '<?xml version="1.0" encoding="utf-8"?>' +
+            '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ' +
+            'x="' + x + '" y="' + y + '" width="' + width + 'px" height="' + height + 'px"' +
+            ' viewBox="' + x + ' ' + y + ' ' + width + ' ' + height + '">\n' +
+            svg +
+            '</svg>\n';
+    }
+    return svg;
+};
+
 module.exports = g;
