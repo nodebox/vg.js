@@ -3,7 +3,7 @@
 'use strict';
 
 var _ = require('lodash');
-
+var ClipperLib = require('js-clipper');
 var bezier = require('../util/bezier');
 var geo = require('../util/geo');
 var math = require('../util/math');
@@ -846,6 +846,57 @@ g.colorLookup = function (c, comp) {
         default:
             throw new Error('Unknown component ' + comp);
     }
+};
+
+g.compound = function (shape1, shape2, method) {
+    var methods = {
+        'union': ClipperLib.ClipType.ctUnion,
+        'difference': ClipperLib.ClipType.ctDifference,
+        'intersection': ClipperLib.ClipType.ctIntersection,
+        'xor': ClipperLib.ClipType.ctXor
+    };
+
+    function toPoints(shape) {
+        var l1 = [];
+        var i, l, s, j, pt;
+        for (i = 0; i < shape.length; i += 1) {
+            l = [];
+            s = shape[i];
+            for (j = 0; j < s.length; j += 1) {
+                pt = s[j];
+                if (pt.type !== bezier.CLOSE) {
+                    l.push({X: pt.x, Y: pt.y});
+                }
+            }
+            l1.push(l);
+        }
+        return l1;
+    }
+
+    if (!shape1.commands) { shape1 = Path.combine(shape1); }
+    if (!shape2.commands) { shape2 = Path.combine(shape2); }
+    var contours1 = shape1.resampleByLength(10).contours();
+    var contours2 = shape2.resampleByLength(10).contours();
+
+    var cpr = new ClipperLib.Clipper();
+    cpr.AddPaths(toPoints(contours1), ClipperLib.PolyType.ptSubject, shape1.isClosed());
+    cpr.AddPaths(toPoints(contours2), ClipperLib.PolyType.ptClip, shape2.isClosed());
+
+    var solutionPaths = new ClipperLib.Paths();
+    cpr.Execute(methods[method], solutionPaths, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero);
+    var path = new Path();
+    var i, j, s;
+    for (i = 0; i < solutionPaths.length; i += 1) {
+        s = solutionPaths[i];
+        for (j = 0; j < s.length ; j += 1) {
+            if (j === 0) {
+                path.moveTo(s[j].X, s[j].Y);
+            } else {
+                path.lineTo(s[j].X, s[j].Y);
+            }
+        }
+    }
+    return path;
 };
 
 module.exports = g;

@@ -15,7 +15,8 @@
   },
   "dependencies": {
     "lodash": "^2.4.1",
-    "xmldom": "^0.1.19"
+    "xmldom": "^0.1.19",
+    "js-clipper": "^1.0.1"
   },
   "devDependencies": {
     "browserify": "^5.12.1",
