@@ -16745,8 +16745,8 @@ g.compound = function (shape1, shape2, method) {
 
     if (!shape1.commands) { shape1 = Path.combine(shape1); }
     if (!shape2.commands) { shape2 = Path.combine(shape2); }
-    var contours1 = shape1.resampleByLength(10).contours();
-    var contours2 = shape2.resampleByLength(10).contours();
+    var contours1 = shape1.resampleByLength(1).contours();
+    var contours2 = shape2.resampleByLength(1).contours();
 
     var cpr = new ClipperLib.Clipper();
     cpr.AddPaths(toPoints(contours1), ClipperLib.PolyType.ptSubject, shape1.isClosed());
