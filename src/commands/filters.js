@@ -878,15 +878,15 @@ g.compound = function (shape1, shape2, method) {
     var contours1 = shape1.resampleByLength(1).contours();
     var contours2 = shape2.resampleByLength(1).contours();
 
-    var subj_paths = toPoints(contours1);
-    var clip_paths = toPoints(contours2);
+    var subjPaths = toPoints(contours1);
+    var clipPaths = toPoints(contours2);
     var scale = 100;
-    ClipperLib.JS.ScaleUpPaths(subj_paths, scale);
-    ClipperLib.JS.ScaleUpPaths(clip_paths, scale);
+    ClipperLib.JS.ScaleUpPaths(subjPaths, scale);
+    ClipperLib.JS.ScaleUpPaths(clipPaths, scale);
 
     var cpr = new ClipperLib.Clipper();
-    cpr.AddPaths(subj_paths, ClipperLib.PolyType.ptSubject, shape1.isClosed());
-    cpr.AddPaths(clip_paths, ClipperLib.PolyType.ptClip, shape2.isClosed());
+    cpr.AddPaths(subjPaths, ClipperLib.PolyType.ptSubject, shape1.isClosed());
+    cpr.AddPaths(clipPaths, ClipperLib.PolyType.ptClip, shape2.isClosed());
 
     var solutionPaths = new ClipperLib.Paths();
     cpr.Execute(methods[method], solutionPaths, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero);
