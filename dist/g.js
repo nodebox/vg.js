@@ -16748,12 +16748,20 @@ g.compound = function (shape1, shape2, method) {
     var contours1 = shape1.resampleByLength(1).contours();
     var contours2 = shape2.resampleByLength(1).contours();
 
+    var subjPaths = toPoints(contours1);
+    var clipPaths = toPoints(contours2);
+    var scale = 100;
+    ClipperLib.JS.ScaleUpPaths(subjPaths, scale);
+    ClipperLib.JS.ScaleUpPaths(clipPaths, scale);
+
     var cpr = new ClipperLib.Clipper();
-    cpr.AddPaths(toPoints(contours1), ClipperLib.PolyType.ptSubject, shape1.isClosed());
-    cpr.AddPaths(toPoints(contours2), ClipperLib.PolyType.ptClip, shape2.isClosed());
+    cpr.AddPaths(subjPaths, ClipperLib.PolyType.ptSubject, shape1.isClosed());
+    cpr.AddPaths(clipPaths, ClipperLib.PolyType.ptClip, shape2.isClosed());
 
     var solutionPaths = new ClipperLib.Paths();
     cpr.Execute(methods[method], solutionPaths, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero);
+    solutionPaths = ClipperLib.JS.Clean(solutionPaths, 0.1 * scale);
+    ClipperLib.JS.ScaleDownPaths(solutionPaths, scale);
     var path = new Path();
     var i, j, s;
     for (i = 0; i < solutionPaths.length; i += 1) {
@@ -16764,6 +16772,9 @@ g.compound = function (shape1, shape2, method) {
             } else {
                 path.lineTo(s[j].X, s[j].Y);
             }
+        }
+        if (s[0].X !== s[s.length-1].X || s[0].Y !== s[s.length-1].Y) {
+            path.closePath();
         }
     }
     return path;
