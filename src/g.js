@@ -8,6 +8,8 @@
 
 'use strict';
 
+var _ = require('lodash');
+
 var g = {};
 
 // Utility functions
@@ -35,6 +37,10 @@ function importCommands(module) {
         g[k] = module[k];
     }
 }
+
+var Transformable = require('./objects/transformable');
+_.extend(g.Path.prototype, Transformable);
+_.extend(g.Group.prototype, Transformable);
 
 importCommands(require('./commands/draw'));
 importCommands(require('./commands/filters'));

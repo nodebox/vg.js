@@ -97,44 +97,19 @@ g.colorize = function (shape, fill, stroke, strokeWidth) {
 };
 
 g.translate = function (shape, position) {
-    if (!position) { position = Point.ZERO; }
-    var t = new Transform().translate(position.x, position.y);
-    return t.transformShape(shape);
+    return shape.translate(position);
 };
 
 g.scale = function (shape, scale, origin) {
-    if (!origin) { origin = Point.ZERO; }
-    var sx, sy;
-    if (typeof scale === 'number') {
-        sx = scale;
-        sy = scale;
-    } else {
-        sx = scale.x;
-        sy = scale.y;
-    }
-    var t = new Transform();
-    t = t.translate(origin.x, origin.y);
-    t = t.scale(sx / 100, sy / 100);
-    t = t.translate(-origin.x, -origin.y);
-    return t.transformShape(shape);
+    return shape.scale(scale, origin);
 };
 
 g.rotate = function (shape, angle, origin) {
-    if (!origin) { origin = Point.ZERO; }
-    var t = new Transform();
-    t = t.translate(origin.x, origin.y);
-    t = t.rotate(angle);
-    t = t.translate(-origin.x, -origin.y);
-    return t.transformShape(shape);
+    return shape.rotate(angle, origin);
 };
 
 g.skew = function (shape, skew, origin) {
-    if (!origin) { origin = Point.ZERO; }
-    var t = new Transform();
-    t = t.translate(origin.x, origin.y);
-    t = t.skew(skew.x, skew.y);
-    t = t.translate(-origin.x, -origin.y);
-    return t.transformShape(shape);
+    return shape.skew(skew, origin);
 };
 
 g.copy = function (shape, copies, order, translate, rotate, scale) {
