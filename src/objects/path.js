@@ -490,7 +490,7 @@ Path.combine = function () {
         if (shape.commands) {
             commands = commands.concat(shape.commands);
         } else if (shape.shapes) {
-            commands = commands.concat(Path.combine(shape.shapes));
+            commands = commands.concat(Path.combine(shape.shapes).commands);
         }
     }
     return new Path(commands);
