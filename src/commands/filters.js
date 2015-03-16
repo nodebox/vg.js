@@ -25,7 +25,11 @@ g.bounds = function (o) {
     } else if (typeof o.bounds === 'function') {
         return o.bounds();
     } else if (o.x !== undefined && o.y !== undefined) {
-        return new Rect(o.x, o.y, 0, 0);
+        if (o.width !== undefined && o.height !== undefined) {
+            return new Rect(o.x, o.y, o.width, o.height);
+        } else {
+            return new Rect(o.x, o.y, 0, 0);
+        }
     } else if (o.r !== undefined && o.g !== undefined && o.b !== undefined) {
         return new g.Rect(0, 0, 30, 30);
     } else if (Array.isArray(o)) {

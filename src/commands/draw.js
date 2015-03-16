@@ -42,7 +42,9 @@ g.drawRectangles = function (ctx, rectangles) {
     for (i = 0; i < rectangles.length; i += 1) {
         r = rectangles[i];
         ctx.strokeStyle = 'black';
-        ctx.drawRect(r.x, r.y, r.width, r.height);
+        ctx.strokeWidth = 1;
+        ctx.rect(r.x, r.y, r.width, r.height);
+        ctx.stroke();
     }
     ctx.restore();
 };
@@ -65,7 +67,7 @@ g.draw = function (ctx, o) {
         if (typeof o.draw === 'function') {
             o.draw(ctx);
         } else if (o.x !== undefined && o.y !== undefined) {
-            if (first.width !== undefined && first.height !== undefined) {
+            if (o.width !== undefined && o.height !== undefined) {
                 g.drawRectangles(ctx, [o]);
             } else {
                 g.drawPoints(ctx, [o]);
