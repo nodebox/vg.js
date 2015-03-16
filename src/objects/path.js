@@ -370,10 +370,14 @@ Path.prototype.resampleByAmount = function (points, perContour) {
     return p;
 };
 
-Path.prototype.resampleByLength = function (segmentLength) {
+Path.prototype.resampleByLength = function (segmentLength, options) {
+    options = options || {};
+    var force = options.force || false;
     var subPaths = this.contours();
     var commands = [];
-    segmentLength = Math.max(segmentLength, 0.01);
+    if (!force) {
+        segmentLength = Math.max(segmentLength, 1);
+    }
     for (var i = 0; i < subPaths.length; i += 1) {
         var subPath = new Path(subPaths[i]);
         var contourLength = subPath.length();
