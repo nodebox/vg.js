@@ -13,78 +13,132 @@ var Text = require('../objects/text');
 
 var g = {};
 
-g._rect = function (x, y, width, height) {
-    var p = new Path();
-    p.addRect(x, y, width, height);
-    return p;
-};
-
 g.roundedRect = function (cx, cy, width, height, rx, ry) {
     var p = new Path();
     p.addRoundedRect(cx, cy, width, height, rx, ry);
     return p;
 };
 
-g._ellipse = function (x, y, width, height) {
+g.quad = function (pt1, pt2, pt3, pt4) {
+    var args = arguments;
     var p = new Path();
-    p.addEllipse(x, y, width, height);
-    return p;
-};
-
-g._line = function (x1, y1, x2, y2) {
-    var p = new Path();
-    p.addLine(x1, y1, x2, y2);
-    return p;
-};
-
-g.quad = function (x1, y1, x2, y2, x3, y3, x4, y4) {
-    var p = new Path();
-    p.addQuad(x1, y1, x2, y2, x3, y3, x4, y4);
-    return p;
-};
-
-g._arc = function (x, y, width, height, startAngle, degrees, arcType) {
-    var p = new Path();
-    p.addArc(x, y, width, height, startAngle, degrees, arcType);
+    if (args.length === 8) {
+        p.addQuad.apply(p, args);
+    } else {
+        pt1 = Point.read(pt1);
+        pt2 = Point.read(pt2);
+        pt3 = Point.read(pt3);
+        pt4 = Point.read(pt4);
+        p.addQuad(pt1.x, pt1.y, pt2.x, pt2.y, pt3.x, pt3.y, pt4.x, pt4.y);
+    }
     return p;
 };
 
 g.rect = function (position, width, height, roundness) {
-    if (roundness === undefined || roundness === 0 || (roundness.x === 0 && roundness.y === 0)) {
-        return g._rect(position.x - width / 2, position.y - height / 2, width, height);
-    } else {
-        if (typeof roundness === 'number') {
-            return g.roundedRect(position.x - width / 2, position.y - height / 2, width, height, roundness, roundness);
+    var args = arguments;
+    if (args.length === 3) {
+        position = Point.read(position);
+    } else if (args.length === 4) {
+        if (typeof args[0] === 'number' && typeof args[1] === 'number') {
+            position = Point.read(args[0], args[1]);
+            width = args[2];
+            height = args[3];
+            roundness = null;
         } else {
-            return g.roundedRect(position.x - width / 2, position.y - height / 2, width, height, roundness.x, roundness.y);
+            position = Point.read(position);
+            roundness = Point.read(roundness);
         }
+    } else if (args.length === 5 || args.length === 6) {
+        position = Point.read(args[0], args[1]);
+        width = args[2];
+        height = args[3];
+        if (args.length === 5 && typeof args[4] === 'number') {
+            roundness = Point.read(args[4], args[4]);
+        } else {
+            roundness = Point.read(args[4], args[5]);
+        }
+    }
+
+    if (!roundness || (roundness.x === 0 && roundness.y === 0)) {
+        var p = new Path();
+        p.addRect(position.x - width / 2, position.y - height / 2, width, height);
+        return p;
+    } else {
+        return g.roundedRect(position.x - width / 2, position.y - height / 2, width, height, roundness.x, roundness.y);
     }
 };
 
 g.ellipse = function (position, width, height) {
-    return g._ellipse(position.x - width / 2, position.y - height / 2, width, height);
+    var args = arguments;
+    if (args.length === 4) {
+        position = Point.read(args[0], args[1]);
+        width = args[2];
+        height = args[3];
+    } else {
+        position = Point.read(position);
+    }
+    var p = new Path();
+    p.addEllipse(position.x - width / 2, position.y - height / 2, width, height);
+    return p;
 };
 
 g.line = function (point1, point2, nPoints) {
-    var line = g._line(point1.x, point1.y, point2.x, point2.y);
+    var args = arguments;
+    if (args.length >= 4) {
+        point1 = Point.read(args[0], args[1]);
+        point2 = Point.read(args[2], args[3]);
+        nPoints = args[4];
+    } else {
+        point1 = Point.read(point1);
+        point2 = Point.read(point2);
+    }
+    var line = new Path();
+    line.addLine(point1.x, point1.y, point2.x, point2.y);
     line.fill = null;
     line.stroke = 'black';
-    if (nPoints > 2) {
+    if (nPoints != undefined && nPoints > 2) {
         line = line.resampleByAmount(nPoints, false);
     }
     return line;
 };
 
 g.lineAngle = function (point, angle, distance) {
+    var args = arguments;
+    if (args.length === 4) {
+        point = Point.read(args[0], args[1]);
+        angle = args[2];
+        distance = args[3];
+    } else {
+        point = Point.read(point);
+    }
     var point2 = geo.coordinates(point.x, point.y, distance, angle);
     return g.line(point, point2);
 };
 
 g.arc = function (position, width, height, startAngle, degrees, arcType) {
-    return g._arc(position.x, position.y, width, height, startAngle, degrees, arcType);
+    var args = arguments;
+    if (args.length === 7) {
+        position = Point.read(args[0], args[1]);
+        width = args[2]; height = args[3]; startAngle = args[4]; degrees = args[5]; arcType = args[6];
+    } else {
+        position = Point.read(position);
+    }
+    var p = new Path();
+    p.addArc(position.x, position.y, width, height, startAngle, degrees, arcType);
+    return p;
 };
 
 g.quadCurve = function (pt1, pt2, t, distance) {
+    var args = arguments;
+    if (args.length === 6) {
+        pt1 = Point.read(args[0], args[1]);
+        pt2 = Point.read(args[2], args[3]);
+        t = args[4];
+        distance = args[5];
+    }
+    pt1 = Point.read(pt1);
+    pt2 = Point.read(pt2);
+
     t /= 100.0;
     var cx = pt1.x + t * (pt2.x - pt1.x),
         cy = pt1.y + t * (pt2.y - pt1.y),

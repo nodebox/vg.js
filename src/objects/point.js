@@ -13,6 +13,25 @@ Object.defineProperty(Point.prototype, 'xy', {
 
 Point.ZERO = new Point(0, 0);
 
+Point.read = function (x, y) {
+    if (arguments.length === 2) { return new Point(x, y); }
+    var arg = x;
+    if (arg instanceof Point) {
+        return arg;
+    } else if (typeof arg === 'number') {
+        return new Point(arg, arg);
+    } else if (Array.isArray(arg)) {
+        if (arg.length === 0) { return Point.ZERO; }
+        x = arg[0];
+        y = arg.length > 1 ? arg[1] : x;
+        return new Point(x, y);
+    } else if (arg.x !== undefined && arg.y !== undefined) {
+        return new Point(arg.x, arg.y);
+    } else {
+        return Point.ZERO;
+    }
+};
+
 Point.prototype.clone = function () {
     return new Point(this.x, this.y);
 };
