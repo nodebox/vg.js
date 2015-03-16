@@ -36,6 +36,17 @@ g.drawPoints = function (ctx, points) {
     ctx.fill();
 };
 
+g.drawRectangles = function (ctx, rectangles) {
+    var i, r;
+    ctx.save();
+    for (i = 0; i < rectangles.length; i += 1) {
+        r = rectangles[i];
+        ctx.strokeStyle = 'black';
+        ctx.drawRect(r.x, r.y, r.width, r.height);
+    }
+    ctx.restore();
+};
+
 g.drawColors = function (ctx, colors) {
     var i, c;
     ctx.save();
@@ -54,7 +65,11 @@ g.draw = function (ctx, o) {
         if (typeof o.draw === 'function') {
             o.draw(ctx);
         } else if (o.x !== undefined && o.y !== undefined) {
-            g.drawPoints(ctx, [o]);
+            if (first.width !== undefined && first.height !== undefined) {
+                g.drawRectangles(ctx, [o]);
+            } else {
+                g.drawPoints(ctx, [o]);
+            }
         } else if (o.r !== undefined && o.g !== undefined && o.b !== undefined) {
             g.drawColors(ctx, [o]);
         } else if (Array.isArray(o)) {
@@ -66,7 +81,11 @@ g.draw = function (ctx, o) {
                         g.draw(ctx, o[i]);
                     }
                 } else if (first.x !== undefined && first.y !== undefined) {
-                    g.drawPoints(ctx, o);
+                    if (first.width !== undefined && first.height !== undefined) {
+                        g.drawRectangles(ctx, o);
+                    } else {
+                        g.drawPoints(ctx, o);
+                    }
                 } else if (first.r !== undefined && first.g !== undefined && first.b !== undefined) {
                     g.drawColors(ctx, o);
                 }
