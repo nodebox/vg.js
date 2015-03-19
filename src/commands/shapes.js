@@ -23,7 +23,7 @@ g.quad = function (pt1, pt2, pt3, pt4) {
     var args = arguments;
     var p = new Path();
     if (args.length === 8) {
-        p.addQuad.apply(p, args);
+        Path.prototype.addQuad.apply(p, args);
     } else {
         pt1 = Point.read(pt1);
         pt2 = Point.read(pt2);
