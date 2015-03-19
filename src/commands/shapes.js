@@ -135,9 +135,10 @@ g.quadCurve = function (pt1, pt2, t, distance) {
         pt2 = Point.read(args[2], args[3]);
         t = args[4];
         distance = args[5];
+    } else {
+        pt1 = Point.read(pt1);
+        pt2 = Point.read(pt2);
     }
-    pt1 = Point.read(pt1);
-    pt2 = Point.read(pt2);
 
     t /= 100.0;
     var cx = pt1.x + t * (pt2.x - pt1.x),
@@ -161,6 +162,18 @@ g.quadCurve = function (pt1, pt2, t, distance) {
 };
 
 g.polygon = function (position, radius, sides, align) {
+    var args = arguments;
+    if (args.length === 5 || (args.length === 4 && typeof args[0] === 'number' && typeof args[1] === 'number')) {
+        position = Point.read(args[0], args[1]);
+        radius = args[2];
+        sides = args[3];
+        align = args.length === 5 ? args[4] : true;
+    } else {
+        position = Point.read(position);
+        if (args.length === 3) {
+            align = true;
+        }
+    }
     sides = Math.max(sides, 3);
     var c0, c1, i, c,
         x = position.x,
@@ -187,6 +200,16 @@ g.polygon = function (position, radius, sides, align) {
 };
 
 g.star = function (position, points, outer, inner) {
+    var args = arguments;
+    if (args.length === 5 || (args.length === 4 && typeof args[0] === 'number' && typeof args[1] === 'number')) {
+        position = Point.read(args[0], args[1]);
+        points = args[2];
+        outer = args[3];
+        inner = args[4];
+    } else {
+        position = Point.read(position);
+    }
+    if (!inner) { inner = outer; }
     var i, angle, radius, x, y;
     var p = new Path();
     p.moveTo(position.x, position.y + outer / 2);
