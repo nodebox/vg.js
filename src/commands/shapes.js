@@ -102,12 +102,12 @@ g.line = function (point1, point2, nPoints) {
     return line;
 };
 
-g.lineAngle = function (point, angle, distance) {
+g.lineAngle = function (point, distance, angle) {
     var args = arguments;
     if (args.length === 4) {
         point = Point.read(args[0], args[1]);
-        angle = args[2];
-        distance = args[3];
+        distance = args[2];
+        angle = args[3];
     } else {
         point = Point.read(point);
     }
