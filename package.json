@@ -14,16 +14,16 @@
     "url": "https://github.com/nodebox/g.js.git"
   },
   "dependencies": {
-    "lodash": "^2.4.1",
+    "lodash": "^3.5.0",
     "xmldom": "^0.1.19",
     "js-clipper": "^1.0.1"
   },
   "devDependencies": {
-    "browserify": "^5.12.1",
-    "jshint": "~2.4.4",
-    "mocha": "^1.21.4",
-    "uglifyify": "^2.6.0",
-    "watchify": "^1.0.6"
+    "browserify": "^9.0.3",
+    "jshint": "^2.6.3",
+    "mocha": "^2.2.1",
+    "uglifyify": "^3.0.1",
+    "watchify": "^2.6.0"
   },
   "main": "./src/g.js",
   "scripts": {
