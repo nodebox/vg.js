@@ -9,7 +9,7 @@ var geo = require('../util/geo');
 var Color = require('../objects/color');
 var Path = require('../objects/path');
 var Point = require('../objects/point');
-var Text = require('../objects/text');
+var gText = require('../objects/text');
 
 var g = {};
 
@@ -216,9 +216,9 @@ g.grid = function (columns, rows, width, height, position) {
 //     g.text('Hello', 0, 0, {fontFamily: 'Helvetica', fontSize: 12});  // align: center is the default.
 //     g.text('Hello', {fontFamily: 'Helvetica', fontSize: 12}); // the position defaults to 0,0.
 g.text = function () {
-    var t = Object.create(Text.prototype);
-    t.constructor = Text.prototype;
-    Text.apply(t, arguments);
+    var t = Object.create(gText.prototype);
+    t.constructor = gText.prototype;
+    gText.apply(t, arguments);
     return t;
 };
 

@@ -1,5 +1,8 @@
 // Text object
 
+// Internally the object is called "gText" to avoid conflicts with the DOM Text object.
+// Externally it is exposed as g.Text.
+
 'use strict';
 
 var Color = require('../objects/color');
@@ -18,7 +21,7 @@ var _dummyContext = null;
 //     new g.Text('Hello', [0, 0], {fontFamily: 'Helvetica', fontSize: 12, textAlign: 'center'});
 //     new g.Text('Hello', 0, 0, {fontFamily: 'Helvetica', fontSize: 12});  // align: center is the default.
 //     new g.Text('Hello', {fontFamily: 'Helvetica', fontSize: 12}); // the position defaults to 0,0.
-var Text = function (text) {
+var gText = function (text) {
     var args = Array.prototype.slice.call(arguments, 1),
         secondArg = arguments[1],
         thirdArg = arguments[2],
@@ -83,8 +86,8 @@ var Text = function (text) {
     this.transform = new Transform();
 };
 
-Text.prototype.clone = function () {
-    var t = new Text();
+gText.prototype.clone = function () {
+    var t = new gText();
     t.text = this.text;
     t.x = this.x;
     t.y = this.y;
@@ -98,7 +101,7 @@ Text.prototype.clone = function () {
 
 // The `measureWidth` function requires a canvas, so we set up a dummy one
 // that we re-use for the duration of the page.
-Text._getDummyContext = function () {
+gText._getDummyContext = function () {
     if (!_dummyContext) {
         if (typeof document !== 'undefined') {
             _dummyContext = document.createElement('canvas').getContext('2d');
@@ -117,17 +120,17 @@ Text._getDummyContext = function () {
     return _dummyContext;
 };
 
-Text.prototype._getFont = function () {
+gText.prototype._getFont = function () {
     return this.fontSize + 'px ' + this.fontFamily;
 };
 
-Text.prototype.colorize = function (fill) {
+gText.prototype.colorize = function (fill) {
     var t = this.clone();
     t.fill = Color.clone(fill);
     return t;
 };
 
-Text.prototype.draw = function (ctx) {
+gText.prototype.draw = function (ctx) {
     ctx.save();
     ctx.font = this._getFont();
     ctx.textAlign = this.textAlign;
@@ -138,8 +141,8 @@ Text.prototype.draw = function (ctx) {
     ctx.restore();
 };
 
-Text.prototype.bounds = function () {
-    var ctx = Text._getDummyContext(),
+gText.prototype.bounds = function () {
+    var ctx = gText._getDummyContext(),
         metrics,
         x = this.x;
     ctx.font = this._getFont();
@@ -153,7 +156,7 @@ Text.prototype.bounds = function () {
     return new Rect(x, this.y - this.fontSize, metrics.width, this.fontSize * 1.2);
 };
 
-Text.prototype.toSVG = function () {
+gText.prototype.toSVG = function () {
     var svg = '<text';
     svg += ' x="' + this.x + '"';
     svg += ' y="' + this.y + '"';
@@ -177,4 +180,4 @@ Text.prototype.toSVG = function () {
     return svg;
 };
 
-module.exports = Text;
+module.exports = gText;
