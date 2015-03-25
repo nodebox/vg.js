@@ -21084,22 +21084,36 @@ g.scatter = function (shape, amount, seed) {
         return;
     }
     seed = seed !== undefined ? seed : Math.random();
-    var i, tries, x, y,
+    var i, j, tries, x, y,
         rand = random.generator(seed),
         bounds = shape.bounds(),
         bx = bounds.x,
         by = bounds.y,
         bw = bounds.width,
         bh = bounds.height,
-        polygon = shape.points(100),
+        contours = shape.contours(),
+        paths = [],
         points = [];
+
+    for (i = 0; i < contours.length; i++) {
+        var contourPath = new Path(contours[i]);
+        var nrKeypoints = contourPath.commands.length;
+        var POINTS_PER_SEGMENT = 5;
+        paths.push(contourPath.points(nrKeypoints * POINTS_PER_SEGMENT));
+    }
 
     for (i = 0; i < amount; i += 1) {
         tries = 100;
         while (tries > 0) {
+            var inContourCount = 0;
             x = bx + rand(0, 1) * bw;
             y = by + rand(0, 1) * bh;
-            if (geo.pointInPolygon(polygon, x, y)) {
+            for (j = 0; j < paths.length; j++) {
+                if (geo.pointInPolygon(paths[j], x, y)) {
+                    inContourCount += 1;
+                }
+            }
+            if (inContourCount % 2) {
                 points.push(new Point(x, y));
                 break;
             }
