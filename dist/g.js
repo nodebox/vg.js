@@ -21099,7 +21099,7 @@ g.scatter = function (shape, amount, seed) {
         var contourPath = new Path(contours[i]);
         var nrKeypoints = contourPath.commands.length;
         var POINTS_PER_SEGMENT = 5;
-        paths.push(contourPath.points(nrKeypoints * POINTS_PER_SEGMENT));
+        paths.push(contourPath.points(nrKeypoints * POINTS_PER_SEGMENT, {closed: true } ));
     }
 
     for (i = 0; i < amount; i += 1) {
