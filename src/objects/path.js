@@ -13,6 +13,7 @@ var Rect = require('../objects/rect');
 
 var MOVETO  = bezier.MOVETO;
 var LINETO  = bezier.LINETO;
+var QUADTO  = bezier.QUADTO;
 var CURVETO = bezier.CURVETO;
 var CLOSE   = bezier.CLOSE;
 
@@ -26,7 +27,10 @@ function _cloneCommand(cmd) {
         newCmd.x = cmd.x;
         newCmd.y = cmd.y;
     }
-    if (newCmd.type === CURVETO) {
+    if (newCmd.type === QUADTO) {
+        newCmd.x1 = cmd.x1;
+        newCmd.y1 = cmd.y1;
+    } else if (newCmd.type === CURVETO) {
         newCmd.x1 = cmd.x1;
         newCmd.y1 = cmd.y1;
         newCmd.x2 = cmd.x2;
@@ -412,6 +416,10 @@ Path.prototype.toPathData = function () {
             if (!isNaN(x) && !isNaN(y)) {
                 d += 'L' + x + ' ' + y;
             }
+        } else if (cmd.type === QUADTO) {
+            if (!isNaN(x) && !isNaN(y) && !isNaN(x1) && !isNaN(y1)) {
+                d += 'Q' + x1 + ' ' + y1 + ' ' + x + ' ' + y;
+            }
         } else if (cmd.type === CURVETO) {
             if (!isNaN(x) && !isNaN(y) && !isNaN(x1) && !isNaN(y1) && !isNaN(x2) && !isNaN(y2)) {
                 d += 'C' + x1 + ' ' + y1 + ' ' + x2 + ' ' + y2 + ' ' + x + ' ' + y;
@@ -465,6 +473,8 @@ Path.prototype.draw = function (ctx) {
             ctx.moveTo(cmd.x, cmd.y);
         } else if (cmd.type === LINETO) {
             ctx.lineTo(cmd.x, cmd.y);
+        } else if (cmd.type === QUADTO) {
+            ctx.quadraticCurveTo(cmd.x1, cmd.y1, cmd.x, cmd.y);
         } else if (cmd.type === CURVETO) {
             ctx.bezierCurveTo(cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y);
         } else if (cmd.type === CLOSE) {

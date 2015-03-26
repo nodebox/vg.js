@@ -4,16 +4,18 @@
 
 var _ = require('lodash');
 
+var bezier = require('../util/bezier');
 var math = require('../util/math');
 
 var Group = require('../objects/group');
 var Path = require('../objects/path');
 var Point = require('../objects/point');
 
-var MOVETO  = 'M';
-var LINETO  = 'L';
-var CURVETO = 'C';
-var CLOSE   = 'Z';
+var MOVETO  = bezier.MOVETO;
+var LINETO  = bezier.LINETO;
+var QUADTO  = bezier.QUADTO;
+var CURVETO = bezier.CURVETO;
+var CLOSE   = bezier.CLOSE;
 
 // A geometric transformation in Euclidean space (i.e. 2D)
 // that preserves collinearity and ratio of distance between points.
@@ -121,6 +123,10 @@ Transform.prototype.transformPath = function (path) {
             } else if (cmd.type === LINETO) {
                 point = _this.transformPoint({x: cmd.x, y: cmd.y});
                 return { type: LINETO, x: point.x, y: point.y };
+            } else if (cmd.type === QUADTO) {
+                point = _this.transformPoint({x: cmd.x, y: cmd.y});
+                ctrl1 = _this.transformPoint({x: cmd.x1, y: cmd.y1});
+                return { type: QUADTO, x1: ctrl1.x, y1: ctrl1.y, x: point.x, y: point.y };
             } else if (cmd.type === CURVETO) {
                 point = _this.transformPoint({x: cmd.x, y: cmd.y});
                 ctrl1 = _this.transformPoint({x: cmd.x1, y: cmd.y1});
