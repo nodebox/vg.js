@@ -22428,6 +22428,7 @@ var Rect = require('../objects/rect');
 
 var MOVETO  = bezier.MOVETO;
 var LINETO  = bezier.LINETO;
+var QUADTO  = bezier.QUADTO;
 var CURVETO = bezier.CURVETO;
 var CLOSE   = bezier.CLOSE;
 
@@ -22441,7 +22442,10 @@ function _cloneCommand(cmd) {
         newCmd.x = cmd.x;
         newCmd.y = cmd.y;
     }
-    if (newCmd.type === CURVETO) {
+    if (newCmd.type === QUADTO) {
+        newCmd.x1 = cmd.x1;
+        newCmd.y1 = cmd.y1;
+    } else if (newCmd.type === CURVETO) {
         newCmd.x1 = cmd.x1;
         newCmd.y1 = cmd.y1;
         newCmd.x2 = cmd.x2;
@@ -22827,6 +22831,10 @@ Path.prototype.toPathData = function () {
             if (!isNaN(x) && !isNaN(y)) {
                 d += 'L' + x + ' ' + y;
             }
+        } else if (cmd.type === QUADTO) {
+            if (!isNaN(x) && !isNaN(y) && !isNaN(x1) && !isNaN(y1)) {
+                d += 'Q' + x1 + ' ' + y1 + ' ' + x + ' ' + y;
+            }
         } else if (cmd.type === CURVETO) {
             if (!isNaN(x) && !isNaN(y) && !isNaN(x1) && !isNaN(y1) && !isNaN(x2) && !isNaN(y2)) {
                 d += 'C' + x1 + ' ' + y1 + ' ' + x2 + ' ' + y2 + ' ' + x + ' ' + y;
@@ -22880,6 +22888,8 @@ Path.prototype.draw = function (ctx) {
             ctx.moveTo(cmd.x, cmd.y);
         } else if (cmd.type === LINETO) {
             ctx.lineTo(cmd.x, cmd.y);
+        } else if (cmd.type === QUADTO) {
+            ctx.quadraticCurveTo(cmd.x1, cmd.y1, cmd.x, cmd.y);
         } else if (cmd.type === CURVETO) {
             ctx.bezierCurveTo(cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y);
         } else if (cmd.type === CLOSE) {
@@ -23285,16 +23295,18 @@ module.exports = gText;
 
 var _ = require('lodash');
 
+var bezier = require('../util/bezier');
 var math = require('../util/math');
 
 var Group = require('../objects/group');
 var Path = require('../objects/path');
 var Point = require('../objects/point');
 
-var MOVETO  = 'M';
-var LINETO  = 'L';
-var CURVETO = 'C';
-var CLOSE   = 'Z';
+var MOVETO  = bezier.MOVETO;
+var LINETO  = bezier.LINETO;
+var QUADTO  = bezier.QUADTO;
+var CURVETO = bezier.CURVETO;
+var CLOSE   = bezier.CLOSE;
 
 // A geometric transformation in Euclidean space (i.e. 2D)
 // that preserves collinearity and ratio of distance between points.
@@ -23402,6 +23414,10 @@ Transform.prototype.transformPath = function (path) {
             } else if (cmd.type === LINETO) {
                 point = _this.transformPoint({x: cmd.x, y: cmd.y});
                 return { type: LINETO, x: point.x, y: point.y };
+            } else if (cmd.type === QUADTO) {
+                point = _this.transformPoint({x: cmd.x, y: cmd.y});
+                ctrl1 = _this.transformPoint({x: cmd.x1, y: cmd.y1});
+                return { type: QUADTO, x1: ctrl1.x, y1: ctrl1.y, x: point.x, y: point.y };
             } else if (cmd.type === CURVETO) {
                 point = _this.transformPoint({x: cmd.x, y: cmd.y});
                 ctrl1 = _this.transformPoint({x: cmd.x1, y: cmd.y1});
@@ -23446,7 +23462,7 @@ Transform.prototype.transformShape = function (shape) {
 
 module.exports = Transform;
 
-},{"../objects/group":11,"../objects/path":13,"../objects/point":14,"../util/math":23,"lodash":2}],18:[function(require,module,exports){
+},{"../objects/group":11,"../objects/path":13,"../objects/point":14,"../util/bezier":19,"../util/math":23,"lodash":2}],18:[function(require,module,exports){
 //// VECTORS AND MATRICES ///////////////////////////////////////////////
 
 'use strict';
@@ -23550,6 +23566,7 @@ var bezier = {};
 
 var MOVETO = bezier.MOVETO = 'M';
 var LINETO = bezier.LINETO = 'L';
+/*var QUADTO =*/ bezier.QUADTO = 'Q';
 var CURVETO = bezier.CURVETO = 'C';
 var CLOSE = bezier.CLOSE = 'Z';
 
