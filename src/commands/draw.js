@@ -42,7 +42,7 @@ g.drawColoredPoints = function (ctx, points) {
         ctx.fillStyle = Color.toCSS(pt);
         ctx.fillRect(pt.x - 2, pt.y - 2, 4, 4);
     }
-}
+};
 
 g.drawColors = function (ctx, colors) {
     var i, c;
