@@ -36,6 +36,14 @@ g.drawPoints = function (ctx, points) {
     ctx.fill();
 };
 
+g.drawColoredPoints = function (ctx, points) {
+    for (var i = 0, n = points.length; i < n; i += 1) {
+        var pt = points[i];
+        ctx.fillStyle = Color.toCSS(pt);
+        ctx.fillRect(pt.x - 2, pt.y - 2, 4, 4);
+    }
+}
+
 g.drawColors = function (ctx, colors) {
     var i, c;
     ctx.save();
@@ -49,28 +57,30 @@ g.drawColors = function (ctx, colors) {
 };
 
 g.draw = function (ctx, o) {
-    var i, n, first;
-    if (o) {
-        if (typeof o.draw === 'function') {
-            o.draw(ctx);
-        } else if (o.x !== undefined && o.y !== undefined) {
-            g.drawPoints(ctx, [o]);
-        } else if (o.r !== undefined && o.g !== undefined && o.b !== undefined) {
-            g.drawColors(ctx, [o]);
-        } else if (Array.isArray(o)) {
-            n = o.length;
-            if (n > 0) {
-                first = o[0];
-                if (typeof first.draw === 'function') {
-                    for (i = 0; i < n; i += 1) {
-                        g.draw(ctx, o[i]);
-                    }
-                } else if (first.x !== undefined && first.y !== undefined) {
-                    g.drawPoints(ctx, o);
-                } else if (first.r !== undefined && first.g !== undefined && first.b !== undefined) {
-                    g.drawColors(ctx, o);
+    var k = o;
+    var isArray = false;
+    if (Array.isArray(o)) {
+        k = o[0];
+        isArray = true;
+    }
+
+    if (k) {
+        if (typeof k.draw === 'function') {
+            if (isArray) {
+                for (var i = 0, n = o.length; i < n; i += 1) {
+                    g.draw(ctx, o[i]);
                 }
+            } else {
+                o.draw(ctx);
             }
+        } else if (k.x !== undefined && k.y !== undefined) {
+            if (k.r !== undefined && k.g !== undefined && k.b !== undefined) {
+                g.drawColoredPoints(ctx, isArray ? o : [o]);
+            } else {
+                g.drawPoints(ctx, isArray ? o : [o]);
+            }
+        } else if (k.r !== undefined && k.g !== undefined && k.b !== undefined) {
+            g.drawColors(ctx, isArray ? o : [o]);
         }
     }
 };

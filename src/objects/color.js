@@ -178,6 +178,12 @@ Color.toCSS = function (c) {
             g255 = Math.round(c.g * 255),
             b255 = Math.round(c.b * 255);
         return 'rgba(' + r255 + ', ' + g255 + ', ' + b255 + ', ' + c.a + ')';
+    } else if (c.r !== undefined && c.g !== undefined && c.b !== undefined) {
+        if (c.a === undefined) {
+            return 'rgb(' + c.r + ', ' + c.g + ', ' + c.b + ')';
+        } else {
+            return 'rgba(' + c.r + ', ' + c.g + ', ' + c.b + ', ' + c.a + ')';
+        }
     } else {
         throw new Error('Don\'t know how to convert ' + c + ' to CSS.');
     }
