@@ -82,9 +82,17 @@ var Color = function (v1, v2, v3, v4, v5) {
         _g /= options.range;
         _b /= options.range;
         _a /= options.range;
+        if (options.mode === HSB) {
+            v1 /= options.range;
+            v2 /= options.range;
+            v3 /= options.range;
+        }
     }
     // Convert HSB colors to RGB
     if (options.mode === HSB) {
+        v1 = math.clamp(v1, 0, 1);
+        v2 = math.clamp(v2, 0, 1);
+        v3 = math.clamp(v3, 0, 1);
         rgb = color.hsb2rgb(v1, v2, v3);
         _r = rgb[0];
         _g = rgb[1];
