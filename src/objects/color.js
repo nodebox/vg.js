@@ -2,6 +2,7 @@
 
 'use strict';
 
+var math = require('../util/math');
 var color = require('../util/color');
 var js = require('../util/js');
 
@@ -96,10 +97,10 @@ var Color = function (v1, v2, v3, v4, v5) {
         _a = 1;
     }
 
-    this.r = _r;
-    this.g = _g;
-    this.b = _b;
-    this.a = _a;
+    this.r = math.clamp(_r, 0, 1);
+    this.g = math.clamp(_g, 0, 1);
+    this.b = math.clamp(_b, 0, 1);
+    this.a = math.clamp(_a, 0, 1);
 };
 
 Color.BLACK = new Color(0);
