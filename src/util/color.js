@@ -207,14 +207,17 @@ color.rgb2hsb = function (r, g, b) {
     }
     if (s !== 0) {
         if (r === v) {
-            h = (g - b) / d;
+            h = 0 + (g - b) / d;
         } else if (g === v) {
             h = 2 + (b - r) / d;
         } else {
             h = 4 + (r - g) / d;
         }
     }
-    h = h / 6.0 % 1;
+    h = h * (60 / 360);
+    if (h < 0) {
+        h += 1.0;
+    }
     return [h, s, v];
 };
 
