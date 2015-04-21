@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>g.js notebook</title>
+    <title>vg.js notebook</title>
     <script src="build/vg.js"></script>
     <style>
         body {
@@ -104,25 +104,31 @@
 
 <script>
     /* global vg */
+    /*jshint evil: true */
     'use strict';
 
     var selectedCell = null;
-    document.addEventListener('keydown', function (e) {
-        if (e.which === 13 && e.ctrlKey) { // Ctrl-Enter
-            e.preventDefault();
-            executeSelectedCell();
-        } else if (e.which === 38 && e.ctrlKey) { // Ctrl-Up
-            e.preventDefault();
-            selectPreviousCell();
-        } else if (e.which === 40 && e.ctrlKey) { // Ctrl-Down
-            e.preventDefault();
-            selectNextCell();
-        }
-    });
 
-    document.addEventListener('DOMContentLoaded', function () {
-        createCell('// Press Ctrl-Enter to execute this expression.\n\nvg.ellipse(0, 0, 100, 100)');
-    });
+    function selectCell($cell) {
+        var cells, i, $textarea;
+
+        // Unselect all cells.
+        cells = document.querySelectorAll('.cell');
+        for (i = 0; i < cells.length; i += 1) {
+            cells[i].classList.remove('selected');
+        }
+
+        // Select the new cell.
+        selectedCell = $cell;
+        $textarea = $cell.querySelector('textarea');
+        $textarea.focus();
+        $cell.classList.add('selected');
+    }
+
+    function selectCellAtIndex(index) {
+        var cells = document.querySelectorAll('.cell');
+        selectCell(cells[index]);
+    }
 
     function createCell(source) {
         var $cell = document.createElement('div'),
@@ -131,7 +137,7 @@
         $cell.innerHTML =  '<textarea></textarea><div class="result">';
         document.querySelector('#notebook').appendChild($cell);
         $textarea = $cell.querySelector('textarea');
-        $textarea.addEventListener('keyup', function (e) {
+        $textarea.addEventListener('keyup', function () {
             // Resize
             $textarea.style.height = 0;
             $textarea.style.height = $textarea.scrollHeight + 'px';
@@ -172,27 +178,6 @@
         if ((index + 1) < cells.length) {
             selectCellAtIndex(index + 1);
         }
-    }
-
-    function selectCell($cell) {
-        var cells, i, $textarea;
-
-        // Unselect all cells.
-        cells = document.querySelectorAll('.cell');
-        for (i = 0; i < cells.length; i += 1) {
-            cells[i].classList.remove('selected');
-        }
-
-        // Select the new cell.
-        selectedCell = $cell;
-        $textarea = $cell.querySelector('textarea');
-        $textarea.focus();
-        $cell.classList.add('selected');
-    }
-
-    function selectCellAtIndex(index) {
-        var cells = document.querySelectorAll('.cell');
-        selectCell(cells[index]);
     }
 
     function executeSelectedCell() {
@@ -237,6 +222,23 @@
             createCell();
         }
     }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.which === 13 && e.ctrlKey) { // Ctrl-Enter
+            e.preventDefault();
+            executeSelectedCell();
+        } else if (e.which === 38 && e.ctrlKey) { // Ctrl-Up
+            e.preventDefault();
+            selectPreviousCell();
+        } else if (e.which === 40 && e.ctrlKey) { // Ctrl-Down
+            e.preventDefault();
+            selectNextCell();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        createCell('// Press Ctrl-Enter to execute this expression.\n\nvg.ellipse(0, 0, 100, 100)');
+    });
 </script>
 
 </body>
