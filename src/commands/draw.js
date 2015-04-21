@@ -4,10 +4,10 @@
 
 var Color = require('../objects/color');
 
-var g = {};
+var vg = {};
 
 // Return true if an object can be drawn using the `g.draw` function.
-g.isDrawable = function (o) {
+vg.isDrawable = function (o) {
     if (Array.isArray(o)) {
         o = o[0];
     }
@@ -24,7 +24,7 @@ g.isDrawable = function (o) {
     }
 };
 
-g.drawPoints = function (ctx, points) {
+vg.drawPoints = function (ctx, points) {
     var pt, i;
     ctx.fillStyle = 'blue';
     ctx.beginPath();
@@ -36,7 +36,7 @@ g.drawPoints = function (ctx, points) {
     ctx.fill();
 };
 
-g.drawColoredPoints = function (ctx, points) {
+vg.drawColoredPoints = function (ctx, points) {
     for (var i = 0, n = points.length; i < n; i += 1) {
         var pt = points[i];
         ctx.fillStyle = Color.toCSS(pt);
@@ -44,7 +44,7 @@ g.drawColoredPoints = function (ctx, points) {
     }
 };
 
-g.drawRectangles = function (ctx, rectangles) {
+vg.drawRectangles = function (ctx, rectangles) {
     var i, r;
     ctx.save();
     for (i = 0; i < rectangles.length; i += 1) {
@@ -57,7 +57,7 @@ g.drawRectangles = function (ctx, rectangles) {
     ctx.restore();
 };
 
-g.drawColors = function (ctx, colors) {
+vg.drawColors = function (ctx, colors) {
     var i, c;
     ctx.save();
     for (i = 0; i < colors.length; i += 1) {
@@ -69,7 +69,7 @@ g.drawColors = function (ctx, colors) {
     ctx.restore();
 };
 
-g.draw = function (ctx, o) {
+vg.draw = function (ctx, o) {
     var k = o;
     var isArray = false;
     if (Array.isArray(o)) {
@@ -81,26 +81,26 @@ g.draw = function (ctx, o) {
         if (typeof k.draw === 'function') {
             if (isArray) {
                 for (var i = 0, n = o.length; i < n; i += 1) {
-                    g.draw(ctx, o[i]);
+                    vg.draw(ctx, o[i]);
                 }
             } else {
                 o.draw(ctx);
             }
         } else if (k.x !== undefined && k.y !== undefined) {
             if (k.r !== undefined && k.g !== undefined && k.b !== undefined) {
-                g.drawColoredPoints(ctx, isArray ? o : [o]);
+                vg.drawColoredPoints(ctx, isArray ? o : [o]);
             } else if (k.width !== undefined && k.height !== undefined) {
-                g.drawRectangles(ctx, isArray ? o : [o]);
+                vg.drawRectangles(ctx, isArray ? o : [o]);
             } else {
-                g.drawPoints(ctx, isArray ? o : [o]);
+                vg.drawPoints(ctx, isArray ? o : [o]);
             }
         } else if (k.r !== undefined && k.g !== undefined && k.b !== undefined) {
-            g.drawColors(ctx, isArray ? o : [o]);
+            vg.drawColors(ctx, isArray ? o : [o]);
         }
     }
 };
 
-g.toSVG = function (o, options) {
+vg.toSVG = function (o, options) {
     options = options || {};
     var includeHeader = options.header === true;
     var x = options.x !== undefined ? options.x : 0;
@@ -114,7 +114,7 @@ g.toSVG = function (o, options) {
         } else if (Array.isArray(o)) {
             svg = '<g>\n';
             for (var i = 0, n = o.length; i < n; i += 1) {
-                svg += g.toSVG(o[i]) + '\n';
+                svg += vg.toSVG(o[i]) + '\n';
             }
             svg += '</g>\n';
         }
@@ -130,4 +130,4 @@ g.toSVG = function (o, options) {
     return svg;
 };
 
-module.exports = g;
+module.exports = vg;

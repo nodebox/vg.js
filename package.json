@@ -1,5 +1,5 @@
 {
-  "name": "g.js",
+  "name": "vg.js",
   "description": "A JavaScript library for vector graphics.",
   "keywords": [
     "vector",
@@ -7,11 +7,11 @@
     "canvas",
     "2d"
   ],
-  "version": "0.5.0",
+  "version": "0.6.0",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nodebox/g.js.git"
+    "url": "https://github.com/nodebox/vg.js.git"
   },
   "dependencies": {
     "lodash": "^3.5.0",
@@ -25,12 +25,12 @@
     "uglifyify": "^3.0.1",
     "watchify": "^2.6.0"
   },
-  "main": "./src/g.js",
+  "main": "./src/vg.js",
   "scripts": {
     "test": "mocha --recursive & jshint .",
-    "watchify": "mkdir -p build && watchify src/g.js --standalone g --debug -o build/g.js -v",
-    "browserify": "browserify src/g.js --standalone g > dist/g.js",
-    "uglify": "browserify src/g.js --standalone g -g uglifyify > dist/g.min.js",
+    "watchify": "mkdir -p build && watchify src/vg.js --standalone vg --debug -o build/vg.js -v",
+    "browserify": "browserify src/vg.js --standalone g > dist/vg.js",
+    "uglify": "browserify src/vg.js --standalone vg -g uglifyify > dist/vg.min.js",
     "dist": "npm run test && npm run browserify && npm run uglify"
   }
 }

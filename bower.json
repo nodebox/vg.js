@@ -1,7 +1,7 @@
 {
   "name": "g.js",
-  "version": "0.5.0",
-  "main": "dist/g.js",
+  "version": "0.6.0",
+  "main": "dist/vg.js",
   "keywords": [
     "vector",
     "graphics",

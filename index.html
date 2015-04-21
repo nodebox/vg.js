@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>g.js notebook</title>
-    <script src="build/g.js"></script>
+    <script src="build/vg.js"></script>
     <style>
         body {
             margin: 0;
@@ -90,7 +90,7 @@
 </head>
 <body>
 <div class="header">
-    <h2>g.js notebook</h2>
+    <h2>vg.js notebook</h2>
 </div>
 <div class="page">
     <p class="help">
@@ -103,6 +103,9 @@
 </div>
 
 <script>
+    /* global vg */
+    'use strict';
+
     var selectedCell = null;
     document.addEventListener('keydown', function (e) {
         if (e.which === 13 && e.ctrlKey) { // Ctrl-Enter
@@ -117,8 +120,8 @@
         }
     });
 
-    document.addEventListener('DOMContentLoaded', function (e) {
-        createCell('// Press Ctrl-Enter to execute this expression.\n\ng.ellipse(0, 0, 100, 100)');
+    document.addEventListener('DOMContentLoaded', function () {
+        createCell('// Press Ctrl-Enter to execute this expression.\n\nvg.ellipse(0, 0, 100, 100)');
     });
 
     function createCell(source) {
@@ -133,7 +136,7 @@
             $textarea.style.height = 0;
             $textarea.style.height = $textarea.scrollHeight + 'px';
         });
-        $textarea.addEventListener('focus', function (e) {
+        $textarea.addEventListener('focus', function () {
             selectCell($cell);
         });
         $textarea.focus();
@@ -212,15 +215,15 @@
             result = '' + e.stack;
             isError = true;
         }
-        if (g.isDrawable(result)) {
+        if (vg.isDrawable(result)) {
             $canvas = document.createElement('canvas');
-            bounds = g.bounds(result);
+            bounds = vg.bounds(result);
             $canvas.width = bounds.width + 10;
             $canvas.height = bounds.height + 10;
             $result.appendChild($canvas);
             ctx = $canvas.getContext('2d');
             ctx.translate(-bounds.x + 5, -bounds.y + 5);
-            g.draw(ctx, result);
+            vg.draw(ctx, result);
         } else {
             $pre = document.createElement('pre');
             $pre.textContent = result;
@@ -234,8 +237,6 @@
             createCell();
         }
     }
-
-
 </script>
 
 </body>

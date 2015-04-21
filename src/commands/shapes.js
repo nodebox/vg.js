@@ -11,15 +11,15 @@ var Path = require('../objects/path');
 var Point = require('../objects/point');
 var gText = require('../objects/text');
 
-var g = {};
+var vg = {};
 
-g.roundedRect = function (cx, cy, width, height, rx, ry) {
+vg.roundedRect = function (cx, cy, width, height, rx, ry) {
     var p = new Path();
     p.addRoundedRect(cx, cy, width, height, rx, ry);
     return p;
 };
 
-g.quad = function (pt1, pt2, pt3, pt4) {
+vg.quad = function (pt1, pt2, pt3, pt4) {
     var args = arguments;
     var p = new Path();
     if (args.length === 8) {
@@ -34,7 +34,7 @@ g.quad = function (pt1, pt2, pt3, pt4) {
     return p;
 };
 
-g.rect = function (position, width, height, roundness) {
+vg.rect = function (position, width, height, roundness) {
     var args = arguments;
     if (args.length === 3) {
         position = Point.read(position);
@@ -64,11 +64,11 @@ g.rect = function (position, width, height, roundness) {
         p.addRect(position.x - width / 2, position.y - height / 2, width, height);
         return p;
     } else {
-        return g.roundedRect(position.x - width / 2, position.y - height / 2, width, height, roundness.x, roundness.y);
+        return vg.roundedRect(position.x - width / 2, position.y - height / 2, width, height, roundness.x, roundness.y);
     }
 };
 
-g.ellipse = function (position, width, height) {
+vg.ellipse = function (position, width, height) {
     var args = arguments;
     if (args.length === 4) {
         position = Point.read(args[0], args[1]);
@@ -82,7 +82,7 @@ g.ellipse = function (position, width, height) {
     return p;
 };
 
-g.line = function (point1, point2, nPoints) {
+vg.line = function (point1, point2, nPoints) {
     var args = arguments;
     if (args.length >= 4) {
         point1 = Point.read(args[0], args[1]);
@@ -102,7 +102,7 @@ g.line = function (point1, point2, nPoints) {
     return line;
 };
 
-g.lineAngle = function (point, distance, angle) {
+vg.lineAngle = function (point, distance, angle) {
     var args = arguments;
     if (args.length === 4) {
         point = Point.read(args[0], args[1]);
@@ -112,10 +112,10 @@ g.lineAngle = function (point, distance, angle) {
         point = Point.read(point);
     }
     var point2 = geo.coordinates(point.x, point.y, distance, angle);
-    return g.line(point, point2);
+    return vg.line(point, point2);
 };
 
-g.arc = function (position, width, height, startAngle, degrees, arcType) {
+vg.arc = function (position, width, height, startAngle, degrees, arcType) {
     var args = arguments;
     if (args.length === 7) {
         position = Point.read(args[0], args[1]);
@@ -132,7 +132,7 @@ g.arc = function (position, width, height, startAngle, degrees, arcType) {
     return p;
 };
 
-g.quadCurve = function (pt1, pt2, t, distance) {
+vg.quadCurve = function (pt1, pt2, t, distance) {
     var args = arguments;
     if (args.length === 6) {
         pt1 = Point.read(args[0], args[1]);
@@ -165,7 +165,7 @@ g.quadCurve = function (pt1, pt2, t, distance) {
     return p;
 };
 
-g.polygon = function (position, radius, sides, align) {
+vg.polygon = function (position, radius, sides, align) {
     var args = arguments;
     if (args.length === 5 || (args.length === 4 && typeof args[0] === 'number' && typeof args[1] === 'number')) {
         position = Point.read(args[0], args[1]);
@@ -203,7 +203,7 @@ g.polygon = function (position, radius, sides, align) {
     return p;
 };
 
-g.star = function (position, points, outer, inner) {
+vg.star = function (position, points, outer, inner) {
     var args = arguments;
     if (args.length === 5 || (args.length === 4 && typeof args[0] === 'number' && typeof args[1] === 'number')) {
         position = Point.read(args[0], args[1]);
@@ -229,7 +229,7 @@ g.star = function (position, points, outer, inner) {
     return p;
 };
 
-g.freehand = function (pathString) {
+vg.freehand = function (pathString) {
     var i, j, values,
         nonEmpty = function (s) { return s !== ''; },
         contours = _.filter(pathString.split('M'), nonEmpty);
@@ -256,7 +256,7 @@ g.freehand = function (pathString) {
 };
 
 // Create a grid of points.
-g.grid = function (columns, rows, width, height, position) {
+vg.grid = function (columns, rows, width, height, position) {
     var columnSize, left, rowSize, top, rowIndex, colIndex, x, y, i,
         points = [];
     points.length = columns * rows;
@@ -292,23 +292,23 @@ g.grid = function (columns, rows, width, height, position) {
 // The position can be specified as x, y; using a point {x: 10, y: 20} or using an array [10, 20].
 // Here are a couple of ways to generate 'Hello' at position 0, 0 in 12pt Helvetica, centered.
 //
-//     g.text('Hello', {x: 0, y: 0}, 'Helvetica', 12, 'center');
-//     g.text('Hello', [0, 0], {fontFamily: 'Helvetica', fontSize: 12, align: 'center'});
-//     g.text('Hello', 0, 0, {fontFamily: 'Helvetica', fontSize: 12});  // align: center is the default.
-//     g.text('Hello', {fontFamily: 'Helvetica', fontSize: 12}); // the position defaults to 0,0.
-g.text = function () {
+//     vg.text('Hello', {x: 0, y: 0}, 'Helvetica', 12, 'center');
+//     vg.text('Hello', [0, 0], {fontFamily: 'Helvetica', fontSize: 12, align: 'center'});
+//     vg.text('Hello', 0, 0, {fontFamily: 'Helvetica', fontSize: 12});  // align: center is the default.
+//     vg.text('Hello', {fontFamily: 'Helvetica', fontSize: 12}); // the position defaults to 0,0.
+vg.text = function () {
     var t = Object.create(gText.prototype);
     t.constructor = gText.prototype;
     gText.apply(t, arguments);
     return t;
 };
 
-g.demoRect = function () {
-    return new g.rect({x: 0, y: 0}, 100, 100, {x: 0, y: 0});
+vg.demoRect = function () {
+    return new vg.rect({x: 0, y: 0}, 100, 100, {x: 0, y: 0});
 };
 
-g.demoEllipse = function () {
-    return new g.ellipse({x: 0, y: 0}, 100, 100);
+vg.demoEllipse = function () {
+    return new vg.ellipse({x: 0, y: 0}, 100, 100);
 };
 
-module.exports = g;
+module.exports = vg;

@@ -16,9 +16,9 @@ var Point = require('../objects/point');
 var Rect = require('../objects/rect');
 var Transform = require('../objects/transform');
 
-var g = {};
+var vg = {};
 
-g.bounds = function (o) {
+vg.bounds = function (o) {
     var r, i, n;
     if (!o) {
         return new Rect();
@@ -31,7 +31,7 @@ g.bounds = function (o) {
             return new Rect(o.x, o.y, 0, 0);
         }
     } else if (o.r !== undefined && o.g !== undefined && o.b !== undefined) {
-        return new g.Rect(0, 0, 30, 30);
+        return new vg.Rect(0, 0, 30, 30);
     } else if (Array.isArray(o)) {
         r = null;
         n = o.length;
@@ -41,9 +41,9 @@ g.bounds = function (o) {
         }
         for (i = 0; i < n; i += 1) {
             if (!r) {
-                r = g.bounds(o[i]);
+                r = vg.bounds(o[i]);
             } else {
-                r = r.unite(g.bounds(o[i]));
+                r = r.unite(vg.bounds(o[i]));
             }
         }
         return r || new Rect();
@@ -52,32 +52,32 @@ g.bounds = function (o) {
     }
 };
 
-g.makeCenteredRect = function (cx, cy, width, height) {
+vg.makeCenteredRect = function (cx, cy, width, height) {
     var x = cx - width / 2,
         y = cy - height / 2;
     return new Rect(x, y, width, height);
 };
 
-g.makePoint = function (x, y) {
+vg.makePoint = function (x, y) {
     return new Point(x, y);
 };
 
-g.makeRect = function (x, y, width, height) {
+vg.makeRect = function (x, y, width, height) {
     return new Rect(x, y, width, height);
 };
 
 // Combine all given shape arguments into a new group.
 // This function works like makeGroup, except that this can take any number
 // of arguments.
-g.merge = function () {
+vg.merge = function () {
     return new Group(_.reject(_.flatten(arguments, true), _.isEmpty));
 };
 
-g.combinePaths = function (shape) {
+vg.combinePaths = function (shape) {
     return Path.combine(shape);
 };
 
-g.shapePoints = g.toPoints = function (shape) {
+vg.shapePoints = vg.toPoints = function (shape) {
     if (!shape) {
         return [];
     }
@@ -86,37 +86,37 @@ g.shapePoints = g.toPoints = function (shape) {
     }
     var i, points = [];
     for (i = 0; i < shape.shapes.length; i += 1) {
-        points = points.concat(g.shapePoints(shape.shapes[i]));
+        points = points.concat(vg.shapePoints(shape.shapes[i]));
     }
     return points;
 };
 
 // FILTERS //////////////////////////////////////////////////////////////
 
-g.colorize = function (shape, fill, stroke, strokeWidth) {
+vg.colorize = function (shape, fill, stroke, strokeWidth) {
     if (!shape) {
         return;
     }
     return shape.colorize(fill, stroke, strokeWidth);
 };
 
-g.translate = function (shape, position) {
+vg.translate = function (shape, position) {
     return shape.translate(position);
 };
 
-g.scale = function (shape, scale, origin) {
+vg.scale = function (shape, scale, origin) {
     return shape.scale(scale, origin);
 };
 
-g.rotate = function (shape, angle, origin) {
+vg.rotate = function (shape, angle, origin) {
     return shape.rotate(angle, origin);
 };
 
-g.skew = function (shape, skew, origin) {
+vg.skew = function (shape, skew, origin) {
     return shape.skew(skew, origin);
 };
 
-g.copy = function (shape, copies, order, translate, rotate, scale) {
+vg.copy = function (shape, copies, order, translate, rotate, scale) {
     var i, t, j, op,
         shapes = [],
         tx = 0,
@@ -147,7 +147,7 @@ g.copy = function (shape, copies, order, translate, rotate, scale) {
     return shapes;
 };
 
-g.fit = function (shape, position, width, height, keepProportions) {
+vg.fit = function (shape, position, width, height, keepProportions) {
     if (!shape) {
         return;
     }
@@ -185,7 +185,7 @@ g.fit = function (shape, position, width, height, keepProportions) {
 
 // Fit the given shape to the bounding shape.
 // If keepProportions = true, the shape will not be stretched.
-g.fitTo = function (shape, bounding, keepProportions) {
+vg.fitTo = function (shape, bounding, keepProportions) {
     if (!shape) {
         return;
     }
@@ -199,10 +199,10 @@ g.fitTo = function (shape, bounding, keepProportions) {
         bw = bounds.width,
         bh = bounds.height;
 
-    return g.fit(shape, {x: bx + bw / 2, y: by + bh / 2}, bw, bh, keepProportions);
+    return vg.fit(shape, {x: bx + bw / 2, y: by + bh / 2}, bw, bh, keepProportions);
 };
 
-g.reflect = function (shape, position, angle, keepOriginal) {
+vg.reflect = function (shape, position, angle, keepOriginal) {
     if (!shape) {
         return;
     }
@@ -265,7 +265,7 @@ g.reflect = function (shape, position, angle, keepOriginal) {
     }
 };
 
-g.resample = function (shape, method, length, points, perContour) {
+vg.resample = function (shape, method, length, points, perContour) {
     if (!shape) {
         return;
     }
@@ -276,7 +276,7 @@ g.resample = function (shape, method, length, points, perContour) {
     }
 };
 
-g.wiggle = function (shape, scope, offset, seed) {
+vg.wiggle = function (shape, scope, offset, seed) {
     var rand, wigglePoints, wigglePaths, wiggleContours;
     scope = scope || 'points';
     if (offset === undefined) {
@@ -346,7 +346,7 @@ g.wiggle = function (shape, scope, offset, seed) {
     wiggleContours = function (shape) {
         if (shape.commands) {
             var i, dx, dy, t,
-                subPaths = g.getContours(shape),
+                subPaths = vg.getContours(shape),
                 commands = [];
             for (i = 0; i < subPaths.length; i += 1) {
                 dx = (rand(0, 1) - 0.5) * offset.x * 2;
@@ -373,7 +373,7 @@ g.wiggle = function (shape, scope, offset, seed) {
     }
 };
 
-g.scatter = function (shape, amount, seed) {
+vg.scatter = function (shape, amount, seed) {
     // Generate points within the boundaries of a shape.
     if (!shape) {
         return;
@@ -418,7 +418,7 @@ g.scatter = function (shape, amount, seed) {
     return points;
 };
 
-g.connect = function (points, closed) {
+vg.connect = function (points, closed) {
     if (!points) {
         return;
     }
@@ -439,7 +439,7 @@ g.connect = function (points, closed) {
     return p;
 };
 
-g.align = function (shape, position, hAlign, vAlign) {
+vg.align = function (shape, position, hAlign, vAlign) {
     if (!shape) {
         return;
     }
@@ -471,7 +471,7 @@ g.align = function (shape, position, hAlign, vAlign) {
 };
 
 // Snap geometry to a grid.
-g.snap = function (shape, distance, strength, position) {
+vg.snap = function (shape, distance, strength, position) {
     if (!shape) {
         return;
     }
@@ -515,7 +515,7 @@ g.snap = function (shape, distance, strength, position) {
     return snapShape(shape);
 };
 
-g.deletePoints = function (shape, bounding, deleteSelected) {
+vg.deletePoints = function (shape, bounding, deleteSelected) {
     var deletePoints = function (shape) {
         var i, cmd, commands = [];
         var pt, points = [];
@@ -548,7 +548,7 @@ g.deletePoints = function (shape, bounding, deleteSelected) {
     return deletePoints(shape);
 };
 
-g.deletePaths = function (shape, bounding, deleteSelected) {
+vg.deletePaths = function (shape, bounding, deleteSelected) {
     var deletePaths = function (shape) {
         if (shape.commands) {
             return null;
@@ -584,27 +584,27 @@ g.deletePaths = function (shape, bounding, deleteSelected) {
     return deletePaths(shape);
 };
 
-g['delete'] = function (shape, bounding, scope, deleteSelected) {
+vg['delete'] = function (shape, bounding, scope, deleteSelected) {
     if (shape === null || bounding === null) { return null; }
-    if (scope === 'points') { return g.deletePoints(shape, bounding, deleteSelected); }
-    if (scope === 'paths') { return g.deletePaths(shape, bounding, deleteSelected); }
+    if (scope === 'points') { return vg.deletePoints(shape, bounding, deleteSelected); }
+    if (scope === 'paths') { return vg.deletePaths(shape, bounding, deleteSelected); }
     throw new Error('Invalid scope.');
 };
 
-g.pointOnPath = function (shape, t) {
+vg.pointOnPath = function (shape, t) {
     var pt;
     if (!shape) {
         return;
     }
     if (shape.shapes) {
-        shape = new Path(g.combinePaths(shape));
+        shape = new Path(vg.combinePaths(shape));
     }
     t = Math.abs(t % 100);
     pt = shape.point(t / 100);
     return {x: pt.x, y: pt.x};
 };
 
-g.shapeOnPath = function (shapes, path, amount, alignment, spacing, margin, baselineOffset) {
+vg.shapeOnPath = function (shapes, path, amount, alignment, spacing, margin, baselineOffset) {
     if (!shapes) { return []; }
     if (path === null) { return []; }
 
@@ -652,7 +652,7 @@ g.shapeOnPath = function (shapes, path, amount, alignment, spacing, margin, base
     return newShapes;
 };
 
-g._x = function (shape) {
+vg._x = function (shape) {
     if (shape.x !== undefined) {
         return shape.x;
     } else {
@@ -660,7 +660,7 @@ g._x = function (shape) {
     }
 };
 
-g._y = function (shape) {
+vg._y = function (shape) {
     if (shape.y !== undefined) {
         return shape.y;
     } else {
@@ -668,7 +668,7 @@ g._y = function (shape) {
     }
 };
 
-g._angleToPoint = function (point) {
+vg._angleToPoint = function (point) {
     return function (shape) {
         if (shape.x !== undefined && shape.y !== undefined) {
             return geo.angle(shape.x, shape.y, point.x, point.y);
@@ -679,7 +679,7 @@ g._angleToPoint = function (point) {
     };
 };
 
-g._distanceToPoint = function (point) {
+vg._distanceToPoint = function (point) {
     return function (shape) {
         if (shape.x !== undefined && shape.y !== undefined) {
             return geo.distance(shape.x, shape.y, point.x, point.y);
@@ -690,16 +690,16 @@ g._distanceToPoint = function (point) {
     };
 };
 
-g.sort = function (shapes, orderBy, point) {
+vg.sort = function (shapes, orderBy, point) {
     if (!shapes) {
         return;
     }
     var methods, sortMethod, newShapes;
     methods = {
-        x: g._x,
-        y: g._y,
-        angle: g._angleToPoint(point),
-        distance: g._distanceToPoint(point)
+        x: vg._x,
+        y: vg._y,
+        angle: vg._angleToPoint(point),
+        distance: vg._distanceToPoint(point)
     };
     sortMethod = methods[orderBy];
     if (sortMethod === undefined) { return shapes; }
@@ -714,11 +714,11 @@ g.sort = function (shapes, orderBy, point) {
     return newShapes;
 };
 
-g.group = function () {
+vg.group = function () {
     return new Group(_.flatten(arguments));
 };
 
-g.ungroup = function (shape) {
+vg.ungroup = function (shape) {
     if (!shape) {
         return [];
     } else if (shape.shapes) {
@@ -728,7 +728,7 @@ g.ungroup = function (shape) {
             if (s.commands) {
                 shapes.push(s);
             } else if (s.shapes) {
-                shapes = shapes.concat(g.ungroup(s));
+                shapes = shapes.concat(vg.ungroup(s));
             }
         }
         return shapes;
@@ -739,7 +739,7 @@ g.ungroup = function (shape) {
     }
 };
 
-g.centroid = function (shape) {
+vg.centroid = function (shape) {
     if (!shape) {
         return Point.ZERO;
     }
@@ -747,7 +747,7 @@ g.centroid = function (shape) {
     return new Point(r.x + r.width / 2, r.y + r.height / 2);
 };
 
-g.link = function (shape1, shape2, orientation) {
+vg.link = function (shape1, shape2, orientation) {
     if (!shape1 || !shape2) {
         return;
     }
@@ -773,7 +773,7 @@ g.link = function (shape1, shape2, orientation) {
     return p;
 };
 
-g.stack = function (shapes, direction, margin) {
+vg.stack = function (shapes, direction, margin) {
     if (!shapes) {
         return [];
     }
@@ -819,7 +819,7 @@ g.stack = function (shapes, direction, margin) {
     return newShapes;
 };
 
-g.colorLookup = function (c, comp) {
+vg.colorLookup = function (c, comp) {
     c = Color.parse(c);
     switch(comp) {
         case 'r':
@@ -841,7 +841,7 @@ g.colorLookup = function (c, comp) {
     }
 };
 
-g.compound = function (shape1, shape2, method) {
+vg.compound = function (shape1, shape2, method) {
     var methods = {
         'union': ClipperLib.ClipType.ctUnion,
         'difference': ClipperLib.ClipType.ctDifference,
@@ -903,4 +903,4 @@ g.compound = function (shape1, shape2, method) {
     return path;
 };
 
-module.exports = g;
+module.exports = vg;
