@@ -39,6 +39,13 @@ Group.prototype.colorize = function (fill, stroke, strokeWidth) {
     return new Group(shapes);
 };
 
+Group.prototype.desaturate = function () {
+    var shapes = _.map(this.shapes, function (shape) {
+       return shape.desaturate();
+    });
+    return new Group(shapes);
+};
+
 Group.prototype.bounds = function () {
     if (this.shapes.length === 0) { return new Rect(0, 0, 0, 0); }
     var i, r, shape,

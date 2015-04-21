@@ -245,6 +245,21 @@ Path.prototype.colorize = function (fill, stroke, strokeWidth) {
     return p;
 };
 
+Path.prototype.desaturate = function () {
+    var p = this.clone();
+    var fill = p.fill;
+    var stroke = p.stroke;
+    if (!(fill instanceof Color)) {
+        fill = Color.parse(fill);
+    }
+    if (!(stroke instanceof Color)) {
+        stroke = Color.parse(stroke);
+    }
+    p.fill = fill.desaturate();
+    p.stroke = stroke.desaturate();
+    return p;
+};
+
 Path.prototype.contours = function () {
     var contours = [],
         currentContour = [];

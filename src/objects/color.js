@@ -165,6 +165,12 @@ Color.prototype.toHex = function () {
     }
 };
 
+Color.prototype.desaturate = function () {
+    if (this.r === this.g && this.g === this.b) { return this; }
+    var gray = this.r * 0.3 + this.g * 0.59 + this.b * 0.11;
+    return new Color(gray, gray, gray, this.a);
+};
+
 Color.clone = function (c) {
     if (c === null || c === undefined) {
         return null;

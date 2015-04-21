@@ -44,6 +44,19 @@ g.drawColoredPoints = function (ctx, points) {
     }
 };
 
+g.drawRectangles = function (ctx, rectangles) {
+    var i, r;
+    ctx.save();
+    for (i = 0; i < rectangles.length; i += 1) {
+        r = rectangles[i];
+        ctx.strokeStyle = 'black';
+        ctx.strokeWidth = 1;
+        ctx.rect(r.x, r.y, r.width, r.height);
+        ctx.stroke();
+    }
+    ctx.restore();
+};
+
 g.drawColors = function (ctx, colors) {
     var i, c;
     ctx.save();
@@ -76,6 +89,8 @@ g.draw = function (ctx, o) {
         } else if (k.x !== undefined && k.y !== undefined) {
             if (k.r !== undefined && k.g !== undefined && k.b !== undefined) {
                 g.drawColoredPoints(ctx, isArray ? o : [o]);
+            } else if (k.width !== undefined && k.height !== undefined) {
+                g.drawRectangles(ctx, isArray ? o : [o]);
             } else {
                 g.drawPoints(ctx, isArray ? o : [o]);
             }
