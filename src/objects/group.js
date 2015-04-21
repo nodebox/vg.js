@@ -41,7 +41,7 @@ Group.prototype.colorize = function (fill, stroke, strokeWidth) {
 
 Group.prototype.desaturate = function () {
     var shapes = _.map(this.shapes, function (shape) {
-       return shape.desaturate();
+        return shape.desaturate();
     });
     return new Group(shapes);
 };

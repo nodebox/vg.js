@@ -14,7 +14,7 @@ var bezier = {};
 
 var MOVETO = bezier.MOVETO = 'M';
 var LINETO = bezier.LINETO = 'L';
-/*var QUADTO =*/ bezier.QUADTO = 'Q';
+bezier.QUADTO = 'Q';
 var CURVETO = bezier.CURVETO = 'C';
 var CLOSE = bezier.CLOSE = 'Z';
 

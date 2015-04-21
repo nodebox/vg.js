@@ -96,7 +96,7 @@ g.line = function (point1, point2, nPoints) {
     line.addLine(point1.x, point1.y, point2.x, point2.y);
     line.fill = null;
     line.stroke = 'black';
-    if (nPoints != undefined && nPoints > 2) {
+    if (nPoints !== undefined && nPoints > 2) {
         line = line.resampleByAmount(nPoints, false);
     }
     return line;
@@ -119,7 +119,11 @@ g.arc = function (position, width, height, startAngle, degrees, arcType) {
     var args = arguments;
     if (args.length === 7) {
         position = Point.read(args[0], args[1]);
-        width = args[2]; height = args[3]; startAngle = args[4]; degrees = args[5]; arcType = args[6];
+        width = args[2];
+        height = args[3];
+        startAngle = args[4];
+        degrees = args[5];
+        arcType = args[6];
     } else {
         position = Point.read(position);
     }

@@ -426,7 +426,7 @@ describe('Drawables', function () {
     });
 
     it('can get the bounds', function () {
-        assert.deepEqual(g.bounds(g._rect(10, 20, 30, 40)).xywh, [10, 20, 30, 40]);
+        assert.deepEqual(g.bounds(g.rect(10, 20, 30, 40)).xywh, [-5, 0, 30, 40]);
         assert.deepEqual(g.bounds([new g.Point(10, 20), new g.Point(30, 40)]).xywh, [10, 20, 20, 20]);
 
         assert.deepEqual(g.bounds([]).xywh, [0, 0, 0, 0]);
@@ -487,31 +487,31 @@ describe('The colorize filter', function () {
 
 describe('The centroid filter', function () {
     it ('works on paths', function () {
-        var r = new g.rect(g.Point.ZERO, 100, 100);
+        var r = g.rect(g.Point.ZERO, 100, 100);
         assert.deepEqual(g.centroid(r).xy, [0, 0]);
-        var e = new g.ellipse(g.Point.ZERO, 100, 100);
+        var e = g.ellipse(g.Point.ZERO, 100, 100);
         assert.deepEqual(g.centroid(e).xy, [0, 0]);
     });
 });
 
 describe('The reflect filter', function () {
     it('works on paths', function () {
-        var r = new g._rect(0, 0, 100, 100);
-        var rr = g.reflect(r);
-        assertRectsAlmostEqual(rr.bounds(), new g.Rect(0, -100, 100, 100));
+        var r = g.rect(50, 0, 100, 100);
+        var rr = g.reflect(r, g.Point.ZERO, 90);
+        assertRectsAlmostEqual(rr.bounds(), new g.Rect(-100, -50, 100, 100));
     });
 });
 
 describe('The snap filter', function () {
     it('works on paths', function () {
-        var p1 = new g._ellipse(0, 0, 100, 100);
+        var p1 = g.ellipse(0, 0, 100, 100);
         var p2 = g.snap(p1, 50);
         assert.equal(p2.commands.length, p1.commands.length);
-        assertXYEqual(p2.commands[0], 0, 50);
-        assertXYEqual(p2.commands[1], 50, 0);
-        assertXYEqual(p2.commands[2], 100, 50);
-        assertXYEqual(p2.commands[3], 50, 100);
-        assertXYEqual(p2.commands[4], 0, 50);
+        assertXYEqual(p2.commands[0], -50, 0);
+        assertXYEqual(p2.commands[1], 0, -50);
+        assertXYEqual(p2.commands[2], 50, 0);
+        assertXYEqual(p2.commands[3], 0, 50);
+        assertXYEqual(p2.commands[4], -50, 0);
     });
 });
 
