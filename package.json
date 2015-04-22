@@ -29,7 +29,7 @@
   "scripts": {
     "test": "mocha --recursive & jshint .",
     "watchify": "mkdir -p build && watchify src/vg.js --standalone vg --debug -o build/vg.js -v",
-    "browserify": "browserify src/vg.js --standalone g > dist/vg.js",
+    "browserify": "browserify src/vg.js --standalone vg > dist/vg.js",
     "uglify": "browserify src/vg.js --standalone vg -g uglifyify > dist/vg.min.js",
     "dist": "npm run test && npm run browserify && npm run uglify"
   }
