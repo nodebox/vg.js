@@ -1,11 +1,11 @@
-g.js
+vg.js
 ====
-g.js is a JavaScript library for vector graphics.
+vg.js is a JavaScript library for vector graphics.
 
     var i = 0;
     var paths = [];
-    g.grid(4, 4, 250, 250).map(function (pt, i) {
-        var p = g.ellipse(pt, 75, 75);
+    vg.grid(4, 4, 250, 250).map(function (pt, i) {
+        var p = vg.ellipse(pt, 75, 75);
         return p.resampleByAmount(i + 3);
     });
 
@@ -24,7 +24,7 @@ These are compiled.
 
 To install using [Bower](http://bower.io/), enter the following command in your project directory:
 
-    bower install g.js
+    bower install vg.js
 
 You can then include them in your scripts using:
 
@@ -34,7 +34,7 @@ You can then include them in your scripts using:
 
 To install using [Browserify](http://browserify.org/), enter the following command in your project directory:
 
-    npm install --save g.js
+    npm install --save vg.js
 
 Development
 -----------
@@ -58,7 +58,7 @@ Running `npm run dist` will build a complete and minified version of g.js in the
 
 Credits
 -------
-g.js is based on [canvas.js](https://github.com/clips/pattern/blob/master/pattern/canvas.js) (BSD). De Smedt T. & Daelemans W. (2012). Pattern for Python. Journal of Machine Learning Research.
+vg.js is based on [canvas.js](https://github.com/clips/pattern/blob/master/pattern/canvas.js) (BSD). De Smedt T. & Daelemans W. (2012). Pattern for Python. Journal of Machine Learning Research.
 
 * Stefan Gabriëls <stefan@emrg.be>
 * Frederik De Bleser <frederik@emrg.be>
