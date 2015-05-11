@@ -82,12 +82,11 @@ vg.ellipse = function (position, width, height) {
     return p;
 };
 
-vg.line = function (point1, point2, nPoints) {
+vg.line = function (point1, point2) {
     var args = arguments;
-    if (args.length >= 4) {
+    if (args.length === 4) {
         point1 = Point.read(args[0], args[1]);
         point2 = Point.read(args[2], args[3]);
-        nPoints = args[4];
     } else {
         point1 = Point.read(point1);
         point2 = Point.read(point2);
@@ -96,9 +95,6 @@ vg.line = function (point1, point2, nPoints) {
     line.addLine(point1.x, point1.y, point2.x, point2.y);
     line.fill = null;
     line.stroke = 'black';
-    if (nPoints !== undefined && nPoints > 2) {
-        line = line.resampleByAmount(nPoints, false);
-    }
     return line;
 };
 
