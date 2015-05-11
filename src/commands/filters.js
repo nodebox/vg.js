@@ -18,6 +18,9 @@ var Transform = require('../objects/transform');
 
 var vg = {};
 
+vg.HORIZONTAL = 'horizontal';
+vg.VERTICAL = 'vertical';
+
 vg.bounds = function (o) {
     var r, i, n;
     if (!o) {
@@ -755,7 +758,7 @@ vg.link = function (shape1, shape2, orientation) {
     var p = new Path();
     var a = shape1.bounds();
     var b = shape2.bounds();
-    if (orientation === 'horizontal') {
+    if (orientation === vg.HORIZONTAL) {
         var hw = (b.x - (a.x + a.width)) / 2;
         p.moveTo(a.x + a.width, a.y);
         p.curveTo(a.x + a.width + hw, a.y, b.x - hw, b.y, b.x, b.y);
