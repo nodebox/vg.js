@@ -128,7 +128,7 @@ vg.arc = function (position, width, height, startAngle, degrees, arcType) {
     return p;
 };
 
-vg.quadCurve = function (pt1, pt2, t, distance) {
+vg.curve = function (pt1, pt2, t, distance) {
     var args = arguments;
     if (args.length === 6) {
         pt1 = Point.read(args[0], args[1]);
