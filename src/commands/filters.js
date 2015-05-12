@@ -150,11 +150,11 @@ vg.copy = function (shape, copies, order, translate, rotate, scale) {
     return shapes;
 };
 
-vg.fit = function (shape, position, width, height, keepProportions) {
+vg.fit = function (shape, position, width, height, stretch) {
     if (!shape) {
         return;
     }
-    keepProportions = keepProportions !== undefined ? keepProportions : true;
+    stretch = stretch !== undefined ? stretch : false;
     var t, sx, sy,
         bounds = shape.bounds(),
         bx = bounds.x,
@@ -170,7 +170,7 @@ vg.fit = function (shape, position, width, height, keepProportions) {
     t = new Transform();
     t = t.translate(position.x, position.y);
 
-    if (keepProportions) {
+    if (!stretch) {
         // don't scale widths or heights that are equal to zero.
         sx = (bw > 0) ? (width / bw) : Number.MAX_VALUE;
         sy = (bh > 0) ? (height / bh) : Number.MAX_VALUE;
@@ -187,8 +187,8 @@ vg.fit = function (shape, position, width, height, keepProportions) {
 };
 
 // Fit the given shape to the bounding shape.
-// If keepProportions = true, the shape will not be stretched.
-vg.fitTo = function (shape, bounding, keepProportions) {
+// If stretch = true, proportions will be distorted.
+vg.fitTo = function (shape, bounding, stretch) {
     if (!shape) {
         return;
     }
@@ -202,7 +202,7 @@ vg.fitTo = function (shape, bounding, keepProportions) {
         bw = bounds.width,
         bh = bounds.height;
 
-    return vg.fit(shape, {x: bx + bw / 2, y: by + bh / 2}, bw, bh, keepProportions);
+    return vg.fit(shape, {x: bx + bw / 2, y: by + bh / 2}, bw, bh, stretch);
 };
 
 vg.reflect = function (shape, position, angle, keepOriginal) {
