@@ -604,7 +604,7 @@ vg.pointOnPath = function (shape, t) {
     }
     t = Math.abs(t % 1);
     pt = shape.point(t);
-    return {x: pt.x, y: pt.x};
+    return {x: pt.x, y: pt.y};
 };
 
 vg.shapeOnPath = function (shapes, path, amount, alignment, spacing, margin, baselineOffset) {
