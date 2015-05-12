@@ -602,8 +602,8 @@ vg.pointOnPath = function (shape, t) {
     if (shape.shapes) {
         shape = new Path(vg.combinePaths(shape));
     }
-    t = Math.abs(t % 100);
-    pt = shape.point(t / 100);
+    t = Math.abs(t % 1);
+    pt = shape.point(t);
     return {x: pt.x, y: pt.x};
 };
 
