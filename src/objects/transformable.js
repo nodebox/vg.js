@@ -24,7 +24,7 @@ var Transformable = {
         }
         var t = new Transform();
         t = t.translate(origin.x, origin.y);
-        t = t.scale(sx / 100, sy / 100);
+        t = t.scale(sx, sy);
         t = t.translate(-origin.x, -origin.y);
         return t.transformShape(this);
     },
