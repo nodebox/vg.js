@@ -140,7 +140,6 @@ vg.curve = function (pt1, pt2, t, distance) {
         pt2 = Point.read(pt2);
     }
 
-    t /= 100.0;
     var cx = pt1.x + t * (pt2.x - pt1.x),
         cy = pt1.y + t * (pt2.y - pt1.y),
         a = geo.angle(pt1.x, pt1.y, pt2.x, pt2.y) + 90,
