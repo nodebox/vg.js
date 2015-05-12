@@ -440,6 +440,7 @@ describe('The grid generator', function () {
     it('generates grids', function () {
         var grid = vg.grid(3, 3, 100, 100);
         assert.equal(grid.length, 3 * 3);
+        assert.deepEqual(vg.bounds(grid), {x: -100, y: -100, width: 200, height: 200});
     });
 
 });

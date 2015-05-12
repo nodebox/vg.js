@@ -252,29 +252,29 @@ vg.freehand = function (pathString) {
 };
 
 // Create a grid of points.
-vg.grid = function (columns, rows, width, height, position) {
-    var columnSize, left, rowSize, top, rowIndex, colIndex, x, y, i,
+vg.grid = function (columns, rows, columnWidth, rowHeight, position) {
+    var gridWidth, left, gridHeight, top, rowIndex, colIndex, x, y, i,
         points = [];
     points.length = columns * rows;
     position = position !== undefined ? position : Point.ZERO;
     if (columns > 1) {
-        columnSize = width / (columns - 1);
-        left = position.x - width / 2;
+        gridWidth = columnWidth * (columns - 1);
+        left = position.x - gridWidth / 2;
     } else {
-        columnSize = left = position.x;
+        left = position.x;
     }
     if (rows > 1) {
-        rowSize = height / (rows - 1);
-        top = position.y - height / 2;
+        gridHeight = rowHeight * (rows - 1);
+        top = position.y - gridHeight / 2;
     } else {
-        rowSize = top = position.y;
+        top = position.y;
     }
 
     i = 0;
     for (rowIndex = 0; rowIndex < rows; rowIndex += 1) {
         for (colIndex = 0; colIndex < columns; colIndex += 1) {
-            x = left + colIndex * columnSize;
-            y = top + rowIndex * rowSize;
+            x = left + colIndex * columnWidth;
+            y = top + rowIndex * rowHeight;
             points[i] = new Point(x, y);
             i += 1;
         }
