@@ -16100,24 +16100,26 @@ vg.fitTo = function (shape, bounding, stretch) {
     return vg.fit(shape, {x: bx + bw / 2, y: by + bh / 2}, bw, bh, stretch);
 };
 
-vg.reflect = function (shape, position, angle, keepOriginal) {
+vg.mirror = function (shape, angle, origin, keepOriginal) {
     if (!shape) {
         return;
     }
-    position = position || new Point();
-    angle = angle || 0;
+    origin = origin || new Point();
+    if (angle !== 0) {
+        angle = angle || 90;
+    }
 
     var f = function (x, y) {
-        var d = geo.distance(x, y, position.x, position.y),
-            a = geo.angle(x, y, position.x, position.y),
-            pt = geo.coordinates(position.x, position.y, d * Math.cos(math.radians(a - angle)), 180 + angle);
+        var d = geo.distance(x, y, origin.x, origin.y),
+            a = geo.angle(x, y, origin.x, origin.y),
+            pt = geo.coordinates(origin.x, origin.y, d * Math.cos(math.radians(a - angle)), 180 + angle);
         d = geo.distance(x, y, pt.x, pt.y);
         a = geo.angle(x, y, pt.x, pt.y);
         pt = geo.coordinates(x, y, d * 2, a);
         return new Point(pt.x, pt.y);
     };
 
-    var reflectPath = function (path) {
+    var mirrorPath = function (path) {
         var pt, ctrl1, ctrl2;
         var p = new Path([], path.fill, path.stroke, path.strokeWidth);
         for (var i = 0; i < path.commands.length; i += 1) {
@@ -16142,19 +16144,19 @@ vg.reflect = function (shape, position, angle, keepOriginal) {
         return p;
     };
 
-    var reflectGroup = function (group) {
+    var mirrorGroup = function (group) {
         var shapes = _.map(group.shapes, function (shape) {
-            return reflect(shape);
+            return mirror(shape);
         });
         return new Group(shapes);
     };
 
-    var reflect = function (shape) {
-        var fn = (shape.shapes) ? reflectGroup : reflectPath;
+    var mirror = function (shape) {
+        var fn = (shape.shapes) ? mirrorGroup : mirrorPath;
         return fn(shape);
     };
 
-    var newShape = reflect(shape);
+    var newShape = mirror(shape);
 
     if (keepOriginal) {
         return new Group([shape, newShape]);
@@ -16163,15 +16165,22 @@ vg.reflect = function (shape, position, angle, keepOriginal) {
     }
 };
 
-vg.resample = function (shape, method, length, points, perContour) {
-    if (!shape) {
-        return;
+vg.pathLength = function (shape, options) {
+    var precision = 20;
+    if (options && options.precision) {
+        precision = options.precision;
     }
-    if (method === 'length') {
-        return shape.resampleByLength(length);
-    } else {
-        return shape.resampleByAmount(points, perContour);
-    }
+    return shape.length(precision);
+};
+
+vg.resampleByLength = function (shape, maxLength) {
+    if (!shape) { return; }
+    return shape.resampleByLength(maxLength);
+};
+
+vg.resampleByAmount = function (shape, amount, perContour) {
+    if (!shape) { return; }
+    return shape.resampleByAmount(amount, perContour);
 };
 
 vg.wiggle = function (shape, scope, offset, seed) {
@@ -16369,13 +16378,12 @@ vg.align = function (shape, position, hAlign, vAlign) {
 };
 
 // Snap geometry to a grid.
-vg.snap = function (shape, distance, strength, position) {
+vg.snap = function (shape, distance, strength, center) {
     if (!shape) {
         return;
     }
-    strength = strength !== undefined ? strength : 100;
-    strength /= 100;
-    position = position || Point.ZERO;
+    strength = strength !== undefined ? strength : 1;
+    center = center || Point.ZERO;
 
     var snapShape = function (shape) {
         if (shape.commands) {
@@ -16383,17 +16391,17 @@ vg.snap = function (shape, distance, strength, position) {
             for (var i = 0; i < shape.commands.length; i += 1) {
                 var cmd = shape.commands[i];
                 if (cmd.type === bezier.MOVETO || cmd.type === bezier.LINETO || cmd.type === bezier.CURVETO) {
-                    var x = math.snap(cmd.x + position.x, distance, strength) - position.x;
-                    var y = math.snap(cmd.y + position.y, distance, strength) - position.y;
+                    var x = math.snap(cmd.x + center.x, distance, strength) - center.x;
+                    var y = math.snap(cmd.y + center.y, distance, strength) - center.y;
                     if (cmd.type === bezier.MOVETO) {
                         p.moveTo(x, y);
                     } else if (cmd.type === bezier.LINETO) {
                         p.lineTo(x, y);
                     } else if (cmd.type === bezier.CURVETO) {
-                        var x1 = math.snap(cmd.x1 + position.x, distance, strength) - position.x;
-                        var y1 = math.snap(cmd.y1 + position.y, distance, strength) - position.y;
-                        var x2 = math.snap(cmd.x2 + position.x, distance, strength) - position.x;
-                        var y2 = math.snap(cmd.y2 + position.y, distance, strength) - position.y;
+                        var x1 = math.snap(cmd.x1 + center.x, distance, strength) - center.x;
+                        var y1 = math.snap(cmd.y1 + center.y, distance, strength) - center.y;
+                        var x2 = math.snap(cmd.x2 + center.x, distance, strength) - center.x;
+                        var y2 = math.snap(cmd.y2 + center.y, distance, strength) - center.y;
                         p.curveTo(x1, y1, x2, y2, x, y);
                     }
                 } else if (cmd.type === bezier.CLOSE) {
@@ -16571,8 +16579,8 @@ vg._angleToPoint = function (point) {
         if (shape.x !== undefined && shape.y !== undefined) {
             return geo.angle(shape.x, shape.y, point.x, point.y);
         } else {
-            var centroid = shape.bounds().centroid();
-            return geo.angle(centroid.x, centroid.y, point.x, point.y);
+            var centerPoint = shape.bounds().centerPoint();
+            return geo.angle(centerPoint.x, centerPoint.y, point.x, point.y);
         }
     };
 };
@@ -16582,29 +16590,30 @@ vg._distanceToPoint = function (point) {
         if (shape.x !== undefined && shape.y !== undefined) {
             return geo.distance(shape.x, shape.y, point.x, point.y);
         } else {
-            var centroid = shape.bounds().centroid();
-            return geo.distance(centroid.x, centroid.y, point.x, point.y);
+            var centerPoint = shape.bounds().centerPoint();
+            return geo.distance(centerPoint.x, centerPoint.y, point.x, point.y);
         }
     };
 };
 
-vg.sort = function (shapes, orderBy, point) {
+vg.shapeSort = function (shapes, method, origin) {
     if (!shapes) {
         return;
     }
-    var methods, sortMethod, newShapes;
-    methods = {
+    origin = origin || Point.ZERO;
+
+    var methods = {
         x: vg._x,
         y: vg._y,
-        angle: vg._angleToPoint(point),
-        distance: vg._distanceToPoint(point)
+        angle: vg._angleToPoint(origin),
+        distance: vg._distanceToPoint(origin)
     };
-    sortMethod = methods[orderBy];
-    if (sortMethod === undefined) { return shapes; }
-    newShapes = shapes.slice(0);
+    method = methods[method];
+    if (method === undefined) { return shapes; }
+    var newShapes = shapes.slice(0);
     newShapes.sort(function (a, b) {
-        var _a = sortMethod(a),
-            _b = sortMethod(b);
+        var _a = method(a),
+            _b = method(b);
         if (_a < _b) { return -1; }
         if (_a > _b) { return 1; }
         return 0;
@@ -17441,6 +17450,16 @@ Group.prototype.contains = function (x, y, precision) {
         }
     }
     return false;
+};
+
+Group.prototype.length = function (precision) {
+    if (precision === undefined) { precision = 10; }
+    var sum = 0;
+    var shapes = this.shapes;
+    for (var i = 0; i < shapes.length; i += 1) {
+        sum += shapes[i].length(precision);
+    }
+    return sum;
 };
 
 Group.prototype.resampleByAmount = function (points, perContour) {
@@ -18386,7 +18405,7 @@ Rect.prototype.addPoint = function (x, y) {
     return new Rect(_x, _y, width, height);
 };
 
-Rect.prototype.centroid = function () {
+Rect.prototype.centerPoint = function () {
     return new Point(this.x + this.width / 2, this.y + this.height / 2);
 };
 
