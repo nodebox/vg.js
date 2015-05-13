@@ -278,15 +278,14 @@ vg.pathLength = function (shape, options) {
     return shape.length(precision);
 };
 
-vg.resample = function (shape, method, length, points, perContour) {
-    if (!shape) {
-        return;
-    }
-    if (method === 'length') {
-        return shape.resampleByLength(length);
-    } else {
-        return shape.resampleByAmount(points, perContour);
-    }
+vg.resampleByLength = function (shape, maxLength) {
+    if (!shape) { return; }
+    return shape.resampleByLength(maxLength);
+};
+
+vg.resampleByAmount = function (shape, amount, perContour) {
+    if (!shape) { return; }
+    return shape.resampleByAmount(amount, perContour);
 };
 
 vg.wiggle = function (shape, scope, offset, seed) {
