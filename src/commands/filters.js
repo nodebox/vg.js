@@ -270,6 +270,14 @@ vg.mirror = function (shape, angle, origin, keepOriginal) {
     }
 };
 
+vg.pathLength = function (shape, options) {
+    var precision = 20;
+    if (options && options.precision) {
+        precision = options.precision;
+    }
+    return shape.length(precision);
+};
+
 vg.resample = function (shape, method, length, points, perContour) {
     if (!shape) {
         return;

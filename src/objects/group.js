@@ -75,6 +75,16 @@ Group.prototype.contains = function (x, y, precision) {
     return false;
 };
 
+Group.prototype.length = function (precision) {
+    if (precision === undefined) { precision = 10; }
+    var sum = 0;
+    var shapes = this.shapes;
+    for (var i = 0; i < shapes.length; i += 1) {
+        sum += shapes[i].length(precision);
+    }
+    return sum;
+};
+
 Group.prototype.resampleByAmount = function (points, perContour) {
     var path, shapes;
     if (!perContour) {
