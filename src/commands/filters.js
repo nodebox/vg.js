@@ -90,7 +90,7 @@ vg.shapePoints = vg.toPoints = function (shape) {
         return [];
     }
     if (shape.commands) {
-        return _.map(_.filter(shape.commands, function (cmd) { if (cmd.x !== undefined) { return true; } return false; }), function (cmd) { return {x: cmd.x, y: cmd.y}; });
+        return _.map(_.filter(shape.commands, function (cmd) { if (cmd.x !== undefined) { return true; } return false; }), function (cmd) { return new Point(cmd.x, cmd.y); });
     }
     var i, points = [];
     for (i = 0; i < shape.shapes.length; i += 1) {
