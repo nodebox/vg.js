@@ -702,23 +702,24 @@ vg._distanceToPoint = function (point) {
     };
 };
 
-vg.sort = function (shapes, orderBy, point) {
+vg.shapeSort = function (shapes, method, origin) {
     if (!shapes) {
         return;
     }
-    var methods, sortMethod, newShapes;
-    methods = {
+    origin = origin || Point.ZERO;
+
+    var methods = {
         x: vg._x,
         y: vg._y,
-        angle: vg._angleToPoint(point),
-        distance: vg._distanceToPoint(point)
+        angle: vg._angleToPoint(origin),
+        distance: vg._distanceToPoint(origin)
     };
-    sortMethod = methods[orderBy];
-    if (sortMethod === undefined) { return shapes; }
-    newShapes = shapes.slice(0);
+    method = methods[method];
+    if (method === undefined) { return shapes; }
+    var newShapes = shapes.slice(0);
     newShapes.sort(function (a, b) {
-        var _a = sortMethod(a),
-            _b = sortMethod(b);
+        var _a = method(a),
+            _b = method(b);
         if (_a < _b) { return -1; }
         if (_a > _b) { return 1; }
         return 0;
