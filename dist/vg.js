@@ -15916,6 +15916,11 @@ var vg = {};
 vg.HORIZONTAL = 'horizontal';
 vg.VERTICAL = 'vertical';
 
+vg.EAST = 'e';
+vg.WEST = 'w';
+vg.NORTH = 'n';
+vg.SOUTH = 's';
+
 vg.bounds = function (o) {
     var r, i, n;
     if (!o) {
@@ -16183,18 +16188,15 @@ vg.resampleByAmount = function (shape, amount, perContour) {
     return shape.resampleByAmount(amount, perContour);
 };
 
-vg.wiggle = function (shape, scope, offset, seed) {
-    var rand, wigglePoints, wigglePaths, wiggleContours;
-    scope = scope || 'points';
+vg.wigglePoints = function (shape, offset, seed) {
+    seed = seed !== undefined ? seed : Math.random();
+    var rand = random.generator(seed);
     if (offset === undefined) {
         offset = {x: 10, y: 10};
     } else if (typeof offset === 'number') {
         offset = {x: offset, y: offset};
     }
-    seed = seed !== undefined ? seed : Math.random();
-    rand = random.generator(seed);
-
-    wigglePoints = function (shape) {
+    var wigglePoints = function (shape) {
         var i, dx, dy;
         if (shape.commands) {
             var p = new Path([], shape.fill, shape.stroke, shape.strokeWidth);
@@ -16227,33 +16229,21 @@ vg.wiggle = function (shape, scope, offset, seed) {
             return _.map(shape, wigglePoints);
         }
     };
+    return wigglePoints(shape);
+};
 
-    wigglePaths = function (shape) {
-        if (shape.commands) {
-            return shape;
-        } else if (shape.shapes) {
-            var i, subShape, dx, dy, t, newShapes = [];
-            for (i = 0; i < shape.shapes.length; i += 1) {
-                subShape = shape.shapes[i];
-                if (subShape.commands) {
-                    dx = (rand(0, 1) - 0.5) * offset.x * 2;
-                    dy = (rand(0, 1) - 0.5) * offset.y * 2;
-                    t = new Transform().translate(dx, dy);
-                    newShapes.push(t.transformShape(subShape));
-                } else if (subShape.shapes) {
-                    newShapes.push(wigglePaths(subShape));
-                }
-            }
-            return new Group(newShapes);
-        } else {
-            return _.map(shape, wigglePaths);
-        }
-    };
-
-    wiggleContours = function (shape) {
+vg.wiggleContours = function (shape, offset, seed) {
+    seed = seed !== undefined ? seed : Math.random();
+    var rand = random.generator(seed);
+    if (offset === undefined) {
+        offset = {x: 10, y: 10};
+    } else if (typeof offset === 'number') {
+        offset = {x: offset, y: offset};
+    }
+    var wiggleContours = function (shape) {
         if (shape.commands) {
             var i, dx, dy, t,
-                subPaths = vg.getContours(shape),
+                subPaths = shape.contours(),
                 commands = [];
             for (i = 0; i < subPaths.length; i += 1) {
                 dx = (rand(0, 1) - 0.5) * offset.x * 2;
@@ -16268,16 +16258,41 @@ vg.wiggle = function (shape, scope, offset, seed) {
             return _.map(shape, wiggleContours);
         }
     };
+    return wiggleContours(shape);
+};
 
-    if (scope === 'points') {
-        return wigglePoints(shape);
-    } else if (scope === 'paths') {
-        return wigglePaths(shape);
-    } else if (scope === 'contours') {
-        return wiggleContours(shape);
-    } else {
-        throw new Error('Invalid scope.');
+vg.wigglePaths = function (shape, offset, seed) {
+    seed = seed !== undefined ? seed : Math.random();
+    var rand = random.generator(seed);
+    if (offset === undefined) {
+        offset = {x: 10, y: 10};
+    } else if (typeof offset === 'number') {
+        offset = {x: offset, y: offset};
     }
+
+    var wigglePaths = function (shape) {
+        if (shape.commands) {
+            return shape;
+        } else if (shape.shapes) {
+            return new Group(wigglePaths(shape.shapes));
+        } else if (Array.isArray(shape)) {
+            var subShape, dx, dy, t, newShapes = [];
+            for (var i = 0; i < shape.length; i += 1) {
+                subShape = shape[i];
+                if (subShape.commands) {
+                    dx = (rand(0, 1) - 0.5) * offset.x * 2;
+                    dy = (rand(0, 1) - 0.5) * offset.y * 2;
+                    t = new Transform().translate(dx, dy);
+                    newShapes.push(t.transformShape(subShape));
+                } else if (subShape.shapes) {
+                    newShapes.push(wigglePaths(subShape));
+                }
+            }
+            return newShapes;
+        }
+    };
+
+    return wigglePaths(shape);
 };
 
 vg.scatter = function (shape, amount, seed) {
@@ -16690,7 +16705,8 @@ vg.stack = function (shapes, direction, margin) {
     var tx, ty, t, bounds,
         firstBounds = shapes[0].bounds(),
         newShapes = [];
-    if (direction === 'e') {
+    margin = margin || 0;
+    if (direction === vg.EAST) {
         tx = -(firstBounds.width / 2);
         _.each(shapes, function (shape) {
             bounds = shape.bounds();
@@ -16698,7 +16714,7 @@ vg.stack = function (shapes, direction, margin) {
             newShapes.push(t.transformShape(shape));
             tx += bounds.width + margin;
         });
-    } else if (direction === 'w') {
+    } else if (direction === vg.WEST) {
         tx = firstBounds.width / 2;
         _.each(shapes, function (shape) {
             bounds = shape.bounds();
@@ -16706,7 +16722,7 @@ vg.stack = function (shapes, direction, margin) {
             newShapes.push(t.transformShape(shape));
             tx -= bounds.width + margin;
         });
-    } else if (direction === 'n') {
+    } else if (direction === vg.NORTH) {
         ty = firstBounds.height / 2;
         _.each(shapes, function (shape) {
             bounds = shape.bounds();
@@ -16714,7 +16730,7 @@ vg.stack = function (shapes, direction, margin) {
             newShapes.push(t.transformShape(shape));
             ty -= bounds.height + margin;
         });
-    } else if (direction === 's') {
+    } else if (direction === vg.SOUTH) {
         ty = -(firstBounds.height / 2);
         _.each(shapes, function (shape) {
             bounds = shape.bounds();
