@@ -742,7 +742,7 @@ vg.ungroup = function (shape) {
     }
 };
 
-vg.centroid = function (shape) {
+vg.centerPoint = function (shape) {
     if (!shape) {
         return Point.ZERO;
     }
