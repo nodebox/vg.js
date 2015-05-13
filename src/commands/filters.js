@@ -421,7 +421,7 @@ vg.scatter = function (shape, amount, seed) {
     return points;
 };
 
-vg.connect = function (points, closed) {
+vg.connectPoints = function (points, closed) {
     if (!points) {
         return;
     }
