@@ -483,13 +483,12 @@ vg.align = function (shape, position, hAlign, vAlign) {
 };
 
 // Snap geometry to a grid.
-vg.snap = function (shape, distance, strength, position) {
+vg.snap = function (shape, distance, strength, center) {
     if (!shape) {
         return;
     }
-    strength = strength !== undefined ? strength : 100;
-    strength /= 100;
-    position = position || Point.ZERO;
+    strength = strength !== undefined ? strength : 1;
+    center = center || Point.ZERO;
 
     var snapShape = function (shape) {
         if (shape.commands) {
@@ -497,17 +496,17 @@ vg.snap = function (shape, distance, strength, position) {
             for (var i = 0; i < shape.commands.length; i += 1) {
                 var cmd = shape.commands[i];
                 if (cmd.type === bezier.MOVETO || cmd.type === bezier.LINETO || cmd.type === bezier.CURVETO) {
-                    var x = math.snap(cmd.x + position.x, distance, strength) - position.x;
-                    var y = math.snap(cmd.y + position.y, distance, strength) - position.y;
+                    var x = math.snap(cmd.x + center.x, distance, strength) - center.x;
+                    var y = math.snap(cmd.y + center.y, distance, strength) - center.y;
                     if (cmd.type === bezier.MOVETO) {
                         p.moveTo(x, y);
                     } else if (cmd.type === bezier.LINETO) {
                         p.lineTo(x, y);
                     } else if (cmd.type === bezier.CURVETO) {
-                        var x1 = math.snap(cmd.x1 + position.x, distance, strength) - position.x;
-                        var y1 = math.snap(cmd.y1 + position.y, distance, strength) - position.y;
-                        var x2 = math.snap(cmd.x2 + position.x, distance, strength) - position.x;
-                        var y2 = math.snap(cmd.y2 + position.y, distance, strength) - position.y;
+                        var x1 = math.snap(cmd.x1 + center.x, distance, strength) - center.x;
+                        var y1 = math.snap(cmd.y1 + center.y, distance, strength) - center.y;
+                        var x2 = math.snap(cmd.x2 + center.x, distance, strength) - center.x;
+                        var y2 = math.snap(cmd.y2 + center.y, distance, strength) - center.y;
                         p.curveTo(x1, y1, x2, y2, x, y);
                     }
                 } else if (cmd.type === bezier.CLOSE) {
