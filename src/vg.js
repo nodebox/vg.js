@@ -39,6 +39,7 @@ function importCommands(module) {
 }
 
 var Transformable = require('./objects/transformable');
+_.extend(vg.Point.prototype, Transformable);
 _.extend(vg.Path.prototype, Transformable);
 _.extend(vg.Group.prototype, Transformable);
 

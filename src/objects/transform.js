@@ -161,6 +161,8 @@ Transform.prototype.transformShape = function (shape) {
         fn = this.transformGroup;
     } else if (shape.text) {
         fn = this.transformText;
+    } else if (shape.x !== undefined && shape.y !== undefined) {
+        fn = this.transformPoint;
     } else if (Array.isArray(shape) && shape.length > 0 && shape[0].x !== undefined && shape[0].y !== undefined) {
         fn = this.transformPoints;
     } else {
