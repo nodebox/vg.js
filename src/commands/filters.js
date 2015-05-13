@@ -607,7 +607,7 @@ vg.pointOnPath = function (shape, t) {
     return {x: pt.x, y: pt.y};
 };
 
-vg.shapeOnPath = function (shapes, path, amount, alignment, spacing, margin, baselineOffset) {
+/*vg.shapeOnPath = function (shapes, path, amount, alignment, spacing, margin, baselineOffset) {
     if (!shapes) { return []; }
     if (path === null) { return []; }
 
@@ -653,7 +653,7 @@ vg.shapeOnPath = function (shapes, path, amount, alignment, spacing, margin, bas
         _.each(shapes, putOnPath);
     }
     return newShapes;
-};
+};*/
 
 vg._x = function (shape) {
     if (shape.x !== undefined) {
