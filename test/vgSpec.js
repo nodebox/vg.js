@@ -486,12 +486,12 @@ describe('The colorize filter', function () {
 
 });
 
-describe('The centroid filter', function () {
+describe('The centerPoint filter', function () {
     it ('works on paths', function () {
         var r = vg.rect(vg.Point.ZERO, 100, 100);
-        assert.deepEqual(vg.centroid(r).xy, [0, 0]);
+        assert.deepEqual(vg.centerPoint(r).xy, [0, 0]);
         var e = vg.ellipse(vg.Point.ZERO, 100, 100);
-        assert.deepEqual(vg.centroid(e).xy, [0, 0]);
+        assert.deepEqual(vg.centerPoint(e).xy, [0, 0]);
     });
 });
 
