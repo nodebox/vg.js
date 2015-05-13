@@ -42,6 +42,7 @@ var Transformable = require('./objects/transformable');
 _.extend(vg.Point.prototype, Transformable);
 _.extend(vg.Path.prototype, Transformable);
 _.extend(vg.Group.prototype, Transformable);
+_.extend(vg.Text.prototype, Transformable);
 
 importCommands(require('./commands/draw'));
 importCommands(require('./commands/filters'));
