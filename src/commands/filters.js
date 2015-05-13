@@ -676,8 +676,8 @@ vg._angleToPoint = function (point) {
         if (shape.x !== undefined && shape.y !== undefined) {
             return geo.angle(shape.x, shape.y, point.x, point.y);
         } else {
-            var centroid = shape.bounds().centroid();
-            return geo.angle(centroid.x, centroid.y, point.x, point.y);
+            var centerPoint = shape.bounds().centerPoint();
+            return geo.angle(centerPoint.x, centerPoint.y, point.x, point.y);
         }
     };
 };
@@ -687,8 +687,8 @@ vg._distanceToPoint = function (point) {
         if (shape.x !== undefined && shape.y !== undefined) {
             return geo.distance(shape.x, shape.y, point.x, point.y);
         } else {
-            var centroid = shape.bounds().centroid();
-            return geo.distance(centroid.x, centroid.y, point.x, point.y);
+            var centerPoint = shape.bounds().centerPoint();
+            return geo.distance(centerPoint.x, centerPoint.y, point.x, point.y);
         }
     };
 };

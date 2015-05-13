@@ -89,7 +89,7 @@ Rect.prototype.addPoint = function (x, y) {
     return new Rect(_x, _y, width, height);
 };
 
-Rect.prototype.centroid = function () {
+Rect.prototype.centerPoint = function () {
     return new Point(this.x + this.width / 2, this.y + this.height / 2);
 };
 
