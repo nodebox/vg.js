@@ -800,6 +800,7 @@ vg.stack = function (shapes, direction, margin) {
     var tx, ty, t, bounds,
         firstBounds = shapes[0].bounds(),
         newShapes = [];
+    margin = margin || 0;
     if (direction === vg.EAST) {
         tx = -(firstBounds.width / 2);
         _.each(shapes, function (shape) {
