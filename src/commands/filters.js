@@ -21,6 +21,11 @@ var vg = {};
 vg.HORIZONTAL = 'horizontal';
 vg.VERTICAL = 'vertical';
 
+vg.EAST = 'e';
+vg.WEST = 'w';
+vg.NORTH = 'n';
+vg.SOUTH = 's';
+
 vg.bounds = function (o) {
     var r, i, n;
     if (!o) {
@@ -795,7 +800,7 @@ vg.stack = function (shapes, direction, margin) {
     var tx, ty, t, bounds,
         firstBounds = shapes[0].bounds(),
         newShapes = [];
-    if (direction === 'e') {
+    if (direction === vg.EAST) {
         tx = -(firstBounds.width / 2);
         _.each(shapes, function (shape) {
             bounds = shape.bounds();
@@ -803,7 +808,7 @@ vg.stack = function (shapes, direction, margin) {
             newShapes.push(t.transformShape(shape));
             tx += bounds.width + margin;
         });
-    } else if (direction === 'w') {
+    } else if (direction === vg.WEST) {
         tx = firstBounds.width / 2;
         _.each(shapes, function (shape) {
             bounds = shape.bounds();
@@ -811,7 +816,7 @@ vg.stack = function (shapes, direction, margin) {
             newShapes.push(t.transformShape(shape));
             tx -= bounds.width + margin;
         });
-    } else if (direction === 'n') {
+    } else if (direction === vg.NORTH) {
         ty = firstBounds.height / 2;
         _.each(shapes, function (shape) {
             bounds = shape.bounds();
@@ -819,7 +824,7 @@ vg.stack = function (shapes, direction, margin) {
             newShapes.push(t.transformShape(shape));
             ty -= bounds.height + margin;
         });
-    } else if (direction === 's') {
+    } else if (direction === vg.SOUTH) {
         ty = -(firstBounds.height / 2);
         _.each(shapes, function (shape) {
             bounds = shape.bounds();
