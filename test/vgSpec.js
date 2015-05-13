@@ -495,10 +495,10 @@ describe('The centerPoint filter', function () {
     });
 });
 
-describe('The reflect filter', function () {
+describe('The mirror filter', function () {
     it('works on paths', function () {
         var r = vg.rect(50, 0, 100, 100);
-        var rr = vg.reflect(r, vg.Point.ZERO, 90);
+        var rr = vg.mirror(r, 90, vg.Point.ZERO);
         assertRectsAlmostEqual(rr.bounds(), new vg.Rect(-100, -50, 100, 100));
     });
 });

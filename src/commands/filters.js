@@ -205,24 +205,26 @@ vg.fitTo = function (shape, bounding, stretch) {
     return vg.fit(shape, {x: bx + bw / 2, y: by + bh / 2}, bw, bh, stretch);
 };
 
-vg.reflect = function (shape, position, angle, keepOriginal) {
+vg.mirror = function (shape, angle, origin, keepOriginal) {
     if (!shape) {
         return;
     }
-    position = position || new Point();
-    angle = angle || 0;
+    origin = origin || new Point();
+    if (angle !== 0) {
+        angle = angle || 90;
+    }
 
     var f = function (x, y) {
-        var d = geo.distance(x, y, position.x, position.y),
-            a = geo.angle(x, y, position.x, position.y),
-            pt = geo.coordinates(position.x, position.y, d * Math.cos(math.radians(a - angle)), 180 + angle);
+        var d = geo.distance(x, y, origin.x, origin.y),
+            a = geo.angle(x, y, origin.x, origin.y),
+            pt = geo.coordinates(origin.x, origin.y, d * Math.cos(math.radians(a - angle)), 180 + angle);
         d = geo.distance(x, y, pt.x, pt.y);
         a = geo.angle(x, y, pt.x, pt.y);
         pt = geo.coordinates(x, y, d * 2, a);
         return new Point(pt.x, pt.y);
     };
 
-    var reflectPath = function (path) {
+    var mirrorPath = function (path) {
         var pt, ctrl1, ctrl2;
         var p = new Path([], path.fill, path.stroke, path.strokeWidth);
         for (var i = 0; i < path.commands.length; i += 1) {
@@ -247,19 +249,19 @@ vg.reflect = function (shape, position, angle, keepOriginal) {
         return p;
     };
 
-    var reflectGroup = function (group) {
+    var mirrorGroup = function (group) {
         var shapes = _.map(group.shapes, function (shape) {
-            return reflect(shape);
+            return mirror(shape);
         });
         return new Group(shapes);
     };
 
-    var reflect = function (shape) {
-        var fn = (shape.shapes) ? reflectGroup : reflectPath;
+    var mirror = function (shape) {
+        var fn = (shape.shapes) ? mirrorGroup : mirrorPath;
         return fn(shape);
     };
 
-    var newShape = reflect(shape);
+    var newShape = mirror(shape);
 
     if (keepOriginal) {
         return new Group([shape, newShape]);
