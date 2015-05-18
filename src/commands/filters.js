@@ -144,7 +144,11 @@ vg.copy = function (shape, copies, order, translate, rotate, scale) {
                 t = t.scale(sx, sy);
             }
         }
-        shapes.push(t.transformShape(shape));
+        if (Array.isArray(shape) && shape.length > 0 && shape[0].x !== undefined && shape[0].y !== undefined) {
+            shapes = shapes.concat(t.transformShape(shape));
+        } else {
+            shapes.push(t.transformShape(shape));
+        }
 
         tx += translate.x;
         ty += translate.y;
