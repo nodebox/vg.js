@@ -16013,7 +16013,7 @@ vg.scale = function (shape, scale, origin) {
 };
 
 vg.rotate = function (shape, angle, origin) {
-    return Transformable.scale.apply(shape, [angle, origin]);
+    return Transformable.rotate.apply(shape, [angle, origin]);
 };
 
 vg.skew = function (shape, skew, origin) {
@@ -16688,7 +16688,7 @@ vg.centerPoint = function (shape) {
     if (!shape) {
         return Point.ZERO;
     }
-    var r = shape.bounds();
+    var r = vg.bounds(shape);
     return new Point(r.x + r.width / 2, r.y + r.height / 2);
 };
 
