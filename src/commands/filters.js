@@ -490,7 +490,7 @@ vg.align = function (shape, position, hAlign, vAlign) {
     var dx, dy, t,
         x = position.x,
         y = position.y,
-        bounds = shape.bounds();
+        bounds = vg.bounds(shape);
     if (hAlign === 'left') {
         dx = x - bounds.x;
     } else if (hAlign === 'right') {
