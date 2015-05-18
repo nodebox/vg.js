@@ -417,7 +417,7 @@ vg.wigglePaths = function (shape, offset, seed) {
     return wigglePaths(shape);
 };
 
-vg.scatter = function (shape, amount, seed) {
+vg.scatterPoints = function (shape, amount, seed) {
     // Generate points within the boundaries of a shape.
     if (!shape) {
         return;
