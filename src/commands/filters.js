@@ -15,6 +15,7 @@ var Path = require('../objects/path');
 var Point = require('../objects/point');
 var Rect = require('../objects/rect');
 var Transform = require('../objects/transform');
+var Transformable = require('../objects/transformable');
 
 var vg = {};
 
@@ -109,19 +110,19 @@ vg.colorize = function (shape, fill, stroke, strokeWidth) {
 };
 
 vg.translate = function (shape, position) {
-    return shape.translate(position);
+    return Transformable.translate.apply(shape, [position]);
 };
 
 vg.scale = function (shape, scale, origin) {
-    return shape.scale(scale, origin);
+    return Transformable.scale.apply(shape, [scale, origin]);
 };
 
 vg.rotate = function (shape, angle, origin) {
-    return shape.rotate(angle, origin);
+    return Transformable.scale.apply(shape, [angle, origin]);
 };
 
 vg.skew = function (shape, skew, origin) {
-    return shape.skew(skew, origin);
+    return Transformable.skew.apply(shape, [skew, origin]);
 };
 
 vg.copy = function (shape, copies, order, translate, rotate, scale) {
