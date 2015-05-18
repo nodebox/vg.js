@@ -259,6 +259,12 @@ vg.mirror = function (shape, angle, origin, keepOriginal) {
         return p;
     };
 
+    var mirrorPoints = function (points) {
+        return _.map(points, function (point) {
+            return f(point.x, point.y);
+        });
+    };
+
     var mirrorGroup = function (group) {
         var shapes = _.map(group.shapes, function (shape) {
             return mirror(shape);
@@ -267,6 +273,9 @@ vg.mirror = function (shape, angle, origin, keepOriginal) {
     };
 
     var mirror = function (shape) {
+        if (Array.isArray(shape) && shape.length > 0 && shape[0].x !== undefined && shape[0].y !== undefined) {
+            return mirrorPoints(shape);
+        }
         var fn = (shape.shapes) ? mirrorGroup : mirrorPath;
         return fn(shape);
     };
@@ -274,6 +283,9 @@ vg.mirror = function (shape, angle, origin, keepOriginal) {
     var newShape = mirror(shape);
 
     if (keepOriginal) {
+        if (Array.isArray(shape) && shape.length > 0 && shape[0].x !== undefined && shape[0].y !== undefined) {
+            return shape.concat(newShape);
+        }
         return new Group([shape, newShape]);
     } else {
         return newShape;
