@@ -641,16 +641,18 @@ vg['delete'] = function (shape, bounding, scope, deleteSelected) {
 };
 
 vg.pointOnPath = function (shape, t) {
-    var pt;
     if (!shape) {
         return;
     }
     if (shape.shapes) {
         shape = new Path(vg.combinePaths(shape));
     }
-    t = Math.abs(t % 1);
-    pt = shape.point(t);
-    return {x: pt.x, y: pt.y};
+    t = t % 1;
+    if (t < 0) {
+        t = 1 + t;
+    }
+    var pt = shape.point(t);
+    return new Point(pt.x, pt.y);
 };
 
 /*vg.shapeOnPath = function (shapes, path, amount, alignment, spacing, margin, baselineOffset) {
