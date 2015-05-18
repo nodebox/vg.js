@@ -118,7 +118,7 @@ vg.scale = function (shape, scale, origin) {
 };
 
 vg.rotate = function (shape, angle, origin) {
-    return Transformable.scale.apply(shape, [angle, origin]);
+    return Transformable.rotate.apply(shape, [angle, origin]);
 };
 
 vg.skew = function (shape, skew, origin) {
