@@ -15910,6 +15910,7 @@ var Path = require('../objects/path');
 var Point = require('../objects/point');
 var Rect = require('../objects/rect');
 var Transform = require('../objects/transform');
+var Transformable = require('../objects/transformable');
 
 var vg = {};
 
@@ -15985,7 +15986,7 @@ vg.shapePoints = vg.toPoints = function (shape) {
         return [];
     }
     if (shape.commands) {
-        return _.map(_.filter(shape.commands, function (cmd) { if (cmd.x !== undefined) { return true; } return false; }), function (cmd) { return {x: cmd.x, y: cmd.y}; });
+        return _.map(_.filter(shape.commands, function (cmd) { if (cmd.x !== undefined) { return true; } return false; }), function (cmd) { return new Point(cmd.x, cmd.y); });
     }
     var i, points = [];
     for (i = 0; i < shape.shapes.length; i += 1) {
@@ -16004,19 +16005,19 @@ vg.colorize = function (shape, fill, stroke, strokeWidth) {
 };
 
 vg.translate = function (shape, position) {
-    return shape.translate(position);
+    return Transformable.translate.apply(shape, [position]);
 };
 
 vg.scale = function (shape, scale, origin) {
-    return shape.scale(scale, origin);
+    return Transformable.scale.apply(shape, [scale, origin]);
 };
 
 vg.rotate = function (shape, angle, origin) {
-    return shape.rotate(angle, origin);
+    return Transformable.scale.apply(shape, [angle, origin]);
 };
 
 vg.skew = function (shape, skew, origin) {
-    return shape.skew(skew, origin);
+    return Transformable.skew.apply(shape, [skew, origin]);
 };
 
 vg.copy = function (shape, copies, order, translate, rotate, scale) {
@@ -16039,7 +16040,11 @@ vg.copy = function (shape, copies, order, translate, rotate, scale) {
                 t = t.scale(sx, sy);
             }
         }
-        shapes.push(t.transformShape(shape));
+        if (Array.isArray(shape) && shape.length > 0 && shape[0].x !== undefined && shape[0].y !== undefined) {
+            shapes = shapes.concat(t.transformShape(shape));
+        } else {
+            shapes.push(t.transformShape(shape));
+        }
 
         tx += translate.x;
         ty += translate.y;
@@ -16056,7 +16061,7 @@ vg.fit = function (shape, position, width, height, stretch) {
     }
     stretch = stretch !== undefined ? stretch : false;
     var t, sx, sy,
-        bounds = shape.bounds(),
+        bounds = vg.bounds(shape),
         bx = bounds.x,
         by = bounds.y,
         bw = bounds.width,
@@ -16096,7 +16101,7 @@ vg.fitTo = function (shape, bounding, stretch) {
         return;
     }
 
-    var bounds = bounding.bounds(),
+    var bounds = vg.bounds(bounding),
         bx = bounds.x,
         by = bounds.y,
         bw = bounds.width,
@@ -16149,6 +16154,12 @@ vg.mirror = function (shape, angle, origin, keepOriginal) {
         return p;
     };
 
+    var mirrorPoints = function (points) {
+        return _.map(points, function (point) {
+            return f(point.x, point.y);
+        });
+    };
+
     var mirrorGroup = function (group) {
         var shapes = _.map(group.shapes, function (shape) {
             return mirror(shape);
@@ -16157,6 +16168,9 @@ vg.mirror = function (shape, angle, origin, keepOriginal) {
     };
 
     var mirror = function (shape) {
+        if (Array.isArray(shape) && shape.length > 0 && shape[0].x !== undefined && shape[0].y !== undefined) {
+            return mirrorPoints(shape);
+        }
         var fn = (shape.shapes) ? mirrorGroup : mirrorPath;
         return fn(shape);
     };
@@ -16164,6 +16178,9 @@ vg.mirror = function (shape, angle, origin, keepOriginal) {
     var newShape = mirror(shape);
 
     if (keepOriginal) {
+        if (Array.isArray(shape) && shape.length > 0 && shape[0].x !== undefined && shape[0].y !== undefined) {
+            return shape.concat(newShape);
+        }
         return new Group([shape, newShape]);
     } else {
         return newShape;
@@ -16368,7 +16385,7 @@ vg.align = function (shape, position, hAlign, vAlign) {
     var dx, dy, t,
         x = position.x,
         y = position.y,
-        bounds = shape.bounds();
+        bounds = vg.bounds(shape);
     if (hAlign === 'left') {
         dx = x - bounds.x;
     } else if (hAlign === 'right') {
@@ -16428,6 +16445,12 @@ vg.snap = function (shape, distance, strength, center) {
             return p;
         } else if (shape.shapes) {
             return new Group(_.map(shape.shapes, snapShape));
+        } else if (Array.isArray(shape) && shape.length > 0 && shape[0].x !== undefined && shape[0].y !== undefined) {
+            return _.map(shape, function (point) {
+                var x = math.snap(point.x + center.x, distance, strength) - center.x;
+                var y = math.snap(point.y + center.y, distance, strength) - center.y;
+                return new Point(x, y);
+            });
         } else {
             return _.map(shape, snapShape);
         }
@@ -16828,7 +16851,7 @@ vg.compound = function (shape1, shape2, method) {
 
 module.exports = vg;
 
-},{"../objects/color":9,"../objects/group":10,"../objects/path":12,"../objects/point":13,"../objects/rect":14,"../objects/transform":16,"../util/bezier":19,"../util/geo":21,"../util/math":23,"../util/random":24,"js-clipper":1,"lodash":2}],8:[function(require,module,exports){
+},{"../objects/color":9,"../objects/group":10,"../objects/path":12,"../objects/point":13,"../objects/rect":14,"../objects/transform":16,"../objects/transformable":17,"../util/bezier":19,"../util/geo":21,"../util/math":23,"../util/random":24,"js-clipper":1,"lodash":2}],8:[function(require,module,exports){
 // Basic shapes
 
 'use strict';
@@ -18774,6 +18797,8 @@ Transform.prototype.transformShape = function (shape) {
         fn = this.transformGroup;
     } else if (shape.text) {
         fn = this.transformText;
+    } else if (shape.x !== undefined && shape.y !== undefined) {
+        fn = this.transformPoint;
     } else if (Array.isArray(shape) && shape.length > 0 && shape[0].x !== undefined && shape[0].y !== undefined) {
         fn = this.transformPoints;
     } else {
@@ -20360,8 +20385,10 @@ function importCommands(module) {
 }
 
 var Transformable = require('./objects/transformable');
+_.extend(vg.Point.prototype, Transformable);
 _.extend(vg.Path.prototype, Transformable);
 _.extend(vg.Group.prototype, Transformable);
+_.extend(vg.Text.prototype, Transformable);
 
 importCommands(require('./commands/draw'));
 importCommands(require('./commands/filters'));
