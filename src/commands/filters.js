@@ -793,7 +793,7 @@ vg.centerPoint = function (shape) {
     if (!shape) {
         return Point.ZERO;
     }
-    var r = shape.bounds();
+    var r = vg.bounds(shape);
     return new Point(r.x + r.width / 2, r.y + r.height / 2);
 };
 
