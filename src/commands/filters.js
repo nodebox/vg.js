@@ -550,6 +550,12 @@ vg.snap = function (shape, distance, strength, center) {
             return p;
         } else if (shape.shapes) {
             return new Group(_.map(shape.shapes, snapShape));
+        } else if (Array.isArray(shape) && shape.length > 0 && shape[0].x !== undefined && shape[0].y !== undefined) {
+            return _.map(shape, function (point) {
+                var x = math.snap(point.x + center.x, distance, strength) - center.x;
+                var y = math.snap(point.y + center.y, distance, strength) - center.y;
+                return new Point(x, y);
+            });
         } else {
             return _.map(shape, snapShape);
         }
