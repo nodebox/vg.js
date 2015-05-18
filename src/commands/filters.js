@@ -166,7 +166,7 @@ vg.fit = function (shape, position, width, height, stretch) {
     }
     stretch = stretch !== undefined ? stretch : false;
     var t, sx, sy,
-        bounds = shape.bounds(),
+        bounds = vg.bounds(shape),
         bx = bounds.x,
         by = bounds.y,
         bw = bounds.width,
@@ -206,7 +206,7 @@ vg.fitTo = function (shape, bounding, stretch) {
         return;
     }
 
-    var bounds = bounding.bounds(),
+    var bounds = vg.bounds(bounding),
         bx = bounds.x,
         by = bounds.y,
         bw = bounds.width,
