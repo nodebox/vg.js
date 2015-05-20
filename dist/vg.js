@@ -17339,6 +17339,10 @@ Color.prototype.desaturate = function () {
     return new Color(gray, gray, gray, this.a);
 };
 
+Color.prototype.invert = function () {
+    return new Color(1 - this.r, 1 - this.g, 1 - this.b, this.a);
+};
+
 Color.clone = function (c) {
     if (c === null || c === undefined) {
         return null;
@@ -17461,6 +17465,13 @@ Group.prototype.colorize = function (fill, stroke, strokeWidth) {
 Group.prototype.desaturate = function () {
     var shapes = _.map(this.shapes, function (shape) {
         return shape.desaturate();
+    });
+    return new Group(shapes);
+};
+
+Group.prototype.invert = function () {
+    var shapes = _.map(this.shapes, function (shape) {
+        return shape.invert();
     });
     return new Group(shapes);
 };
@@ -17986,6 +17997,21 @@ Path.prototype.desaturate = function () {
     }
     p.fill = fill.desaturate();
     p.stroke = stroke.desaturate();
+    return p;
+};
+
+Path.prototype.invert = function () {
+    var p = this.clone();
+    var fill = p.fill;
+    var stroke = p.stroke;
+    if (!(fill instanceof Color)) {
+        fill = Color.parse(fill);
+    }
+    if (!(stroke instanceof Color)) {
+        stroke = Color.parse(stroke);
+    }
+    p.fill = fill.invert();
+    p.stroke = stroke.invert();
     return p;
 };
 
