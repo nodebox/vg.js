@@ -46,6 +46,13 @@ Group.prototype.desaturate = function () {
     return new Group(shapes);
 };
 
+Group.prototype.invert = function () {
+    var shapes = _.map(this.shapes, function (shape) {
+        return shape.invert();
+    });
+    return new Group(shapes);
+};
+
 Group.prototype.bounds = function () {
     if (this.shapes.length === 0) { return new Rect(0, 0, 0, 0); }
     var i, r, shape,

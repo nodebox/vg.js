@@ -260,6 +260,21 @@ Path.prototype.desaturate = function () {
     return p;
 };
 
+Path.prototype.invert = function () {
+    var p = this.clone();
+    var fill = p.fill;
+    var stroke = p.stroke;
+    if (!(fill instanceof Color)) {
+        fill = Color.parse(fill);
+    }
+    if (!(stroke instanceof Color)) {
+        stroke = Color.parse(stroke);
+    }
+    p.fill = fill.invert();
+    p.stroke = stroke.invert();
+    return p;
+};
+
 Path.prototype.contours = function () {
     var contours = [],
         currentContour = [];

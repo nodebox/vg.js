@@ -171,6 +171,10 @@ Color.prototype.desaturate = function () {
     return new Color(gray, gray, gray, this.a);
 };
 
+Color.prototype.invert = function () {
+    return new Color(1 - this.r, 1 - this.g, 1 - this.b, this.a);
+};
+
 Color.clone = function (c) {
     if (c === null || c === undefined) {
         return null;
