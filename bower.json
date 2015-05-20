@@ -1,6 +1,6 @@
 {
   "name": "g.js",
-  "version": "0.6.10",
+  "version": "0.6.11",
   "main": "dist/vg.js",
   "keywords": [
     "vector",

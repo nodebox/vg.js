@@ -16122,10 +16122,10 @@ vg.mirror = function (shape, angle, origin, keepOriginal) {
     var f = function (x, y) {
         var d = geo.distance(x, y, origin.x, origin.y),
             a = geo.angle(x, y, origin.x, origin.y),
-            pt = geo.coordinates(origin.x, origin.y, d * Math.cos(math.radians(a - angle)), 180 + angle);
+            pt = geo.coordinates(origin.x, origin.y, 180 + angle, d * Math.cos(math.radians(a - angle)));
         d = geo.distance(x, y, pt.x, pt.y);
         a = geo.angle(x, y, pt.x, pt.y);
-        pt = geo.coordinates(x, y, d * 2, a);
+        pt = geo.coordinates(x, y, a, d * 2);
         return new Point(pt.x, pt.y);
     };
 
@@ -16584,7 +16584,7 @@ vg.pointOnPath = function (shape, t) {
         p2 = path.point(pos + 0.0000001);
         a = geo.angle(p1.x, p1.y, p2.x, p2.y);
         if (baselineOffset) {
-            p1 = geo.coordinates(p1.x, p1.y, baselineOffset, a - 90);
+            p1 = geo.coordinates(p1.x, p1.y, a - 90, baselineOffset);
         }
         t = new Transform();
         t = t.translate(p1.x, p1.y);
@@ -16955,7 +16955,7 @@ vg.line = function (point1, point2) {
     return line;
 };
 
-vg.lineAngle = function (point, distance, angle) {
+vg.lineAngle = function (point, angle, distance) {
     var args = arguments;
     if (args.length === 4) {
         point = Point.read(args[0], args[1]);
@@ -16964,7 +16964,7 @@ vg.lineAngle = function (point, distance, angle) {
     } else {
         point = Point.read(point);
     }
-    var point2 = geo.coordinates(point.x, point.y, distance, angle);
+    var point2 = geo.coordinates(point.x, point.y, angle, distance);
     return vg.line(point, point2);
 };
 
@@ -17000,7 +17000,7 @@ vg.curve = function (pt1, pt2, t, distance) {
     var cx = pt1.x + t * (pt2.x - pt1.x),
         cy = pt1.y + t * (pt2.y - pt1.y),
         a = geo.angle(pt1.x, pt1.y, pt2.x, pt2.y) + 90,
-        q = geo.coordinates(cx, cy, distance, a),
+        q = geo.coordinates(cx, cy, a, distance),
         qx = q.x,
         qy = q.y,
 
@@ -17038,13 +17038,13 @@ vg.polygon = function (position, radius, sides, align) {
         a = 360.0 / sides,
         da = 0;
     if (align === true) {
-        c0 = geo.coordinates(x, y, r, 0);
-        c1 = geo.coordinates(x, y, r, a);
+        c0 = geo.coordinates(x, y, 0, r);
+        c1 = geo.coordinates(x, y, a, r);
         da = -geo.angle(c1.x, c1.y, c0.x, c0.y);
     }
     var p = new Path();
     for (i = 0; i < sides; i += 1) {
-        c = geo.coordinates(x, y, r, (a * i) + da);
+        c = geo.coordinates(x, y, (a * i) + da, r);
         if (i === 0) {
             p.moveTo(c.x, c.y);
         } else {
@@ -19497,7 +19497,7 @@ geo.distance = function (x0, y0, x1, y1) {
 };
 
 // Returns the location of a point by rotating around origin (x0,y0).
-geo.coordinates = function (x0, y0, distance, angle) {
+geo.coordinates = function (x0, y0, angle, distance) {
     var x = x0 + Math.cos(math.radians(angle)) * distance,
         y = y0 + Math.sin(math.radians(angle)) * distance;
     return new Point(x, y);
