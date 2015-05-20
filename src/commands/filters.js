@@ -227,10 +227,10 @@ vg.mirror = function (shape, angle, origin, keepOriginal) {
     var f = function (x, y) {
         var d = geo.distance(x, y, origin.x, origin.y),
             a = geo.angle(x, y, origin.x, origin.y),
-            pt = geo.coordinates(origin.x, origin.y, d * Math.cos(math.radians(a - angle)), 180 + angle);
+            pt = geo.coordinates(origin.x, origin.y, 180 + angle, d * Math.cos(math.radians(a - angle)));
         d = geo.distance(x, y, pt.x, pt.y);
         a = geo.angle(x, y, pt.x, pt.y);
-        pt = geo.coordinates(x, y, d * 2, a);
+        pt = geo.coordinates(x, y, a, d * 2);
         return new Point(pt.x, pt.y);
     };
 
@@ -689,7 +689,7 @@ vg.pointOnPath = function (shape, t) {
         p2 = path.point(pos + 0.0000001);
         a = geo.angle(p1.x, p1.y, p2.x, p2.y);
         if (baselineOffset) {
-            p1 = geo.coordinates(p1.x, p1.y, baselineOffset, a - 90);
+            p1 = geo.coordinates(p1.x, p1.y, a - 90, baselineOffset);
         }
         t = new Transform();
         t = t.translate(p1.x, p1.y);

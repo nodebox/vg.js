@@ -98,7 +98,7 @@ vg.line = function (point1, point2) {
     return line;
 };
 
-vg.lineAngle = function (point, distance, angle) {
+vg.lineAngle = function (point, angle, distance) {
     var args = arguments;
     if (args.length === 4) {
         point = Point.read(args[0], args[1]);
@@ -107,7 +107,7 @@ vg.lineAngle = function (point, distance, angle) {
     } else {
         point = Point.read(point);
     }
-    var point2 = geo.coordinates(point.x, point.y, distance, angle);
+    var point2 = geo.coordinates(point.x, point.y, angle, distance);
     return vg.line(point, point2);
 };
 
@@ -143,7 +143,7 @@ vg.curve = function (pt1, pt2, t, distance) {
     var cx = pt1.x + t * (pt2.x - pt1.x),
         cy = pt1.y + t * (pt2.y - pt1.y),
         a = geo.angle(pt1.x, pt1.y, pt2.x, pt2.y) + 90,
-        q = geo.coordinates(cx, cy, distance, a),
+        q = geo.coordinates(cx, cy, a, distance),
         qx = q.x,
         qy = q.y,
 
@@ -181,13 +181,13 @@ vg.polygon = function (position, radius, sides, align) {
         a = 360.0 / sides,
         da = 0;
     if (align === true) {
-        c0 = geo.coordinates(x, y, r, 0);
-        c1 = geo.coordinates(x, y, r, a);
+        c0 = geo.coordinates(x, y, 0, r);
+        c1 = geo.coordinates(x, y, a, r);
         da = -geo.angle(c1.x, c1.y, c0.x, c0.y);
     }
     var p = new Path();
     for (i = 0; i < sides; i += 1) {
-        c = geo.coordinates(x, y, r, (a * i) + da);
+        c = geo.coordinates(x, y, (a * i) + da, r);
         if (i === 0) {
             p.moveTo(c.x, c.y);
         } else {

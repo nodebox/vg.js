@@ -19,7 +19,7 @@ geo.distance = function (x0, y0, x1, y1) {
 };
 
 // Returns the location of a point by rotating around origin (x0,y0).
-geo.coordinates = function (x0, y0, distance, angle) {
+geo.coordinates = function (x0, y0, angle, distance) {
     var x = x0 + Math.cos(math.radians(angle)) * distance,
         y = y0 + Math.sin(math.radians(angle)) * distance;
     return new Point(x, y);
