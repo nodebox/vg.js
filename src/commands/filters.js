@@ -564,7 +564,7 @@ vg.snap = function (shape, distance, strength, center) {
     return snapShape(shape);
 };
 
-vg.deletePoints = function (shape, bounding, deleteSelected) {
+vg.deletePoints = function (shape, bounding, invert) {
     var deletePoints = function (shape) {
         var i, cmd, commands = [];
         var pt, points = [];
@@ -572,8 +572,8 @@ vg.deletePoints = function (shape, bounding, deleteSelected) {
             for (i = 0; i < shape.commands.length; i += 1) {
                 cmd = shape.commands[i];
                 if (cmd.x === undefined ||
-                        (!deleteSelected && bounding.contains(cmd.x, cmd.y)) ||
-                        (deleteSelected && !bounding.contains(cmd.x, cmd.y))) {
+                        (!invert && bounding.contains(cmd.x, cmd.y)) ||
+                        (invert && !bounding.contains(cmd.x, cmd.y))) {
                     commands.push(cmd);
                 }
             }
@@ -583,8 +583,8 @@ vg.deletePoints = function (shape, bounding, deleteSelected) {
         } else if (Array.isArray(shape) && shape.length > 0 && shape[0].x !== undefined && shape[0].y !== undefined){
             for (i = 0; i < shape.length; i += 1) {
                 pt = shape[i];
-                if ((!deleteSelected && bounding.contains(pt.x, pt.y)) ||
-                   (deleteSelected && !bounding.contains(pt.x, pt.y))) {
+                if ((!invert && bounding.contains(pt.x, pt.y)) ||
+                   (invert && !bounding.contains(pt.x, pt.y))) {
                     points.push(pt);
                 }
             }
@@ -597,7 +597,7 @@ vg.deletePoints = function (shape, bounding, deleteSelected) {
     return deletePoints(shape);
 };
 
-vg.deletePaths = function (shape, bounding, deleteSelected) {
+vg.deletePaths = function (shape, bounding, invert) {
     var deletePaths = function (shape) {
         if (shape.commands) {
             return null;
@@ -614,7 +614,7 @@ vg.deletePaths = function (shape, bounding, deleteSelected) {
                             break;
                         }
                     }
-                    if (selected !== deleteSelected) {
+                    if (selected !== invert) {
                         newShapes.push(s);
                     }
                 } else if (s.shapes) {
@@ -633,10 +633,10 @@ vg.deletePaths = function (shape, bounding, deleteSelected) {
     return deletePaths(shape);
 };
 
-vg['delete'] = function (shape, bounding, scope, deleteSelected) {
+vg['delete'] = function (shape, bounding, scope, invert) {
     if (shape === null || bounding === null) { return null; }
-    if (scope === 'points') { return vg.deletePoints(shape, bounding, deleteSelected); }
-    if (scope === 'paths') { return vg.deletePaths(shape, bounding, deleteSelected); }
+    if (scope === 'points') { return vg.deletePoints(shape, bounding, invert); }
+    if (scope === 'paths') { return vg.deletePaths(shape, bounding, invert); }
     throw new Error('Invalid scope.');
 };
 
