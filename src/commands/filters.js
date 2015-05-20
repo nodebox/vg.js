@@ -602,9 +602,12 @@ vg.deletePaths = function (shape, bounding, invert) {
         if (shape.commands) {
             return null;
         } else if (shape.shapes) {
-            var i, j, s, selected, cmd, subShapes, newShapes = [];
-            for (i = 0; i < shape.shapes.length; i += 1) {
-                s = shape.shapes[i];
+            return new Group(deletePaths(shape.shapes));
+        } else if (Array.isArray(shape)) {
+            var j, s, selected, cmd, subShapes, newShapes = [];
+            var shapes = shape;
+            for (var i = 0; i < shapes.length; i += 1) {
+                s = shapes[i];
                 if (s.commands) {
                     selected = false;
                     for (j = 0; j < s.commands.length; j += 1) {
@@ -624,9 +627,7 @@ vg.deletePaths = function (shape, bounding, invert) {
                     }
                 }
             }
-            return new Group(newShapes);
-        } else {
-            return _.map(shape, deletePaths);
+            return newShapes;
         }
     };
 
