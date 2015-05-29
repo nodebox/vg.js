@@ -110,18 +110,30 @@ vg.colorize = function (shape, fill, stroke, strokeWidth) {
 };
 
 vg.translate = function (shape, position) {
+    if (shape.translate) {
+        return shape.translate(position);
+    }
     return Transformable.translate.apply(shape, [position]);
 };
 
 vg.scale = function (shape, scale, origin) {
+    if (shape.scale) {
+        return shape.scale(scale, origin);
+    }
     return Transformable.scale.apply(shape, [scale, origin]);
 };
 
 vg.rotate = function (shape, angle, origin) {
+    if (shape.rotate) {
+        return shape.rotate(angle, origin);
+    }
     return Transformable.rotate.apply(shape, [angle, origin]);
 };
 
 vg.skew = function (shape, skew, origin) {
+    if (shape.skew) {
+        return shape.skew(skew, origin);
+    }
     return Transformable.skew.apply(shape, [skew, origin]);
 };
 
