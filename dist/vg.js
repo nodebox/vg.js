@@ -21929,8 +21929,8 @@ vg.deletePoints = function (shape, bounding, invert) {
             for (i = 0; i < shape.commands.length; i += 1) {
                 cmd = shape.commands[i];
                 if (cmd.x === undefined ||
-                        (!invert && bounding.contains(cmd.x, cmd.y)) ||
-                        (invert && !bounding.contains(cmd.x, cmd.y))) {
+                        (invert && bounding.contains(cmd.x, cmd.y)) ||
+                        (!invert && !bounding.contains(cmd.x, cmd.y))) {
                     commands.push(cmd);
                 }
             }
@@ -21940,8 +21940,8 @@ vg.deletePoints = function (shape, bounding, invert) {
         } else if (Array.isArray(shape) && shape.length > 0 && shape[0].x !== undefined && shape[0].y !== undefined){
             for (i = 0; i < shape.length; i += 1) {
                 pt = shape[i];
-                if ((!invert && bounding.contains(pt.x, pt.y)) ||
-                   (invert && !bounding.contains(pt.x, pt.y))) {
+                if ((invert && bounding.contains(pt.x, pt.y)) ||
+                   (!invert && !bounding.contains(pt.x, pt.y))) {
                     points.push(pt);
                 }
             }
@@ -21974,7 +21974,7 @@ vg.deletePaths = function (shape, bounding, invert) {
                             break;
                         }
                     }
-                    if (selected !== invert) {
+                    if (!((invert && !selected) || (selected && !invert))) {
                         newShapes.push(s);
                     }
                 } else if (s.shapes) {
