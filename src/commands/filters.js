@@ -17,6 +17,24 @@ var Rect = require('../objects/rect');
 var Transform = require('../objects/transform');
 var Transformable = require('../objects/transformable');
 
+function _cloneCommand(cmd) {
+    var newCmd = {type: cmd.type};
+    if (newCmd.type !== bezier.CLOSE) {
+        newCmd.x = cmd.x;
+        newCmd.y = cmd.y;
+    }
+    if (newCmd.type === bezier.QUADTO) {
+        newCmd.x1 = cmd.x1;
+        newCmd.y1 = cmd.y1;
+    } else if (newCmd.type === bezier.CURVETO) {
+        newCmd.x1 = cmd.x1;
+        newCmd.y1 = cmd.y1;
+        newCmd.x2 = cmd.x2;
+        newCmd.y2 = cmd.y2;
+    }
+    return newCmd;
+}
+
 var vg = {};
 
 vg.HORIZONTAL = 'horizontal';
@@ -581,12 +599,21 @@ vg.deletePoints = function (shape, bounding, invert) {
         var i, cmd, commands = [];
         var pt, points = [];
         if (shape.commands) {
+            var newCurve = true;
             for (i = 0; i < shape.commands.length; i += 1) {
-                cmd = shape.commands[i];
+                cmd = _cloneCommand(shape.commands[i]);
                 if (cmd.x === undefined ||
                         (invert && bounding.contains(cmd.x, cmd.y)) ||
                         (!invert && !bounding.contains(cmd.x, cmd.y))) {
+                    if (newCurve && cmd.type !== bezier.MOVETO) {
+                        cmd.type = bezier.MOVETO;
+                    }
                     commands.push(cmd);
+                    if (cmd.type === bezier.MOVETO) {
+                        newCurve = false;
+                    } else if (cmd.type === bezier.CLOSE) {
+                        newCurve = true;
+                    }
                 }
             }
             return new Path(commands, shape.fill, shape.stroke, shape.strokeWidth);
@@ -597,7 +624,7 @@ vg.deletePoints = function (shape, bounding, invert) {
                 pt = shape[i];
                 if ((invert && bounding.contains(pt.x, pt.y)) ||
                    (!invert && !bounding.contains(pt.x, pt.y))) {
-                    points.push(pt);
+                    points.push(_cloneCommand(pt));
                 }
             }
             return points;
