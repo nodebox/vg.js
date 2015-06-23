@@ -159,10 +159,14 @@ Transform.prototype.transformShape = function (shape) {
     var fn;
     if (shape.shapes) {
         fn = this.transformGroup;
+    } else if (shape.commands) {
+        fn = this.transformPath;
     } else if (shape.text) {
         fn = this.transformText;
     } else if (shape.x !== undefined && shape.y !== undefined) {
         fn = this.transformPoint;
+    } else if (shape._transform !== undefined) {
+        return shape._transform(this.m);
     } else if (Array.isArray(shape) && shape.length > 0) {
         if (shape[0].x !== undefined && shape[0].y !== undefined) {
             fn = this.transformPoints;
@@ -174,7 +178,7 @@ Transform.prototype.transformShape = function (shape) {
             return l;
         }
     } else {
-        fn = this.transformPath;
+        throw new Error('Don\'t know how to transform ' + shape);
     }
     return fn.call(this, shape);
 };
