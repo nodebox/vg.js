@@ -163,8 +163,16 @@ Transform.prototype.transformShape = function (shape) {
         fn = this.transformText;
     } else if (shape.x !== undefined && shape.y !== undefined) {
         fn = this.transformPoint;
-    } else if (Array.isArray(shape) && shape.length > 0 && shape[0].x !== undefined && shape[0].y !== undefined) {
-        fn = this.transformPoints;
+    } else if (Array.isArray(shape) && shape.length > 0) {
+        if (shape[0].x !== undefined && shape[0].y !== undefined) {
+            fn = this.transformPoints;
+        } else {
+            var l = [];
+            for (var i = 0; i < shape.length; i += 1) {
+                l.push(this.transformShape(shape[i]));
+            }
+            return l;
+        }
     } else {
         fn = this.transformPath;
     }
