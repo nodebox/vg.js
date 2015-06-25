@@ -239,7 +239,7 @@ Path.prototype.addArc = function (x, y, width, height, startAngle, degrees, arcT
 
 Path.prototype.colorize = function (options) {
     var args = arguments;
-    if (typeof options !== 'object') {
+    if (typeof options !== 'object' || options instanceof vg.Color) {
         options = {};
         if (args[0] !== undefined) { options.fill = args[0]; }
         if (args[1] !== undefined) { options.stroke = args[1]; }
