@@ -21362,6 +21362,24 @@ var Rect = require('../objects/rect');
 var Transform = require('../objects/transform');
 var Transformable = require('../objects/transformable');
 
+function _cloneCommand(cmd) {
+    var newCmd = {type: cmd.type};
+    if (newCmd.type !== bezier.CLOSE) {
+        newCmd.x = cmd.x;
+        newCmd.y = cmd.y;
+    }
+    if (newCmd.type === bezier.QUADTO) {
+        newCmd.x1 = cmd.x1;
+        newCmd.y1 = cmd.y1;
+    } else if (newCmd.type === bezier.CURVETO) {
+        newCmd.x1 = cmd.x1;
+        newCmd.y1 = cmd.y1;
+        newCmd.x2 = cmd.x2;
+        newCmd.y2 = cmd.y2;
+    }
+    return newCmd;
+}
+
 var vg = {};
 
 vg.HORIZONTAL = 'horizontal';
@@ -21926,12 +21944,21 @@ vg.deletePoints = function (shape, bounding, invert) {
         var i, cmd, commands = [];
         var pt, points = [];
         if (shape.commands) {
+            var newCurve = true;
             for (i = 0; i < shape.commands.length; i += 1) {
-                cmd = shape.commands[i];
+                cmd = _cloneCommand(shape.commands[i]);
                 if (cmd.x === undefined ||
                         (invert && bounding.contains(cmd.x, cmd.y)) ||
                         (!invert && !bounding.contains(cmd.x, cmd.y))) {
+                    if (newCurve && cmd.type !== bezier.MOVETO) {
+                        cmd.type = bezier.MOVETO;
+                    }
                     commands.push(cmd);
+                    if (cmd.type === bezier.MOVETO) {
+                        newCurve = false;
+                    } else if (cmd.type === bezier.CLOSE) {
+                        newCurve = true;
+                    }
                 }
             }
             return new Path(commands, shape.fill, shape.stroke, shape.strokeWidth);
@@ -21942,7 +21969,7 @@ vg.deletePoints = function (shape, bounding, invert) {
                 pt = shape[i];
                 if ((invert && bounding.contains(pt.x, pt.y)) ||
                    (!invert && !bounding.contains(pt.x, pt.y))) {
-                    points.push(pt);
+                    points.push(_cloneCommand(pt));
                 }
             }
             return points;
@@ -22917,9 +22944,16 @@ Group.prototype.clone = function () {
     return new Group(newShapes);
 };
 
-Group.prototype.colorize = function (fill, stroke, strokeWidth) {
+Group.prototype.colorize = function (options) {
+    var args = arguments;
+    if (typeof options !== 'object') {
+        options = {};
+        if (args[0] !== undefined) { options.fill = args[0]; }
+        if (args[1] !== undefined) { options.stroke = args[1]; }
+        if (args[2] !== undefined) { options.strokeWidth = args[2]; }
+    }
     var shapes = _.map(this.shapes, function (shape) {
-        return shape.colorize(fill, stroke, strokeWidth);
+        return shape.colorize(options);
     });
     return new Group(shapes);
 };
@@ -22948,7 +22982,7 @@ Group.prototype.bounds = function () {
             r = shape.bounds();
         }
         if ((shape.shapes && shape.shapes.length !== 0) ||
-                (shape.commands && shape.commands.length !== 0)) {
+            (shape.commands && shape.commands.length !== 0)) {
             r = r.unite(shape.bounds());
         }
     }
@@ -23439,11 +23473,24 @@ Path.prototype.addArc = function (x, y, width, height, startAngle, degrees, arcT
     }
 };
 
-Path.prototype.colorize = function (fill, stroke, strokeWidth) {
+Path.prototype.colorize = function (options) {
+    var args = arguments;
+    if (typeof options !== 'object') {
+        options = {};
+        if (args[0] !== undefined) { options.fill = args[0]; }
+        if (args[1] !== undefined) { options.stroke = args[1]; }
+        if (args[2] !== undefined) { options.strokeWidth = args[2]; }
+    }
     var p = this.clone();
-    p.fill = Color.clone(fill);
-    p.stroke = Color.clone(stroke);
-    p.strokeWidth = strokeWidth;
+    if (options.fill) {
+        p.fill = Color.clone(options.fill);
+    }
+    if (options.stroke) {
+        p.stroke = Color.clone(options.stroke);
+    }
+    if (options.strokeWidth || options.strokeWidth === 0) {
+        p.strokeWidth = options.strokeWidth;
+    }
     return p;
 };
 
