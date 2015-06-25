@@ -32,9 +32,16 @@ Group.prototype.clone = function () {
     return new Group(newShapes);
 };
 
-Group.prototype.colorize = function (fill, stroke, strokeWidth) {
+Group.prototype.colorize = function (options) {
+    var args = arguments;
+    if (typeof options !== 'object') {
+        options = {};
+        if (args[0] !== undefined) { options.fill = args[0]; }
+        if (args[1] !== undefined) { options.stroke = args[1]; }
+        if (args[2] !== undefined) { options.strokeWidth = args[2]; }
+    }
     var shapes = _.map(this.shapes, function (shape) {
-        return shape.colorize(fill, stroke, strokeWidth);
+        return shape.colorize(options);
     });
     return new Group(shapes);
 };
@@ -63,7 +70,7 @@ Group.prototype.bounds = function () {
             r = shape.bounds();
         }
         if ((shape.shapes && shape.shapes.length !== 0) ||
-                (shape.commands && shape.commands.length !== 0)) {
+            (shape.commands && shape.commands.length !== 0)) {
             r = r.unite(shape.bounds());
         }
     }

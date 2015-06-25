@@ -237,11 +237,24 @@ Path.prototype.addArc = function (x, y, width, height, startAngle, degrees, arcT
     }
 };
 
-Path.prototype.colorize = function (fill, stroke, strokeWidth) {
+Path.prototype.colorize = function (options) {
+    var args = arguments;
+    if (typeof options !== 'object') {
+        options = {};
+        if (args[0] !== undefined) { options.fill = args[0]; }
+        if (args[1] !== undefined) { options.stroke = args[1]; }
+        if (args[2] !== undefined) { options.strokeWidth = args[2]; }
+    }
     var p = this.clone();
-    p.fill = Color.clone(fill);
-    p.stroke = Color.clone(stroke);
-    p.strokeWidth = strokeWidth;
+    if (options.fill) {
+        p.fill = Color.clone(options.fill);
+    }
+    if (options.stroke) {
+        p.stroke = Color.clone(options.stroke);
+    }
+    if (options.strokeWidth || options.strokeWidth === 0) {
+        p.strokeWidth = options.strokeWidth;
+    }
     return p;
 };
 
