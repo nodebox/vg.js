@@ -383,7 +383,7 @@ Path.prototype.points = function (amount, options) {
 
 // Returns an approximation of the total length of the path.
 Path.prototype.length = function (precision) {
-    if (precision === undefined) { precision = 10; }
+    if (precision === undefined) { precision = 20; }
     return bezier.length(this, precision);
 };
 
