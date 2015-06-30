@@ -135,6 +135,15 @@ describe('A path', function () {
         assert.equal(newP.stroke, 'green');
     });
 
+    it('has bounds', function () {
+        var p = new vg.Path();
+        assert.deepEqual(p.bounds(), new vg.Rect(0, 0, 0, 0));
+        p.addRect(10, 20, 30, 40);
+        assert.deepEqual(p.bounds(), new vg.Rect(10, 20, 30, 40));
+        p.addRect(70, -10, 60, 45);
+        assert.deepEqual(p.bounds(), new vg.Rect(10, -10, 120, 70));
+    });
+
     it('can be resampled', function () {
         var p = new vg.Path(),
             newPath;
