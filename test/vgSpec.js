@@ -163,6 +163,10 @@ describe('A path', function () {
         p.addRect(10, 20, 30, 40);
         newPath = p.resampleByAmount(100);
         assert.equal(newPath.commands.length, 101); // 100 lines + 1 close command
+        newPath = p.resampleByLength(1);
+        assert.equal(newPath.commands.length, 141); // 140 lines + 1 close command
+        newPath = p.resampleByLength(2);
+        assert.equal(newPath.commands.length, 71); // 70 lines + 1 close command
     });
 
     it('can resample open shapes', function () {
@@ -170,6 +174,10 @@ describe('A path', function () {
         p.addLine(10, 20, 30, 40);
         var newPath = p.resampleByAmount(100);
         assert.equal(newPath.commands.length, 100);
+        newPath = p.resampleByLength(1);
+        assert.equal(newPath.commands.length, 29);
+        newPath = p.resampleByLength(2);
+        assert.equal(newPath.commands.length, 15);
     });
 });
 
