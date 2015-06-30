@@ -144,6 +144,19 @@ describe('A path', function () {
         assert.deepEqual(p.bounds(), new vg.Rect(10, -10, 120, 70));
     });
 
+    it('has a length', function () {
+        var p1 = new vg.Path();
+        assert.equal(p1.length(), 0);
+        p1.addLine(50, -15, 50, 80);
+        assertAlmostEqual(p1.length(), 95);
+        var p2 = new vg.Path();
+        p2.addLine(0, 0, 50, 50);
+        assertAlmostEqual(p2.length(), 70.7107);
+        var p3 = new vg.Path();
+        p3.addEllipse(0, 0, 100, 100);
+        assertAlmostEqual(p3.length(), 314.159, 0.05);
+    });
+
     it('can be resampled', function () {
         var p = new vg.Path(),
             newPath;
@@ -194,6 +207,20 @@ describe('A group', function () {
         p2.addRect(100, 200, 10, 10);
         group = vg.group([p1, p2]);
         assert.deepEqual(group.bounds(), new vg.Rect(10, 20, 100, 190));
+    });
+
+    it('has a length', function () {
+        var group, p1, p2;
+        group = new vg.Group();
+        assert.equal(group.length(), 0);
+        p1 = new vg.Path();
+        p1.addRect(10, 20, 30, 40);
+        group = vg.group([p1]);
+        assert.equal(group.length(), 140);
+        p2 = new vg.Path();
+        p2.addRect(100, 200, 10, 10);
+        group = vg.group([p1, p2]);
+        assert.equal(group.length(), 180);
     });
 
     it('can merge shapes together', function () {
