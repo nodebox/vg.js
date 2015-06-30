@@ -179,6 +179,22 @@ describe('A path', function () {
         newPath = p.resampleByLength(2);
         assert.equal(newPath.commands.length, 15);
     });
+
+    it('can be colorized', function () {
+        function f(p, fill, stroke, strokeWidth) {
+            assert.equal(p.fill, fill);
+            assert.equal(p.stroke, stroke);
+            assert.equal(p.strokeWidth, strokeWidth);
+        }
+        var p = new vg.Path();
+        f(p, 'black', null, 1);
+        p = p.colorize('red');
+        f(p, 'red', null, 1);
+        p = p.colorize({stroke: 'green'});
+        f(p, 'red', 'green', 1);
+        p = p.colorize({fill: 'pink', strokeWidth: 3});
+        f(p, 'pink', 'green', 3);
+    });
 });
 
 describe('A group', function () {
@@ -244,6 +260,30 @@ describe('A group', function () {
         // Flatten lists (this is important for Maak)
         group = vg.merge([vg.demoRect(), vg.demoRect()], vg.demoRect());
         assert.equal(group.shapes.length, 3);
+    });
+
+    it('can be colorized', function () {
+        function f(p, fill, stroke, strokeWidth) {
+            assert.equal(p.fill, fill);
+            assert.equal(p.stroke, stroke);
+            assert.equal(p.strokeWidth, strokeWidth);
+        }
+        var p1 = new vg.Path();
+        p1 = p1.colorize('red', 'yellow', 1);
+        var p2 = new vg.Path();
+        p2 = p2.colorize('brown', 'purple', 2);
+        var group = new vg.Group([p1, p2]);
+        f(group.shapes[0], 'red', 'yellow', 1);
+        f(group.shapes[1], 'brown', 'purple', 2);
+        group = group.colorize('pink');
+        f(group.shapes[0], 'pink', 'yellow', 1);
+        f(group.shapes[1], 'pink', 'purple', 2);
+        group = group.colorize({stroke: 'orange'});
+        f(group.shapes[0], 'pink', 'orange', 1);
+        f(group.shapes[1], 'pink', 'orange', 2);
+        group = group.colorize({fill: 'white', strokeWidth: 3});
+        f(group.shapes[0], 'white', 'orange', 3);
+        f(group.shapes[1], 'white', 'orange', 3);
     });
 
 });
