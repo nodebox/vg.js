@@ -238,4 +238,84 @@ color.hsb2rgb = function (h, s, v) {
     return [[v, z, x], [y, v, x], [x, v, z], [x, y, v], [z, x, v]][parseInt(i, 10)];
 };
 
+// Converts the given R,G,B values to H,S,L (between 0.0-1.0).
+// Code adapted from http://github.com/mattdesl/float-rgb2hsl
+color.rgb2hsl = function (r, g, b) {
+    var min = Math.min(r, g, b),
+        max = Math.max(r, g, b),
+        delta = max - min,
+        h, s, l;
+
+    if (max === min) {
+        h = 0;
+    } else if (r === max) {
+        h = (g - b) / delta;
+    } else if (g === max) {
+        h = 2 + (b - r) / delta;
+    } else if (b === max) {
+        h = 4 + (r - g) / delta;
+    }
+
+    h = Math.min(h * 60, 360);
+
+    if (h < 0) {
+        h += 360;
+    }
+
+    l = (min + max) / 2;
+
+    if (max === min) {
+        s = 0;
+    } else if (l <= 0.5) {
+        s = delta / (max + min);
+    } else {
+        s = delta / (2 - max - min);
+    }
+
+    return [h / 360, s, l];
+};
+
+// Converts the given H,S,L color values to R,G,B (between 0.0-1.0).
+// Code adapted from http://github.com/mattdesl/float-hsl2rgb
+color.hsl2rgb = function (h, s, l) {
+    var t1, t2, t3, rgb, val;
+
+    if (s === 0) {
+        val = l;
+        return [val, val, val];
+    }
+
+    if (l < 0.5) {
+        t2 = l * (1 + s);
+    } else {
+        t2 = l + s - l * s;
+    }
+    t1 = 2 * l - t2;
+
+    rgb = [0, 0, 0];
+    for (var i = 0; i < 3; i++) {
+        t3 = h + 1 / 3 * -(i - 1);
+        if (t3 < 0) {
+            t3 += 1;
+        }
+        if (t3 > 1) {
+            t3 -= 1;
+        }
+
+        if (6 * t3 < 1) {
+            val = t1 + (t2 - t1) * 6 * t3;
+        } else if (2 * t3 < 1) {
+            val = t2;
+        } else if (3 * t3 < 2) {
+            val = t1 + (t2 - t1) * (2 / 3 - t3) * 6;
+        } else {
+            val = t1;
+        }
+
+        rgb[i] = val;
+    }
+
+    return rgb;
+};
+
 module.exports = color;
