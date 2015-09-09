@@ -47,9 +47,9 @@ Group.prototype.colorize = function (options) {
     return new Group(shapes);
 };
 
-Group.prototype.desaturate = function () {
+Group.prototype.desaturate = function (options) {
     var shapes = _.map(this.shapes, function (shape) {
-        return shape.desaturate();
+        return shape.desaturate(options);
     });
     return new Group(shapes);
 };

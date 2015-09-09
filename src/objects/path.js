@@ -258,7 +258,7 @@ Path.prototype.colorize = function (options) {
     return p;
 };
 
-Path.prototype.desaturate = function () {
+Path.prototype.desaturate = function (options) {
     var p = this.clone();
     var fill = p.fill;
     var stroke = p.stroke;
@@ -268,8 +268,8 @@ Path.prototype.desaturate = function () {
     if (!(stroke instanceof Color)) {
         stroke = Color.parse(stroke);
     }
-    p.fill = fill.desaturate();
-    p.stroke = stroke.desaturate();
+    p.fill = fill.desaturate(options);
+    p.stroke = stroke.desaturate(options);
     return p;
 };
 

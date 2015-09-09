@@ -165,9 +165,15 @@ Color.prototype.toHex = function () {
     }
 };
 
-Color.prototype.desaturate = function () {
+Color.prototype.desaturate = function (options) {
     if (this.r === this.g && this.g === this.b) { return this; }
-    var gray = this.r * 0.3 + this.g * 0.59 + this.b * 0.11;
+    var rCoeff, gCoeff, bCoeff;
+    if (options === undefined || options.method === 'ITU-R BT.601') {
+        rCoeff = 0.3; gCoeff = 0.59; bCoeff = 0.11;
+    } else if (options.method === 'ITU-R BT.709') {
+        rCoeff = 0.2125; gCoeff = 0.7154; bCoeff = 0.0721;
+    }
+    var gray = this.r * rCoeff + this.g * gCoeff + this.b * bCoeff;
     return new Color(gray, gray, gray, this.a);
 };
 
