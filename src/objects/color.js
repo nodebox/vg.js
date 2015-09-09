@@ -168,7 +168,7 @@ Color.prototype.toHex = function () {
 Color.prototype.desaturate = function (options) {
     if (this.r === this.g && this.g === this.b) { return this; }
     var rCoeff, gCoeff, bCoeff;
-    if (options === undefined || options.method === 'ITU-R BT.601') {
+    if (options === undefined || !options.method || options.method === 'ITU-R BT.601') {
         rCoeff = 0.3; gCoeff = 0.59; bCoeff = 0.11;
     } else if (options.method === 'ITU-R BT.709') {
         rCoeff = 0.2125; gCoeff = 0.7154; bCoeff = 0.0721;
