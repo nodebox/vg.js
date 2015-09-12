@@ -461,14 +461,13 @@ describe('A color', function () {
         assert.deepEqual(c.rgb, [c.r, c.g, c.b]);
         assert.deepEqual(c.rgba, [c.r, c.g, c.b, c.a]);
 
-        var hsb = vg.color.rgb2hsb(c.r, c.g, c.b);
-        assert.equal(c.h, hsb[0]);
-        assert.equal(c.hue, hsb[0]);
-        assert.equal(c.s, hsb[1]);
-        assert.equal(c.saturation, hsb[1]);
-        assert.equal(c.v, hsb[2]);
-        assert.equal(c.value, hsb[2]);
-        assert.equal(c.brightness, hsb[2]);
+        var hsl = vg.color.rgb2hsl(c.r, c.g, c.b);
+        assert.equal(c.h, hsl[0]);
+        assert.equal(c.hue, hsl[0]);
+        assert.equal(c.s, hsl[1]);
+        assert.equal(c.saturation, hsl[1]);
+        assert.equal(c.l, hsl[2]);
+        assert.equal(c.lightness, hsl[2]);
     });
 
     it('can be converted to CSS', function () {

@@ -8,6 +8,7 @@ var js = require('../util/js');
 
 // var RGB = 'RGB';
 var HSB = 'HSB';
+var HSL = 'HSL';
 var HEX = 'HEX';
 
 var Color = function (v1, v2, v3, v4, v5) {
@@ -97,6 +98,15 @@ var Color = function (v1, v2, v3, v4, v5) {
         _r = rgb[0];
         _g = rgb[1];
         _b = rgb[2];
+    // Convert HSL colors to RGB
+    } else if (options.mode === HSL) {
+        v1 = math.clamp(v1, 0, 1);
+        v2 = math.clamp(v2, 0, 1);
+        v3 = math.clamp(v3, 0, 1);
+        rgb = color.hsl2rgb(v1, v2, v3);
+        _r = rgb[0];
+        _g = rgb[1];
+        _b = rgb[2];
     } else if (options.mode === HEX) {
         rgb = color.hex2rgb(v1);
         _r = rgb[0];
@@ -119,22 +129,24 @@ js.defineAlias(Color, 'g', 'green');
 js.defineAlias(Color, 'b', 'blue');
 js.defineAlias(Color, 'a', 'alpha');
 
+// The hue of the color, in HSL color mode. (Although hue is the same in HSL and HSB).
 js.defineGetter(Color, 'h', function () {
-    return color.rgb2hsb(this.r, this.g, this.b)[0];
+    return color.rgb2hsl(this.r, this.g, this.b)[0];
 });
 
+// The saturation of the color, in HSL color mode. (Saturation is different in HSL and HSB).
 js.defineGetter(Color, 's', function () {
-    return color.rgb2hsb(this.r, this.g, this.b)[1];
+    return color.rgb2hsl(this.r, this.g, this.b)[1];
 });
 
-js.defineGetter(Color, 'v', function () {
-    return color.rgb2hsb(this.r, this.g, this.b)[2];
+// The lightness of the color, in HSL color mode. (Lightness in HSL is different from brightness in HSB).
+js.defineGetter(Color, 'l', function () {
+    return color.rgb2hsl(this.r, this.g, this.b)[2];
 });
 
 js.defineAlias(Color, 'h', 'hue');
 js.defineAlias(Color, 's', 'saturation');
-js.defineAlias(Color, 'v', 'value');
-js.defineAlias(Color, 'v', 'brightness');
+js.defineAlias(Color, 'l', 'lightness');
 
 
 js.defineGetter(Color, 'rgb', function () {
@@ -151,6 +163,14 @@ js.defineGetter(Color, 'hsb', function () {
 
 js.defineGetter(Color, 'hsba', function () {
     return color.rgb2hsb(this.r, this.g, this.b).concat([this.a]);
+});
+
+js.defineGetter(Color, 'hsl', function () {
+    return color.rgb2hsl(this.r, this.g, this.b);
+});
+
+js.defineGetter(Color, 'hsla', function () {
+    return color.rgb2hsl(this.r, this.g, this.b).concat([this.a]);
 });
 
 Color.prototype.toCSS = function () {
@@ -254,6 +274,11 @@ Color.rgb = function (red, green, blue, alpha, range) {
 Color.hsb = function (hue, saturation, brightness, alpha, range) {
     range = Math.max(range, 1);
     return new Color(hue / range, saturation / range, brightness / range, alpha / range, { mode: HSB });
+};
+
+Color.hsl = function (hue, saturation, lightness, alpha, range) {
+    range = Math.max(range, 1);
+    return new Color(hue / range, saturation / range, lightness / range, alpha / range, { mode: HSL });
 };
 
 module.exports = Color;
