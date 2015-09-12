@@ -22665,6 +22665,7 @@ var js = require('../util/js');
 
 // var RGB = 'RGB';
 var HSB = 'HSB';
+var HSL = 'HSL';
 var HEX = 'HEX';
 
 var Color = function (v1, v2, v3, v4, v5) {
@@ -22754,6 +22755,15 @@ var Color = function (v1, v2, v3, v4, v5) {
         _r = rgb[0];
         _g = rgb[1];
         _b = rgb[2];
+    // Convert HSL colors to RGB
+    } else if (options.mode === HSL) {
+        v1 = math.clamp(v1, 0, 1);
+        v2 = math.clamp(v2, 0, 1);
+        v3 = math.clamp(v3, 0, 1);
+        rgb = color.hsl2rgb(v1, v2, v3);
+        _r = rgb[0];
+        _g = rgb[1];
+        _b = rgb[2];
     } else if (options.mode === HEX) {
         rgb = color.hex2rgb(v1);
         _r = rgb[0];
@@ -22776,22 +22786,24 @@ js.defineAlias(Color, 'g', 'green');
 js.defineAlias(Color, 'b', 'blue');
 js.defineAlias(Color, 'a', 'alpha');
 
+// The hue of the color, in HSL color mode. (Although hue is the same in HSL and HSB).
 js.defineGetter(Color, 'h', function () {
-    return color.rgb2hsb(this.r, this.g, this.b)[0];
+    return color.rgb2hsl(this.r, this.g, this.b)[0];
 });
 
+// The saturation of the color, in HSL color mode. (Saturation is different in HSL and HSB).
 js.defineGetter(Color, 's', function () {
-    return color.rgb2hsb(this.r, this.g, this.b)[1];
+    return color.rgb2hsl(this.r, this.g, this.b)[1];
 });
 
-js.defineGetter(Color, 'v', function () {
-    return color.rgb2hsb(this.r, this.g, this.b)[2];
+// The lightness of the color, in HSL color mode. (Lightness in HSL is different from brightness in HSB).
+js.defineGetter(Color, 'l', function () {
+    return color.rgb2hsl(this.r, this.g, this.b)[2];
 });
 
 js.defineAlias(Color, 'h', 'hue');
 js.defineAlias(Color, 's', 'saturation');
-js.defineAlias(Color, 'v', 'value');
-js.defineAlias(Color, 'v', 'brightness');
+js.defineAlias(Color, 'l', 'lightness');
 
 
 js.defineGetter(Color, 'rgb', function () {
@@ -22810,6 +22822,14 @@ js.defineGetter(Color, 'hsba', function () {
     return color.rgb2hsb(this.r, this.g, this.b).concat([this.a]);
 });
 
+js.defineGetter(Color, 'hsl', function () {
+    return color.rgb2hsl(this.r, this.g, this.b);
+});
+
+js.defineGetter(Color, 'hsla', function () {
+    return color.rgb2hsl(this.r, this.g, this.b).concat([this.a]);
+});
+
 Color.prototype.toCSS = function () {
     return Color.toCSS(this);
 };
@@ -22822,9 +22842,15 @@ Color.prototype.toHex = function () {
     }
 };
 
-Color.prototype.desaturate = function () {
+Color.prototype.desaturate = function (options) {
     if (this.r === this.g && this.g === this.b) { return this; }
-    var gray = this.r * 0.3 + this.g * 0.59 + this.b * 0.11;
+    var rCoeff, gCoeff, bCoeff;
+    if (options === undefined || !options.method || options.method === 'ITU-R BT.601') {
+        rCoeff = 0.3; gCoeff = 0.59; bCoeff = 0.11;
+    } else if (options.method === 'ITU-R BT.709') {
+        rCoeff = 0.2125; gCoeff = 0.7154; bCoeff = 0.0721;
+    }
+    var gray = this.r * rCoeff + this.g * gCoeff + this.b * bCoeff;
     return new Color(gray, gray, gray, this.a);
 };
 
@@ -22907,6 +22933,11 @@ Color.hsb = function (hue, saturation, brightness, alpha, range) {
     return new Color(hue / range, saturation / range, brightness / range, alpha / range, { mode: HSB });
 };
 
+Color.hsl = function (hue, saturation, lightness, alpha, range) {
+    range = Math.max(range, 1);
+    return new Color(hue / range, saturation / range, lightness / range, alpha / range, { mode: HSL });
+};
+
 module.exports = Color;
 
 },{"../util/color":20,"../util/js":22,"../util/math":23}],10:[function(require,module,exports){
@@ -22959,9 +22990,9 @@ Group.prototype.colorize = function (options) {
     return new Group(shapes);
 };
 
-Group.prototype.desaturate = function () {
+Group.prototype.desaturate = function (options) {
     var shapes = _.map(this.shapes, function (shape) {
-        return shape.desaturate();
+        return shape.desaturate(options);
     });
     return new Group(shapes);
 };
@@ -23495,7 +23526,7 @@ Path.prototype.colorize = function (options) {
     return p;
 };
 
-Path.prototype.desaturate = function () {
+Path.prototype.desaturate = function (options) {
     var p = this.clone();
     var fill = p.fill;
     var stroke = p.stroke;
@@ -23505,8 +23536,8 @@ Path.prototype.desaturate = function () {
     if (!(stroke instanceof Color)) {
         stroke = Color.parse(stroke);
     }
-    p.fill = fill.desaturate();
-    p.stroke = stroke.desaturate();
+    p.fill = fill.desaturate(options);
+    p.stroke = stroke.desaturate(options);
     return p;
 };
 
@@ -23620,7 +23651,7 @@ Path.prototype.points = function (amount, options) {
 
 // Returns an approximation of the total length of the path.
 Path.prototype.length = function (precision) {
-    if (precision === undefined) { precision = 10; }
+    if (precision === undefined) { precision = 20; }
     return bezier.length(this, precision);
 };
 
@@ -25019,6 +25050,86 @@ color.hsb2rgb = function (h, s, v) {
         return [v, x, y];
     }
     return [[v, z, x], [y, v, x], [x, v, z], [x, y, v], [z, x, v]][parseInt(i, 10)];
+};
+
+// Converts the given R,G,B values to H,S,L (between 0.0-1.0).
+// Code adapted from http://github.com/mattdesl/float-rgb2hsl
+color.rgb2hsl = function (r, g, b) {
+    var min = Math.min(r, g, b),
+        max = Math.max(r, g, b),
+        delta = max - min,
+        h, s, l;
+
+    if (max === min) {
+        h = 0;
+    } else if (r === max) {
+        h = (g - b) / delta;
+    } else if (g === max) {
+        h = 2 + (b - r) / delta;
+    } else if (b === max) {
+        h = 4 + (r - g) / delta;
+    }
+
+    h = Math.min(h * 60, 360);
+
+    if (h < 0) {
+        h += 360;
+    }
+
+    l = (min + max) / 2;
+
+    if (max === min) {
+        s = 0;
+    } else if (l <= 0.5) {
+        s = delta / (max + min);
+    } else {
+        s = delta / (2 - max - min);
+    }
+
+    return [h / 360, s, l];
+};
+
+// Converts the given H,S,L color values to R,G,B (between 0.0-1.0).
+// Code adapted from http://github.com/mattdesl/float-hsl2rgb
+color.hsl2rgb = function (h, s, l) {
+    var t1, t2, t3, rgb, val;
+
+    if (s === 0) {
+        val = l;
+        return [val, val, val];
+    }
+
+    if (l < 0.5) {
+        t2 = l * (1 + s);
+    } else {
+        t2 = l + s - l * s;
+    }
+    t1 = 2 * l - t2;
+
+    rgb = [0, 0, 0];
+    for (var i = 0; i < 3; i++) {
+        t3 = h + 1 / 3 * -(i - 1);
+        if (t3 < 0) {
+            t3 += 1;
+        }
+        if (t3 > 1) {
+            t3 -= 1;
+        }
+
+        if (6 * t3 < 1) {
+            val = t1 + (t2 - t1) * 6 * t3;
+        } else if (2 * t3 < 1) {
+            val = t2;
+        } else if (3 * t3 < 2) {
+            val = t1 + (t2 - t1) * (2 / 3 - t3) * 6;
+        } else {
+            val = t1;
+        }
+
+        rgb[i] = val;
+    }
+
+    return rgb;
 };
 
 module.exports = color;
