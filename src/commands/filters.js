@@ -912,28 +912,6 @@ vg.stack = function (shapes, direction, margin) {
     return newShapes;
 };
 
-vg.colorLookup = function (c, comp) {
-    c = Color.parse(c);
-    switch(comp) {
-        case 'r':
-            return c.r;
-        case 'g':
-            return c.g;
-        case 'b':
-            return c.b;
-        case 'a':
-            return c.a;
-        case 'h':
-            return c.h;
-        case 's':
-            return c.s;
-        case 'v':
-            return c.v;
-        default:
-            throw new Error('Unknown component ' + comp);
-    }
-};
-
 vg.compound = function (shape1, shape2, method) {
     var methods = {
         'union': ClipperLib.ClipType.ctUnion,
