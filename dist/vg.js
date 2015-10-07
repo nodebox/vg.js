@@ -22257,28 +22257,6 @@ vg.stack = function (shapes, direction, margin) {
     return newShapes;
 };
 
-vg.colorLookup = function (c, comp) {
-    c = Color.parse(c);
-    switch(comp) {
-        case 'r':
-            return c.r;
-        case 'g':
-            return c.g;
-        case 'b':
-            return c.b;
-        case 'a':
-            return c.a;
-        case 'h':
-            return c.h;
-        case 's':
-            return c.s;
-        case 'v':
-            return c.v;
-        default:
-            throw new Error('Unknown component ' + comp);
-    }
-};
-
 vg.compound = function (shape1, shape2, method) {
     var methods = {
         'union': ClipperLib.ClipType.ctUnion,
@@ -22903,6 +22881,13 @@ Color.make = function () {
 };
 
 Color.parse = function (s) {
+    function startsWith (s, value) {
+        if (!s || !value) { return false; }
+        s = String(s);
+        return s.indexOf(value) === 0;
+    }
+
+    var m;
     if (s === undefined || s === null) {
         return new Color(0, 0, 0, 0);
     } else if (s instanceof Color) {
@@ -22911,6 +22896,40 @@ Color.parse = function (s) {
         return Color.make.apply(null, color.namedColors[s]);
     } else if (s[0] === '#') {
         return new Color(s, 0, 0, 0, { mode: HEX });
+    } else if (startsWith(s, 'rgba')) {
+        m = s.match(/^rgba\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+|\d+.\d+)\s*\)$/i);
+        if (m) {
+            return new Color(parseInt(m[1]) / 255, parseInt(m[2]) / 255, parseInt(m[3]) / 255, parseFloat(m[4]));
+        } else {
+            m = s.match(/^rgba\s*\(\s*(\d+|\d+.\d+)%\s*,\s*(\d+|\d+.\d+)%\s*,\s*(\d+|\d+.\d+)%\s*,\s*(\d+|\d+.\d+)\s*\)$/i);
+            if (m) {
+                return new Color(parseFloat(m[1]) / 100, parseFloat(m[2]) / 100, parseFloat(m[3]) / 100, parseFloat(m[4]));
+            }
+        }
+        return new Color(0, 0, 0, 0);
+    } else if (startsWith(s, 'rgb')) {
+        m = s.match(/^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i);
+        if (m) {
+            return new Color(parseInt(m[1]) / 255, parseInt(m[2]) / 255, parseInt(m[3]) / 255);
+        } else {
+            m = s.match(/^rgb\s*\(\s*(\d+|\d+.\d+)%\s*,\s*(\d+|\d+.\d+)%\s*,\s*(\d+|\d+.\d+)%\s*\)$/i);
+            if (m) {
+                return new Color(parseFloat(m[1]) / 100, parseFloat(m[2]) / 100, parseFloat(m[3]) / 100);
+            }
+        }
+        return new Color(0, 0, 0, 0);
+    } else if (startsWith(s, 'hsla')) {
+        m = s.match(/^hsla\s*\(\s*(\d+|\d+.\d+)\s*,\s*(\d+|\d+.\d+)%\s*,\s*(\d+|\d+.\d+)%\s*,\s*(\d+|\d+.\d+)\s*\)$/i);
+        if (m) {
+            return new Color(parseFloat(m[1]) / 360, parseFloat(m[2]) / 100, parseFloat(m[3]) / 100, parseFloat(m[4]));
+        }
+        return new Color(0, 0, 0, 0);
+    } else if (startsWith(s, 'hsl')) {
+        m = s.match(/^hsl\s*\(\s*(\d+|\d+.\d+)\s*,\s*(\d+|\d+.\d+)%\s*,\s*(\d+|\d+.\d+)%\s*\)$/i);
+        if (m) {
+            return new Color(parseFloat(m[1]) / 360, parseFloat(m[2]) / 100, parseFloat(m[3]) / 100);
+        }
+        return new Color(0, 0, 0, 0);
     } else if (s === 'none') {
         return new Color(0, 0, 0, 0);
     } else {
