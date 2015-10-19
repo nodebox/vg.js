@@ -621,4 +621,12 @@ describe('The SVG module', function () {
         var r = p.shapes[0];
         assert.deepEqual(r.fill.rgba, [0, 0, 1, 1]);
     });
+
+    it('can parse colors and widths', function () {
+        var p = vg.svg.parseString('<path d="Z" fill="red" stroke="blue" stroke-width="1.234"/>');
+        assert.equal(p.commands.length, 1);
+        assert.deepEqual(p.fill.rgba, [1, 0, 0, 1]);
+        assert.deepEqual(p.stroke.rgba, [0, 0, 1, 1]);
+        assert.equal(p.strokeWidth, 1.234);
+    });
 });

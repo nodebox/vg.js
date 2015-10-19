@@ -164,7 +164,7 @@ var applySvgAttributes = function (node, shape) {
                 s = (stroke === undefined) ? shape.stroke : stroke,
                 sw = (strokeWidth === undefined) ? shape.strokeWidth : strokeWidth;
             if (sw !== undefined) {
-                sw *= transform[0];
+                sw *= transform.m[0];
             }
             return new Path(commands, f, s, sw);
         } else if (shape.shapes) {
