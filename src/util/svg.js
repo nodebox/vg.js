@@ -309,7 +309,7 @@ var read = {
         return applySvgAttributes(node, new Group(shapes));
     },
 
-    polygon: function (node, open) {
+    _polyline: function (node) {
         var points = node.getAttribute('points');
         var p = new Path();
         points.replace(/([\d\.?]+),([\d\.?]+)/g, function (match, p1, p2) {
@@ -321,14 +321,18 @@ var read = {
                 p.lineTo(x, y);
             }
         });
-        if (!open) {
-            p.close();
-        }
+        return p;
+    },
+
+    polygon: function (node) {
+        var p = read._polyline(node);
+        p.close();
         return applySvgAttributes(node, p);
     },
 
     polyline: function (node) {
-        return read.polygon(node, true);
+        var p = read._polyline(node);
+        return applySvgAttributes(node, p);
     },
 
     rect: function (node) {
