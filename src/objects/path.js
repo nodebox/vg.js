@@ -480,7 +480,7 @@ Path.prototype.toSVG = function () {
     svg += this.toPathData();
     svg += '"';
 
-    var style = "";
+    var style = '';
 
     var fill;
     var fillOpacity;
