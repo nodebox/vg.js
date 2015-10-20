@@ -48,7 +48,7 @@ var toNumberArray = function (s) {
 };
 
 var applySvgAttributes = function (node, shape) {
-    var fill, stroke, strokeWidth, transforms, types, transform, i;
+    var fill, fillOpacity, stroke, strokeOpacity, strokeWidth, transforms, types, transform, i;
 
     if (shape.commands) {
         fill = 'black';
@@ -116,12 +116,13 @@ var applySvgAttributes = function (node, shape) {
 //          elem.miter = v.nodeValue;
             break;
         case 'stroke-width':
-//          elem.linewidth = parseFloat(v.nodeValue);
             strokeWidth = parseFloat(v.nodeValue);
             break;
         case 'stroke-opacity':
+            strokeOpacity = parseFloat(v.nodeValue);
+            break;
         case 'fill-opacity':
-//          elem.opacity = v.nodeValue;
+            fillOpacity = parseFloat(v.nodeValue);
             break;
         case 'fill':
             fill = v.nodeValue;
@@ -144,6 +145,12 @@ var applySvgAttributes = function (node, shape) {
             if (d['stroke-width']) {
                 strokeWidth = parseFloat(d['stroke-width']);
             }
+            if (d['stroke-opacity']) {
+                strokeOpacity = parseFloat(d['stroke-opacity']);
+            }
+            if (d['fill-opacity']) {
+                fillOpacity = parseFloat(d['fill-opacity']);
+            }
             break;
         }
     });
@@ -151,6 +158,14 @@ var applySvgAttributes = function (node, shape) {
 
     fill = fill === undefined ? fill : Color.parse(fill);
     stroke = stroke === undefined ? stroke : Color.parse(stroke);
+
+    if (fill !== undefined && fillOpacity !== undefined) {
+        fill.a = fillOpacity;
+    }
+
+    if (stroke !== undefined && strokeOpacity !== undefined) {
+        stroke.a = strokeOpacity;
+    }
 
     transform = new Transform();
     for (i = 0; i < transforms.length; i += 1) {
