@@ -51,6 +51,11 @@ Transform._mmult = function (a, b) {
     ]);
 };
 
+Transform.prototype.isIdentity = function () {
+    var m = this.m;
+    return (m[0] === 1 && m[1] === 0 && m[2] === 0 && m[3] === 0 && m[4] === 1 && m[5] === 0 && m[6] === 0 && m[7] === 0 && m[8] === 1);
+};
+
 Transform.prototype.prepend = function (matrix) {
     return Transform._mmult(this.m, matrix.m);
 };
