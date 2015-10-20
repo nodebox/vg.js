@@ -479,27 +479,50 @@ Path.prototype.toSVG = function () {
     var svg = '<path d="';
     svg += this.toPathData();
     svg += '"';
+
+    var style = "";
+
     var fill;
-    if (this.fill && this.fill.r !== undefined) {
-        fill = Color.toCSS(this.fill);
-    } else {
-        fill = this.fill;
+    var fillOpacity;
+    if (this.fill) {
+        fill = Color.parse(this.fill);
+        if (fill.a < 1) {
+            fillOpacity = fill.a;
+        }
+        fill = Color.toHex(fill).substring(0, 7);
     }
-    if (fill !== 'black') {
-        if (fill === null) {
-            svg += ' fill="none"';
+
+    if (fill !== 'black' && fill !== '#000000') {
+        if (fill === null || fill === undefined) {
+            style += 'fill:none;';
         } else {
-            svg += ' fill="' + fill + '"';
+            style += 'fill:' + fill + ';';
         }
     }
+
+    if (fillOpacity !== undefined) {
+        style += 'fill-opacity:' + fillOpacity + ';';
+    }
+
     var stroke;
-    if (this.stroke && this.stroke.r !== undefined) {
-        stroke = Color.toCSS(this.stroke);
-    } else {
-        stroke = this.stroke;
+    var strokeOpacity;
+
+    if (this.stroke) {
+        stroke = Color.parse(this.stroke);
+        if (stroke.a < 1) {
+            strokeOpacity = stroke.a;
+        }
+        stroke = Color.toHex(stroke).substring(0, 7);
     }
     if (stroke) {
-        svg += ' stroke="' + stroke + '" stroke-width="' + this.strokeWidth + '"';
+        style += 'stroke:' + stroke + ';';
+        style += 'stroke-width:' + this.strokeWidth + ';';
+    }
+    if (strokeOpacity !== undefined) {
+        style += 'stroke-opacity:' + strokeOpacity + ';';
+    }
+    if (style) {
+        svg += ' style="' + style + '"';
     }
     svg += '/>';
     return svg;
@@ -524,11 +547,11 @@ Path.prototype.draw = function (ctx) {
             ctx.closePath();
         }
     }
-    if (this.fill !== null) {
+    if (this.fill !== null && this.fill !== undefined) {
         ctx.fillStyle = Color.toCSS(this.fill);
         ctx.fill();
     }
-    if (this.stroke !== null && this.strokeWidth !== null && this.strokeWidth > 0) {
+    if (this.stroke !== null && this.stroke !== undefined && this.strokeWidth !== null && this.strokeWidth > 0) {
         ctx.strokeStyle = Color.toCSS(this.stroke);
         ctx.lineWidth = this.strokeWidth;
         ctx.stroke();
