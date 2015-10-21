@@ -397,8 +397,16 @@ var read = {
         var y = parseFloat(node.getAttribute('y'));
         var width = parseFloat(node.getAttribute('width'));
         var height = parseFloat(node.getAttribute('height'));
+        var rx = parseFloat(node.getAttribute('rx'));
+        var ry = parseFloat(node.getAttribute('ry'));
+        rx = isNaN(rx) ? 0 : rx;
+        ry = isNaN(ry) ? 0 : ry;
         var p = new Path();
-        p.addRect(x, y, width, height);
+        if (rx && ry) {
+            p.addRoundedRect(x, y, width, height, rx, ry);
+        } else {
+            p.addRect(x, y, width, height);
+        }
         return applySvgAttributes(p, attributes);
     },
 
