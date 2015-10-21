@@ -48,7 +48,7 @@ var toNumberArray = function (s) {
 };
 
 var readSvgAttributes = function (node, parentAttributes) {
-    var fill, fillOpacity, stroke, strokeOpacity, strokeWidth, transforms, types, transform, i, attributes;
+    var fill, fillOpacity, stroke, strokeOpacity, strokeWidth, color, transforms, types, transform, i, attributes;
 
     if (parentAttributes) {
         attributes = Object.create(parentAttributes);
@@ -132,6 +132,9 @@ var readSvgAttributes = function (node, parentAttributes) {
         case 'stroke':
             stroke = v.nodeValue;
             break;
+        case 'color':
+            color = v.nodeValue;
+            break;
         case 'style':
             d = {};
             _.each(v.nodeValue.split(';'), function (s) {
@@ -153,6 +156,9 @@ var readSvgAttributes = function (node, parentAttributes) {
             if (d['fill-opacity']) {
                 fillOpacity = parseFloat(d['fill-opacity']);
             }
+            if (d.color) {
+                color = d.color;
+            }
             break;
         }
     });
@@ -171,6 +177,9 @@ var readSvgAttributes = function (node, parentAttributes) {
     }
     if (strokeWidth !== undefined) {
         attributes.strokeWidth = strokeWidth;
+    }
+    if (color !== undefined && color !== 'currentColor') {
+        attributes.color = color;
     }
     if (transforms.length > 0) {
         transform = new Transform();
@@ -198,7 +207,11 @@ var applySvgAttributes = function (shape, attributes) {
     var strokeOpacity = attributes.strokeOpacity;
     var strokeWidth = attributes.strokeWidth;
     var transform = attributes.transform;
+    var color = attributes.color;
 
+    if (fill === 'currentColor') {
+        fill = color === undefined ? 'black' : color;
+    }
     if (fill !== undefined) {
         fill = Color.parse(fill);
         if (fillOpacity !== undefined) {
@@ -206,6 +219,9 @@ var applySvgAttributes = function (shape, attributes) {
         }
     }
 
+    if (stroke === 'currentColor') {
+        stroke = color === undefined ? 'black' : color;
+    }
     if (stroke !== undefined) {
         stroke = Color.parse(stroke);
         if (strokeOpacity !== undefined) {
