@@ -24299,6 +24299,11 @@ Transform._mmult = function (a, b) {
     ]);
 };
 
+Transform.prototype.isIdentity = function () {
+    var m = this.m;
+    return (m[0] === 1 && m[1] === 0 && m[2] === 0 && m[3] === 0 && m[4] === 1 && m[5] === 0 && m[6] === 0 && m[7] === 0 && m[8] === 1);
+};
+
 Transform.prototype.prepend = function (matrix) {
     return Transform._mmult(this.m, matrix.m);
 };
@@ -25494,11 +25499,13 @@ var toNumberArray = function (s) {
     return a;
 };
 
-var applySvgAttributes = function (node, shape) {
-    var fill, stroke, strokeWidth, transforms, types, transform, i;
+var readSvgAttributes = function (node, parentAttributes) {
+    var fill, fillOpacity, stroke, strokeOpacity, strokeWidth, color, transforms, types, transform, i, attributes;
 
-    if (shape.commands) {
-        fill = 'black';
+    if (parentAttributes) {
+        attributes = Object.create(parentAttributes);
+    } else {
+        attributes = {};
     }
 
     transforms = [];
@@ -25563,18 +25570,22 @@ var applySvgAttributes = function (node, shape) {
 //          elem.miter = v.nodeValue;
             break;
         case 'stroke-width':
-//          elem.linewidth = parseFloat(v.nodeValue);
             strokeWidth = parseFloat(v.nodeValue);
             break;
         case 'stroke-opacity':
+            strokeOpacity = parseFloat(v.nodeValue);
+            break;
         case 'fill-opacity':
-//          elem.opacity = v.nodeValue;
+            fillOpacity = parseFloat(v.nodeValue);
             break;
         case 'fill':
             fill = v.nodeValue;
             break;
         case 'stroke':
             stroke = v.nodeValue;
+            break;
+        case 'color':
+            color = v.nodeValue;
             break;
         case 'style':
             d = {};
@@ -25591,35 +25602,98 @@ var applySvgAttributes = function (node, shape) {
             if (d['stroke-width']) {
                 strokeWidth = parseFloat(d['stroke-width']);
             }
+            if (d['stroke-opacity']) {
+                strokeOpacity = parseFloat(d['stroke-opacity']);
+            }
+            if (d['fill-opacity']) {
+                fillOpacity = parseFloat(d['fill-opacity']);
+            }
+            if (d.color) {
+                color = d.color;
+            }
             break;
         }
     });
 
-
-    fill = fill === undefined ? fill : Color.parse(fill);
-    stroke = stroke === undefined ? stroke : Color.parse(stroke);
-
-    transform = new Transform();
-    for (i = 0; i < transforms.length; i += 1) {
-        transform = transform.append(transforms[i]);
+    if (fill !== undefined) {
+        attributes.fill = fill;
     }
-
-    function applyAttributes(shape) {
-        if (shape.commands) {
-            var commands = transform.transformShape(shape).commands,
-                f = (fill === undefined) ? shape.fill : fill,
-                s = (stroke === undefined) ? shape.stroke : stroke,
-                sw = (strokeWidth === undefined) ? shape.strokeWidth : strokeWidth;
-            if (sw !== undefined) {
-                sw *= transform.m[0];
+    if (stroke !== undefined) {
+        attributes.stroke = stroke;
+    }
+    if (fillOpacity !== undefined) {
+        attributes.fillOpacity = fillOpacity;
+    }
+    if (strokeOpacity !== undefined) {
+        attributes.strokeOpacity = strokeOpacity;
+    }
+    if (strokeWidth !== undefined) {
+        attributes.strokeWidth = strokeWidth;
+    }
+    if (color !== undefined && color !== 'currentColor') {
+        attributes.color = color;
+    }
+    if (transforms.length > 0) {
+        transform = new Transform();
+        for (i = 0; i < transforms.length; i += 1) {
+            transform = transform.append(transforms[i]);
+        }
+        if (!transform.isIdentity()) {
+            if (attributes.transform) {
+                attributes.transform = attributes.transform.append(transform);
+            } else {
+                attributes.transform = transform;
             }
-            return new Path(commands, f, s, sw);
-        } else if (shape.shapes) {
-            return new Group(_.map(shape.shapes, applyAttributes));
+        }
+    }
+    return attributes;
+};
+
+var applySvgAttributes = function (shape, attributes) {
+    var fill = attributes.fill;
+    if (shape.commands && shape.commands.length > 0 && fill === undefined) {
+        fill = 'black';
+    }
+    var fillOpacity = attributes.fillOpacity;
+    var stroke = attributes.stroke;
+    var strokeOpacity = attributes.strokeOpacity;
+    var strokeWidth = attributes.strokeWidth;
+    var transform = attributes.transform;
+    var color = attributes.color;
+
+    if (fill === 'currentColor') {
+        fill = color === undefined ? 'black' : color;
+    }
+    if (fill !== undefined) {
+        fill = Color.parse(fill);
+        if (fillOpacity !== undefined) {
+            fill.a = fillOpacity;
         }
     }
 
-    return applyAttributes(shape);
+    if (stroke === 'currentColor') {
+        stroke = color === undefined ? 'black' : color;
+    }
+    if (stroke !== undefined) {
+        stroke = Color.parse(stroke);
+        if (strokeOpacity !== undefined) {
+            stroke.a = strokeOpacity;
+        }
+    }
+
+    var commands;
+    if (transform) {
+        commands = transform.transformShape(shape).commands;
+    } else {
+        commands = shape.commands;
+    }
+    var f = (fill === undefined) ? shape.fill : fill,
+        s = (stroke === undefined) ? shape.stroke : stroke,
+        sw = (strokeWidth === undefined) ? shape.strokeWidth : strokeWidth;
+    if (sw !== undefined && transform !== undefined) {
+        sw *= transform.m[0];
+    }
+    return new Path(commands, f, s, sw);
 };
 
 var arcToSegments = function (x, y, rx, ry, large, sweep, rotateX, ox, oy) {
@@ -25722,9 +25796,9 @@ var read = {
         return read.g.apply(this, arguments);
     },
 
-    g: function (node) {
-
+    g: function (node, parentAttributes) {
         var shapes = [];
+        var attributes = readSvgAttributes(node, parentAttributes);
 
         _.each(node.childNodes, function (n) {
 
@@ -25733,15 +25807,15 @@ var read = {
             if (!tag) { return; }
             tagName = tag.replace(/svg\:/ig, '').toLowerCase();
             if (read[tagName] !== undefined) {
-                o = read[tagName].call(this, n);
+                o = read[tagName].call(this, n, attributes);
                 shapes.push(o);
             }
         });
 
-        return applySvgAttributes(node, new Group(shapes));
+        return new Group(shapes);
     },
 
-    polygon: function (node, open) {
+    _polyline: function (node) {
         var points = node.getAttribute('points');
         var p = new Path();
         points.replace(/([\d\.?]+),([\d\.?]+)/g, function (match, p1, p2) {
@@ -25753,56 +25827,75 @@ var read = {
                 p.lineTo(x, y);
             }
         });
-        if (!open) {
-            p.close();
-        }
-        return applySvgAttributes(node, p);
+        return p;
     },
 
-    polyline: function (node) {
-        return read.polygon(node, true);
+    polygon: function (node, parentAttributes) {
+        var attributes = readSvgAttributes(node, parentAttributes);
+        var p = read._polyline(node);
+        p.close();
+        return applySvgAttributes(p, attributes);
     },
 
-    rect: function (node) {
+    polyline: function (node, parentAttributes) {
+        var attributes = readSvgAttributes(node, parentAttributes);
+        var p = read._polyline(node);
+        return applySvgAttributes(p, attributes);
+    },
+
+    rect: function (node, parentAttributes) {
+        var attributes = readSvgAttributes(node, parentAttributes);
         var x = parseFloat(node.getAttribute('x'));
         var y = parseFloat(node.getAttribute('y'));
         var width = parseFloat(node.getAttribute('width'));
         var height = parseFloat(node.getAttribute('height'));
+        var rx = parseFloat(node.getAttribute('rx'));
+        var ry = parseFloat(node.getAttribute('ry'));
+        rx = isNaN(rx) ? 0 : rx;
+        ry = isNaN(ry) ? 0 : ry;
         var p = new Path();
-        p.addRect(x, y, width, height);
-        return applySvgAttributes(node, p);
+        if (rx && ry) {
+            p.addRoundedRect(x, y, width, height, rx, ry);
+        } else {
+            p.addRect(x, y, width, height);
+        }
+        return applySvgAttributes(p, attributes);
     },
 
-    ellipse: function (node) {
+    ellipse: function (node, parentAttributes) {
+        var attributes = readSvgAttributes(node, parentAttributes);
         var cx = parseFloat(node.getAttribute('cx'));
         var cy = parseFloat(node.getAttribute('cy'));
         var rx = parseFloat(node.getAttribute('rx'));
         var ry = parseFloat(node.getAttribute('ry'));
         var p = new Path();
         p.addEllipse(cx - rx, cy - ry, rx * 2, ry * 2);
-        return applySvgAttributes(node, p);
+        return applySvgAttributes(p, attributes);
     },
 
-    circle: function (node) {
+    circle: function (node, parentAttributes) {
+        var attributes = readSvgAttributes(node, parentAttributes);
         var cx = parseFloat(node.getAttribute('cx'));
         var cy = parseFloat(node.getAttribute('cy'));
         var r = parseFloat(node.getAttribute('r'));
         var p = new Path();
         p.addEllipse(cx - r, cy - r, r * 2, r * 2);
-        return applySvgAttributes(node, p);
+        return applySvgAttributes(p, attributes);
     },
 
-    line: function (node) {
+    line: function (node, parentAttributes) {
+        var attributes = readSvgAttributes(node, parentAttributes);
         var x1 = parseFloat(node.getAttribute('x1'));
         var y1 = parseFloat(node.getAttribute('y1'));
         var x2 = parseFloat(node.getAttribute('x2'));
         var y2 = parseFloat(node.getAttribute('y2'));
         var p = new Path();
         p.addLine(x1, y1, x2, y2);
-        return applySvgAttributes(node, p);
+        return applySvgAttributes(p, attributes);
     },
 
-    path: function (node) {
+    path: function (node, parentAttributes) {
+        var attributes = readSvgAttributes(node, parentAttributes);
         var d, PathParser, pp,
             pt, newP, curr, p1, cntrl, cp, cp1x, cp1y, cp2x, cp2y,
             rx, ry, rot, large, sweep, ex, ey, segs, i, bez;
@@ -26025,7 +26118,7 @@ var read = {
                 break;
             }
         }
-        return applySvgAttributes(node, p);
+        return applySvgAttributes(p, attributes);
     }
 };
 
