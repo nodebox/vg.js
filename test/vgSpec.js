@@ -629,4 +629,39 @@ describe('The SVG module', function () {
         assert.deepEqual(p.stroke.rgba, [0, 0, 1, 1]);
         assert.equal(p.strokeWidth, 1.234);
     });
+
+    it('can parse fill and stroke opacity', function () {
+        var p = vg.svg.parseString('<rect x="10" y="20" width="30" height="40" fill="blue" stroke="red" fill-opacity="0.5" stroke-opacity="0.6"/>');
+        assert.deepEqual(p.fill.rgba, [0, 0, 1, 0.5]);
+        assert.deepEqual(p.stroke.rgba, [1, 0, 0, 0.6]);
+    });
+
+    it('can parse inline styles', function () {
+        var p = vg.svg.parseString('<path d="M10,20 L30,40 L100,0 Z" style="fill:orange;stroke:blue;stroke-width:2.5;fill-opacity:0.7;stroke-opacity:0.2"/>');
+        assert.deepEqual(p.fill.rgba, [1, 0.65, 0, 0.7]);
+        assert.deepEqual(p.stroke.rgba, [0, 0, 1, 0.2]);
+        assert.equal(p.strokeWidth, 2.5);
+    });
+
+    it('does correct inheritance of style properties', function () {
+        var p = vg.svg.parseString('<g stroke-width="2.5" fill="#00FF00"><g style="fill:orange;stroke-width:1.5" fill-opacity="0.6"><path d="M10,20 L30,40 L100,0 Z"/><path d="M50,20 L30,80 L100,0 Z" style="fill-opacity:0.3"/></g><path d="M80,20 L30,100 L100,0 Z"/></g>');
+        assert.deepEqual(p.shapes[0].shapes[0].fill.rgba, [1, 0.65, 0, 0.6]);
+        assert.equal(p.shapes[0].shapes[0].strokeWidth, 1.5);
+        assert.deepEqual(p.shapes[0].shapes[1].fill.rgba, [1, 0.65, 0, 0.3]);
+        assert.equal(p.shapes[0].shapes[1].strokeWidth, 1.5);
+        assert.deepEqual(p.shapes[1].fill.rgba, [0, 1, 0, 1]);
+        assert.equal(p.shapes[1].strokeWidth, 2.5);
+    });
+
+    it('can handle the currentColor value', function () {
+        var p = vg.svg.parseString('<g color="orange"><rect x="10" y="20" width="30" height="40" fill="currentColor"/><rect x="10" y="20" width="30" height="40" style="fill:currentColor;color:blue"/></g>');
+        assert.deepEqual(p.shapes[0].fill.rgba, [1, 0.65, 0, 1]);
+        assert.deepEqual(p.shapes[1].fill.rgba, [0, 0, 1, 1]);
+        p = vg.svg.parseString('<rect x="10" y="20" width="30" height="40" fill="currentColor" stroke="currentColor" stroke-opacity="0.5"/>');
+        assert.deepEqual(p.fill.rgba, [0, 0, 0, 1]);
+        assert.deepEqual(p.stroke.rgba, [0, 0, 0, 0.5]);
+        p = vg.svg.parseString('<rect x="10" y="20" width="30" height="40" fill="currentColor" style="color:yellow"/>');
+        assert.deepEqual(p.fill.rgba, [1, 1, 0, 1]);
+        assert.equal(p.stroke, null);
+    });
 });
