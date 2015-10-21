@@ -604,6 +604,14 @@ describe('The SVG module', function () {
         var r = vg.svg.parseString('<rect x="10" y="20" width="30" height="40" fill="blue"/>');
         assert.deepEqual(r.bounds().xywh, [10, 20, 30, 40]);
         assert.deepEqual(r.fill.rgba, [0, 0, 1, 1]);
+        assert.equal(r.commands.length, 5);
+    });
+
+    it('can parse rounded rects', function () {
+        var r = vg.svg.parseString('<rect x="10" y="20" width="30" height="40" rx="15" ry="15" fill="blue"/>');
+        assert.deepEqual(r.bounds().xywh, [10, 20, 30, 40]);
+        assert.deepEqual(r.fill.rgba, [0, 0, 1, 1]);
+        assert.equal(r.commands.length, 8);
     });
 
     it('can parse paths', function () {
