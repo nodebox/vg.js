@@ -88,7 +88,7 @@ var readSvgAttributes = function (node, parentAttributes) {
 
     types.matrix = function (s) {
         var m = toNumberArray(s);
-        return [m[0], m[1], 0, m[2], m[3], 0, m[4], m[5], 1];
+        return new Transform([m[0], m[1], 0, m[2], m[3], 0, m[4], m[5], 1]);
     };
 
     _.each(node.attributes, function (v) {
