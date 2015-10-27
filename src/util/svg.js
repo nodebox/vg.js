@@ -655,7 +655,7 @@ var read = {
                     segs = arcToSegments(ex, ey, rx, ry, large, sweep, rot, curr.x, curr.y);
                     for (i = 0; i < segs.length; i += 1) {
                         bez = segmentToBezier.apply(this, segs[i]);
-                        p.curveTo.apply(this, bez);
+                        p.curveTo.apply(p, bez);
                     }
                 }
                 break;
