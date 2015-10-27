@@ -295,7 +295,7 @@ Color.parse = function (s) {
             return new Color(parseFloat(m[1]) / 360, parseFloat(m[2]) / 100, parseFloat(m[3]) / 100);
         }
         return new Color(0, 0, 0, 0);
-    } else if (s === 'none') {
+    } else if (s === 'none' || s === 'null' || startsWith(s, 'url(')) {
         return new Color(0, 0, 0, 0);
     } else {
         throw new Error('Color ' + s + 'can not be parsed');
