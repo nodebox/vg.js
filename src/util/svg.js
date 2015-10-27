@@ -395,12 +395,37 @@ var read = {
         var attributes = readSvgAttributes(node, parentAttributes);
         var x = parseFloat(node.getAttribute('x'));
         var y = parseFloat(node.getAttribute('y'));
+        if (!x) { x = 0; }
+        if (!y) { y = 0; }
         var width = parseFloat(node.getAttribute('width'));
         var height = parseFloat(node.getAttribute('height'));
+        if (!width) { width = 0; }
+        if (!height) { height = 0; }
+        if (width < 0) {
+            console.error('Error: invalid negative value for <rect> attribute width="' + width + '"');
+            width = 0;
+        }
+        if (height < 0) {
+            console.error('Error: invalid negative value for <rect> attribute height="' + height + '"');
+            height = 0;
+        }
         var rx = parseFloat(node.getAttribute('rx'));
         var ry = parseFloat(node.getAttribute('ry'));
-        rx = isNaN(rx) ? 0 : rx;
-        ry = isNaN(ry) ? 0 : ry;
+        if (!rx) { rx = 0; }
+        if (!ry) { ry = 0; }
+        if (rx < 0) {
+            console.error('Error: invalid negative value for <rect> attribute rx="' + rx + '"');
+            rx = 0;
+        }
+        if (ry < 0) {
+            console.error('Error: invalid negative value for <rect> attribute ry="' + ry + '"');
+            ry = 0;
+        }
+        if (!rx || !ry) {
+            rx = ry = Math.max(rx, ry);
+        }
+        if (rx > width / 2) { rx = width / 2; }
+        if (ry > height / 2) { ry = height / 2; }
         var p = new Path();
         if (rx && ry) {
             p.addRoundedRect(x, y, width, height, rx, ry);
