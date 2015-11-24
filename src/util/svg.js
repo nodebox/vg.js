@@ -497,6 +497,10 @@ var read = {
         var y1 = parseFloat(node.getAttribute('y1'));
         var x2 = parseFloat(node.getAttribute('x2'));
         var y2 = parseFloat(node.getAttribute('y2'));
+        if (!x1) { x1 = 0; }
+        if (!y1) { y1 = 0; }
+        if (!x2) { x2 = 0; }
+        if (!y2) { y2 = 0; }
         var p = new Path();
         p.addLine(x1, y1, x2, y2);
         return applySvgAttributes(p, attributes);
