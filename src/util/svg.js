@@ -215,7 +215,7 @@ var applySvgAttributes = function (shape, attributes) {
     if (fill !== undefined) {
         fill = Color.parse(fill);
         if (fillOpacity !== undefined) {
-            fill.a = fillOpacity;
+            fill.a *= fillOpacity;
         }
     }
 
@@ -225,7 +225,7 @@ var applySvgAttributes = function (shape, attributes) {
     if (stroke !== undefined) {
         stroke = Color.parse(stroke);
         if (strokeOpacity !== undefined) {
-            stroke.a = strokeOpacity;
+            stroke.a *= strokeOpacity;
         }
     }
 
