@@ -439,8 +439,20 @@ var read = {
         var attributes = readSvgAttributes(node, parentAttributes);
         var cx = parseFloat(node.getAttribute('cx'));
         var cy = parseFloat(node.getAttribute('cy'));
+        if (!cx) { cx = 0; }
+        if (!cy) { cy = 0; }
         var rx = parseFloat(node.getAttribute('rx'));
         var ry = parseFloat(node.getAttribute('ry'));
+        if (!rx) { rx = 0; }
+        if (!ry) { ry = 0; }
+        if (rx < 0) {
+            console.error('Error: invalid negative value for <ellipse> attribute rx="' + rx + '"');
+            rx = 0;
+        }
+        if (ry < 0) {
+            console.error('Error: invalid negative value for <ellipse> attribute ry="' + ry + '"');
+            ry = 0;
+        }
         var p = new Path();
         p.addEllipse(cx - rx, cy - ry, rx * 2, ry * 2);
         return applySvgAttributes(p, attributes);
@@ -450,7 +462,14 @@ var read = {
         var attributes = readSvgAttributes(node, parentAttributes);
         var cx = parseFloat(node.getAttribute('cx'));
         var cy = parseFloat(node.getAttribute('cy'));
+        if (!cx) { cx = 0; }
+        if (!cy) { cy = 0; }
         var r = parseFloat(node.getAttribute('r'));
+        if (!r) { r = 0; }
+        if (r < 0) {
+            console.error('Error: invalid negative value for <circle> attribute r="' + r + '"');
+            r = 0;
+        }
         var p = new Path();
         p.addEllipse(cx - r, cy - r, r * 2, r * 2);
         return applySvgAttributes(p, attributes);
