@@ -48,7 +48,7 @@ var toNumberArray = function (s) {
 };
 
 var readSvgAttributes = function (node, parentAttributes) {
-    var fill, fillOpacity, stroke, strokeOpacity, strokeWidth, color, transforms, types, transform, i, attributes;
+    var fill, fillOpacity, stroke, strokeOpacity, strokeWidth, opacity, color, transforms, types, transform, i, attributes;
 
     if (parentAttributes) {
         attributes = Object.create(parentAttributes);
@@ -132,6 +132,9 @@ var readSvgAttributes = function (node, parentAttributes) {
         case 'stroke':
             stroke = v.nodeValue;
             break;
+        case 'opacity':
+            opacity = parseFloat(v.nodeValue);
+            break;
         case 'color':
             color = v.nodeValue;
             break;
@@ -147,14 +150,17 @@ var readSvgAttributes = function (node, parentAttributes) {
             if (d.stroke) {
                 stroke = d.stroke;
             }
-            if (d['stroke-width']) {
+            if (d['stroke-width'] !== undefined) {
                 strokeWidth = parseFloat(d['stroke-width']);
             }
-            if (d['stroke-opacity']) {
+            if (d['stroke-opacity'] !== undefined) {
                 strokeOpacity = parseFloat(d['stroke-opacity']);
             }
-            if (d['fill-opacity']) {
+            if (d['fill-opacity'] !== undefined) {
                 fillOpacity = parseFloat(d['fill-opacity']);
+            }
+            if (d.opacity !== undefined) {
+                opacity = parseFloat(d.opacity);
             }
             if (d.color) {
                 color = d.color;
@@ -177,6 +183,9 @@ var readSvgAttributes = function (node, parentAttributes) {
     }
     if (strokeWidth !== undefined) {
         attributes.strokeWidth = strokeWidth;
+    }
+    if (opacity !== undefined) {
+        attributes.opacity = opacity;
     }
     if (color !== undefined && color !== 'currentColor') {
         attributes.color = color;
@@ -205,6 +214,7 @@ var applySvgAttributes = function (shape, attributes) {
     var fillOpacity = attributes.fillOpacity;
     var stroke = attributes.stroke;
     var strokeOpacity = attributes.strokeOpacity;
+    var opacity = attributes.opacity;
     var strokeWidth = attributes.strokeWidth;
     var transform = attributes.transform;
     var color = attributes.color;
@@ -217,6 +227,9 @@ var applySvgAttributes = function (shape, attributes) {
         if (fillOpacity !== undefined) {
             fill.a *= fillOpacity;
         }
+        if (opacity !== undefined) {
+            fill.a *= opacity;
+        }
     }
 
     if (stroke === 'currentColor') {
@@ -226,6 +239,9 @@ var applySvgAttributes = function (shape, attributes) {
         stroke = Color.parse(stroke);
         if (strokeOpacity !== undefined) {
             stroke.a *= strokeOpacity;
+        }
+        if (opacity !== undefined) {
+            stroke.a *= opacity;
         }
     }
 
