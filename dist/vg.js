@@ -22930,7 +22930,7 @@ Color.parse = function (s) {
             return new Color(parseFloat(m[1]) / 360, parseFloat(m[2]) / 100, parseFloat(m[3]) / 100);
         }
         return new Color(0, 0, 0, 0);
-    } else if (s === 'none') {
+    } else if (s === 'none' || s === 'null' || startsWith(s, 'url(')) {
         return new Color(0, 0, 0, 0);
     } else {
         throw new Error('Color ' + s + 'can not be parsed');
@@ -25500,7 +25500,7 @@ var toNumberArray = function (s) {
 };
 
 var readSvgAttributes = function (node, parentAttributes) {
-    var fill, fillOpacity, stroke, strokeOpacity, strokeWidth, color, transforms, types, transform, i, attributes;
+    var fill, fillOpacity, stroke, strokeOpacity, strokeWidth, opacity, color, transforms, types, transform, i, attributes;
 
     if (parentAttributes) {
         attributes = Object.create(parentAttributes);
@@ -25540,7 +25540,7 @@ var readSvgAttributes = function (node, parentAttributes) {
 
     types.matrix = function (s) {
         var m = toNumberArray(s);
-        return [m[0], m[1], 0, m[2], m[3], 0, m[4], m[5], 1];
+        return new Transform([m[0], m[1], 0, m[2], m[3], 0, m[4], m[5], 1]);
     };
 
     _.each(node.attributes, function (v) {
@@ -25584,6 +25584,9 @@ var readSvgAttributes = function (node, parentAttributes) {
         case 'stroke':
             stroke = v.nodeValue;
             break;
+        case 'opacity':
+            opacity = parseFloat(v.nodeValue);
+            break;
         case 'color':
             color = v.nodeValue;
             break;
@@ -25599,14 +25602,17 @@ var readSvgAttributes = function (node, parentAttributes) {
             if (d.stroke) {
                 stroke = d.stroke;
             }
-            if (d['stroke-width']) {
+            if (d['stroke-width'] !== undefined) {
                 strokeWidth = parseFloat(d['stroke-width']);
             }
-            if (d['stroke-opacity']) {
+            if (d['stroke-opacity'] !== undefined) {
                 strokeOpacity = parseFloat(d['stroke-opacity']);
             }
-            if (d['fill-opacity']) {
+            if (d['fill-opacity'] !== undefined) {
                 fillOpacity = parseFloat(d['fill-opacity']);
+            }
+            if (d.opacity !== undefined) {
+                opacity = parseFloat(d.opacity);
             }
             if (d.color) {
                 color = d.color;
@@ -25629,6 +25635,9 @@ var readSvgAttributes = function (node, parentAttributes) {
     }
     if (strokeWidth !== undefined) {
         attributes.strokeWidth = strokeWidth;
+    }
+    if (opacity !== undefined) {
+        attributes.opacity = opacity;
     }
     if (color !== undefined && color !== 'currentColor') {
         attributes.color = color;
@@ -25657,6 +25666,7 @@ var applySvgAttributes = function (shape, attributes) {
     var fillOpacity = attributes.fillOpacity;
     var stroke = attributes.stroke;
     var strokeOpacity = attributes.strokeOpacity;
+    var opacity = attributes.opacity;
     var strokeWidth = attributes.strokeWidth;
     var transform = attributes.transform;
     var color = attributes.color;
@@ -25667,7 +25677,10 @@ var applySvgAttributes = function (shape, attributes) {
     if (fill !== undefined) {
         fill = Color.parse(fill);
         if (fillOpacity !== undefined) {
-            fill.a = fillOpacity;
+            fill.a *= fillOpacity;
+        }
+        if (opacity !== undefined) {
+            fill.a *= opacity;
         }
     }
 
@@ -25677,7 +25690,10 @@ var applySvgAttributes = function (shape, attributes) {
     if (stroke !== undefined) {
         stroke = Color.parse(stroke);
         if (strokeOpacity !== undefined) {
-            stroke.a = strokeOpacity;
+            stroke.a *= strokeOpacity;
+        }
+        if (opacity !== undefined) {
+            stroke.a *= opacity;
         }
     }
 
@@ -25847,12 +25863,37 @@ var read = {
         var attributes = readSvgAttributes(node, parentAttributes);
         var x = parseFloat(node.getAttribute('x'));
         var y = parseFloat(node.getAttribute('y'));
+        if (!x) { x = 0; }
+        if (!y) { y = 0; }
         var width = parseFloat(node.getAttribute('width'));
         var height = parseFloat(node.getAttribute('height'));
+        if (!width) { width = 0; }
+        if (!height) { height = 0; }
+        if (width < 0) {
+            console.error('Error: invalid negative value for <rect> attribute width="' + width + '"');
+            width = 0;
+        }
+        if (height < 0) {
+            console.error('Error: invalid negative value for <rect> attribute height="' + height + '"');
+            height = 0;
+        }
         var rx = parseFloat(node.getAttribute('rx'));
         var ry = parseFloat(node.getAttribute('ry'));
-        rx = isNaN(rx) ? 0 : rx;
-        ry = isNaN(ry) ? 0 : ry;
+        if (!rx) { rx = 0; }
+        if (!ry) { ry = 0; }
+        if (rx < 0) {
+            console.error('Error: invalid negative value for <rect> attribute rx="' + rx + '"');
+            rx = 0;
+        }
+        if (ry < 0) {
+            console.error('Error: invalid negative value for <rect> attribute ry="' + ry + '"');
+            ry = 0;
+        }
+        if (!rx || !ry) {
+            rx = ry = Math.max(rx, ry);
+        }
+        if (rx > width / 2) { rx = width / 2; }
+        if (ry > height / 2) { ry = height / 2; }
         var p = new Path();
         if (rx && ry) {
             p.addRoundedRect(x, y, width, height, rx, ry);
@@ -25866,8 +25907,20 @@ var read = {
         var attributes = readSvgAttributes(node, parentAttributes);
         var cx = parseFloat(node.getAttribute('cx'));
         var cy = parseFloat(node.getAttribute('cy'));
+        if (!cx) { cx = 0; }
+        if (!cy) { cy = 0; }
         var rx = parseFloat(node.getAttribute('rx'));
         var ry = parseFloat(node.getAttribute('ry'));
+        if (!rx) { rx = 0; }
+        if (!ry) { ry = 0; }
+        if (rx < 0) {
+            console.error('Error: invalid negative value for <ellipse> attribute rx="' + rx + '"');
+            rx = 0;
+        }
+        if (ry < 0) {
+            console.error('Error: invalid negative value for <ellipse> attribute ry="' + ry + '"');
+            ry = 0;
+        }
         var p = new Path();
         p.addEllipse(cx - rx, cy - ry, rx * 2, ry * 2);
         return applySvgAttributes(p, attributes);
@@ -25877,7 +25930,14 @@ var read = {
         var attributes = readSvgAttributes(node, parentAttributes);
         var cx = parseFloat(node.getAttribute('cx'));
         var cy = parseFloat(node.getAttribute('cy'));
+        if (!cx) { cx = 0; }
+        if (!cy) { cy = 0; }
         var r = parseFloat(node.getAttribute('r'));
+        if (!r) { r = 0; }
+        if (r < 0) {
+            console.error('Error: invalid negative value for <circle> attribute r="' + r + '"');
+            r = 0;
+        }
         var p = new Path();
         p.addEllipse(cx - r, cy - r, r * 2, r * 2);
         return applySvgAttributes(p, attributes);
@@ -25889,6 +25949,10 @@ var read = {
         var y1 = parseFloat(node.getAttribute('y1'));
         var x2 = parseFloat(node.getAttribute('x2'));
         var y2 = parseFloat(node.getAttribute('y2'));
+        if (!x1) { x1 = 0; }
+        if (!y1) { y1 = 0; }
+        if (!x2) { x2 = 0; }
+        if (!y2) { y2 = 0; }
         var p = new Path();
         p.addLine(x1, y1, x2, y2);
         return applySvgAttributes(p, attributes);
@@ -26107,7 +26171,7 @@ var read = {
                     segs = arcToSegments(ex, ey, rx, ry, large, sweep, rot, curr.x, curr.y);
                     for (i = 0; i < segs.length; i += 1) {
                         bez = segmentToBezier.apply(this, segs[i]);
-                        p.curveTo.apply(this, bez);
+                        p.curveTo.apply(p, bez);
                     }
                 }
                 break;
